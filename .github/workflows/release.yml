@@ -39,6 +39,8 @@ jobs:
             exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Verify release metadata and desktop version consistency
+        run: node scripts/check-release-metadata.mjs
       - name: Check existing release
         id: existing
         env:
@@ -120,10 +122,22 @@ jobs:
           workspaces: "apps/desktop/src-tauri -> target"
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Verify release metadata
+        run: node scripts/check-release-metadata.mjs
       - name: Generate icons
         run: npm run icons -w @dma-hub/desktop
       - name: Build Windows installer
         run: npm run build -w @dma-hub/desktop
+      - name: Verify Windows PE header, version and signature status
+        shell: pwsh
+        run: |
+          $meta = Get-Content release/version.json -Raw | ConvertFrom-Json
+          $version = $meta.version.Substring(1).Split("-")[0]
+          $files = @(Get-ChildItem "apps/desktop/src-tauri/target/release/bundle/nsis/*-setup.exe")
+          if ($files.Count -lt 1) { throw "Missing installer to verify." }
+          foreach ($file in $files) {
+            ./scripts/verify-windows-installer.ps1 -InstallerPath $file.FullName -ExpectedVersion $version
+          }
       - name: Upload unsigned installer and checksum to prerelease
         shell: pwsh
         env:
@@ -142,3 +156,26 @@ jobs:
           $hashes | Set-Content -Path "SHA256SUMS-windows.txt" -Encoding utf8NoBOM
           gh release upload "$env:VERSION" "SHA256SUMS-windows.txt" --repo "$env:GITHUB_REPOSITORY" --clobber
           if ($LASTEXITCODE -ne 0) { throw "Checksum upload failed." }
+      - name: Confirm downloaded GitHub asset hashes match local installer
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.release.outputs.tag }}
+        run: |
+          $verifyDir = Join-Path $env:RUNNER_TEMP "dma-release-hash-check"
+          New-Item -Path $verifyDir -ItemType Directory -Force | Out-Null
+          gh release download "$env:VERSION" --repo "$env:GITHUB_REPOSITORY" --pattern "SHA256SUMS-windows.txt" --dir $verifyDir
+          if ($LASTEXITCODE -ne 0) { throw "Unable to retrieve published checksum." }
+          $records = @(Get-Content (Join-Path $verifyDir "SHA256SUMS-windows.txt"))
+          $files = @(Get-ChildItem "apps/desktop/src-tauri/target/release/bundle/nsis/*-setup.exe")
+          foreach ($file in $files) {
+            gh release download "$env:VERSION" --repo "$env:GITHUB_REPOSITORY" --pattern "$($file.Name)" --dir $verifyDir
+            if ($LASTEXITCODE -ne 0) { throw "Unable to retrieve published installer." }
+            $local = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            $downloaded = Join-Path $verifyDir $file.Name
+            if (-not (Test-Path -LiteralPath $downloaded)) { throw "Published installer missing." }
+            $remote = (Get-FileHash -LiteralPath $downloaded -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($local -ne $remote) { throw "Published installer differs from local build." }
+            if ($records -notcontains ("$local  " + $file.Name)) { throw "Published SHA-256 manifest does not match installer." }
+          }
+          Write-Host "Published Windows installer and SHA-256 records verified."

@@ -6,6 +6,8 @@ on:
     paths:
       - "apps/desktop/**"
       - "apps/web/**"
+      - "scripts/**"
+      - "release/version.json"
       - "packages/ui/**"
       - "package.json"
       - ".github/workflows/desktop.yml"
@@ -13,6 +15,8 @@ on:
     paths:
       - "apps/desktop/**"
       - "apps/web/**"
+      - "scripts/**"
+      - "release/version.json"
       - "packages/ui/**"
       - "package.json"
   workflow_dispatch:
@@ -39,12 +43,24 @@ jobs:
           workspaces: "apps/desktop/src-tauri -> target"
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Verify version metadata
+        run: node scripts/check-release-metadata.mjs
       - name: Generate Windows icons
         run: npm run icons -w @dma-hub/desktop
       - name: Validate web and API
         run: npm run check
       - name: Bundle NSIS installer
         run: npm run build -w @dma-hub/desktop
+      - name: Validate unsigned installer before preview distribution
+        shell: pwsh
+        run: |
+          $meta = Get-Content release/version.json -Raw | ConvertFrom-Json
+          $version = $meta.version.Substring(1).Split("-")[0]
+          $files = @(Get-ChildItem "apps/desktop/src-tauri/target/release/bundle/nsis/*-setup.exe")
+          if ($files.Count -lt 1) { throw "No installer generated." }
+          foreach ($file in $files) {
+            ./scripts/verify-windows-installer.ps1 -InstallerPath $file.FullName -ExpectedVersion $version
+          }
       - name: Upload unsigned preview installer
         uses: actions/upload-artifact@v4
         with:

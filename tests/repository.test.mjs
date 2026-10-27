@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync,existsSync} from "node:fs";
 import {join} from "node:path";
+import {execFileSync} from "node:child_process";
 const root=process.cwd();
 test("monorepo paths exist",()=>{
   for(const p of ["apps/web/src/App.tsx","apps/web/src/data.ts","apps/web/src/main.tsx","packages/ui/src/index.tsx","apps/web/src/styles.css"]){
@@ -42,4 +43,12 @@ test("native device discovery is explicit and read-only",()=>{
   assert.ok(ui.includes('invoke<SerialDevice[]>("list_serial_ports")'));
   assert.ok(ui.includes('if(!native)return'));
   assert.ok(ui.includes('stage==="idle"'));
+});
+
+test("release integrity gates are present",()=>{
+  assert.ok(existsSync(join(root,"scripts/verify-windows-installer.ps1")));
+  assert.doesNotThrow(()=>execFileSync(process.execPath,[join(root,"scripts/check-release-metadata.mjs")],{cwd:root,stdio:"pipe"}));
+  const workflow=readFileSync(join(root,".github/workflows/release.yml"),"utf8");
+  assert.ok(workflow.includes("Confirm downloaded GitHub asset hashes match local installer"));
+  assert.ok(workflow.includes("verify-windows-installer.ps1"));
 });

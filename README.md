@@ -211,6 +211,15 @@ CI runs on pushes to `main` and pull requests. Verify the **Web and API CI** wor
 - [Signed Windows distribution](https://github.com/migtam628/dma_hub/issues/3) — publisher signatures and trusted updater.
 - [First hardware adapter](https://github.com/migtam628/dma_hub/issues/4) — authorized real-device QA.
 
+## Windows alpha distribution verification
+
+The current release is an **unsigned development preview**. On Windows CI the installer undergoes PE-header/size/version checks, an Authenticode status check, and SHA-256 hashing. The GitHub Release pipeline also downloads the published installer and checksum file back from GitHub and compares them to the locally built artifact.
+
+- Check version consistency before packaging: `node scripts/check-release-metadata.mjs`.
+- Check a local Windows installer: `./scripts/verify-windows-installer.ps1 -InstallerPath "path/to/installer.exe" -ExpectedVersion "0.2.0"` (PowerShell on Windows).
+- Follow the [Windows installer QA checklist](docs/windows-installer-qa.md) for actual VM-based install/launch/uninstall tests.
+- A successful automated checksum check **does not** establish that an installer is signed, malware-free, fully tested or production-ready. Publisher certificates, signed auto-updates, rollback and security hardening remain pending.
+
 ## Development workflow
 
 Every meaningful implementation milestone should be tested, committed and pushed. The CI, Pages, and release workflows provide independent validation. **A successful workflow is not the same as a production-ready release**; outstanding milestones remain tracked explicitly.
