@@ -10,10 +10,12 @@ This repository is planned to house a cohesive software platform with a public s
 
 ## Current documentation
 
+- [Batch 1: Storefront and Customer Dashboard screens](docs/concept-3-batch-1.md)
+- [Batch 2: Admin, Windows Launcher and Configuration Studio](docs/concept-3-batch-2.md)
 - [Batch 3: Secondary screens, shared states and acceptance criteria](docs/concept-3-batch-3.md)
 - [Architecture and phased roadmap](docs/project-roadmap.md)
 
-Earlier Batch 1 and Batch 2 design specifications exist separately and can be added once consolidated/reviewed. No app code, builds or deployment are included in this documentation-first initialization.
+All three screen-design batches are documented. These are **specifications only**; no application code, build, tests or deployment is included in this documentation-first initialization.
 
 ## Proposed surfaces
 
