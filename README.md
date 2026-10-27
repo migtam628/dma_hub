@@ -14,6 +14,8 @@ This repository is planned to house a cohesive software platform with a public s
 - [Batch 2: Admin, Windows Launcher and Configuration Studio](docs/concept-3-batch-2.md)
 - [Batch 3: Secondary screens, shared states and acceptance criteria](docs/concept-3-batch-3.md)
 - [Architecture and phased roadmap](docs/project-roadmap.md)
+- [High-fidelity screen review v1: foundation screens](docs/design/concept-3-hifi-review-v1.md)
+- [High-fidelity screen review v2: secondary screens and mobile](docs/design/concept-3-hifi-review-v2.md)
 
 All three screen-design batches are documented. These are **specifications only**; no application code, build, tests or deployment is included in this documentation-first initialization.
 
