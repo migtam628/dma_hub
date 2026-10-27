@@ -1,0 +1,39 @@
+name: API Container Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/api/**"
+      - "compose.yaml"
+      - ".dockerignore"
+      - ".github/workflows/api-container.yml"
+  pull_request:
+    paths:
+      - "apps/api/**"
+      - "compose.yaml"
+      - ".dockerignore"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and start API
+        run: docker compose up --build --wait -d api
+      - name: Verify health
+        run: |
+          curl --fail --silent --show-error http://127.0.0.1:8787/healthz
+          curl --fail --silent --show-error http://127.0.0.1:8787/v1/catalog
+      - name: Verify nonpublic binding
+        run: |
+          docker compose ps
+          test "$(docker compose port api 8787 | awk -F: '{print $1}')" = "127.0.0.1"
+      - name: Cleanup
+        if: always()
+        run: docker compose down --volumes --remove-orphans

@@ -1,0 +1,39 @@
+name: dma-hub
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: dma-hub-api:local
+    restart: unless-stopped
+    user: "node"
+    ports:
+      - "127.0.0.1:8787:8787"
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "8787"
+      DB_PATH: "/var/lib/dmahub/dma-hub.sqlite"
+      WEB_ORIGIN: "${WEB_ORIGIN:-http://localhost:5173}"
+    volumes:
+      - api_data:/var/lib/dmahub
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=16m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:8787/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  api_data:
