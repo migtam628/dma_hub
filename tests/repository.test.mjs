@@ -18,3 +18,17 @@ test("prototype explicitly identifies non-production data",()=>{
  assert.ok(source.includes("Demo workspace"));
  assert.ok(source.includes("not connected"));
 });
+
+test("public Windows downloads use official GitHub Releases",()=>{
+  const releases=readFileSync(join(root,"apps/web/src/Releases.tsx"),"utf8");
+  const app=readFileSync(join(root,"apps/web/src/App.tsx"),"utf8");
+  assert.ok(releases.includes("api.github.com/repos/"));
+  assert.ok(releases.includes("Unsigned alpha software"));
+  assert.ok(app.includes('if(path==="/releases")return <ReleasesPage/>'));
+});
+test("Pages auto-deploy is enabled for every main push",()=>{
+  const workflow=readFileSync(join(root,".github/workflows/pages.yml"),"utf8");
+  assert.ok(workflow.includes("branches: [main]"));
+  assert.ok(!workflow.split("workflow_dispatch:")[0].includes("paths:"));
+  assert.ok(workflow.includes("apps/web/dist"));
+});

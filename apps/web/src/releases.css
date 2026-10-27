@@ -1,0 +1,44 @@
+/* Concept 3: live releases */
+.releases-page{max-width:1300px}
+.releases-intro{max-width:810px;margin:0 0 35px}
+.releases-intro h1{font-size:clamp(34px,4.3vw,60px);line-height:1.08;margin:12px 0 17px}
+.releases-intro p{color:#a9bece;max-width:710px;font-size:15px}
+.releases-spotlight{padding:32px;border:1px solid #386779;border-radius:18px;background:radial-gradient(ellipse at 92% 5%,#1d5e7155,transparent 45%),linear-gradient(120deg,#102a3b,#0b1b2b 58%,#0a1828);box-shadow:0 18px 55px #0004;overflow:hidden}
+.releases-spotlight--compact{margin:0 0 54px}
+.releases-topline{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:17px}
+.release-channel{border:1px solid #3b796e;color:#a1f1cb;border-radius:100px;font-size:10px;font-weight:800;letter-spacing:.07em;padding:7px 12px;white-space:nowrap}
+.release-channel .live-dot{width:6px;height:6px;margin-right:5px}
+.releases-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,.93fr);gap:32px;align-items:center}
+.release-copy h2{font-size:clamp(27px,3.2vw,44px);line-height:1.15;margin:7px 0 14px}
+.release-copy p{color:#b0c6d4;font-size:14px;max-width:520px}
+.release-status{display:flex;align-items:center;min-height:26px;gap:8px;color:#8ee5c0;font-size:12px;line-height:1.5}
+.release-status svg{flex:none}
+.release-action-panel{background:#071a2a;border:1px solid #2d556b;border-radius:14px;padding:16px}
+.release-download{display:flex;align-items:center;gap:15px;text-decoration:none;border:1px solid #58c9d7;border-radius:11px;padding:16px 18px;background:linear-gradient(100deg,#31d6e5,#1b9dc7);color:#062031;transition:filter .2s,transform .2s}
+.release-download:hover{filter:brightness(1.08);transform:translateY(-2px)}
+.release-download:focus-visible,.release-asset-links a:focus-visible,.release-history a:focus-visible,.releases-notes a:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.release-download span{flex:1;min-width:0;display:grid;gap:4px}
+.release-download strong{font-size:14px}
+.release-download small{font-size:11px;color:#174657;overflow-wrap:anywhere}
+.release-download--fallback{background:#18394c;color:#dcf7ff}
+.release-download--fallback small{color:#9bc4d4}
+.release-asset-links{display:flex;flex-wrap:wrap;gap:12px;margin:15px 0 0;font-size:11px;color:#a5c7d8}
+.release-asset-links a{display:inline-flex;align-items:center;gap:6px;color:#7be2eb;text-decoration:none}
+.release-asset-links a:hover,.release-history a:hover,.releases-notes a:hover{color:#fff}
+.release-safety{display:flex;align-items:flex-start;gap:10px;margin-top:17px;padding-top:14px;border-top:1px solid #2d4c5f;color:#b7c4cd;font-size:11px;line-height:1.6}
+.release-safety svg{color:#f7c875;flex:none;margin-top:2px}
+.release-safety strong{color:#ffd89b}
+.release-history{border-top:1px solid #345b68;margin-top:30px;padding-top:23px;display:grid;gap:12px}
+.release-history h3{font-size:17px;margin:0 0 5px}
+.release-history p{font-size:12px;color:#9bb2c1;margin:0}
+.release-history ul{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.release-history li a{border:1px solid #2e5266;background:#0a2030;border-radius:9px;display:flex;align-items:center;gap:12px;padding:14px;color:#e4f5fb;text-decoration:none}
+.release-history li a>span{font-size:12px;font-weight:700;flex:1}
+.release-history li small{color:#99b0bf;font-size:10px}
+.release-web-bundle a{color:#72d8ec}
+.releases-notes{display:flex;align-items:center;justify-content:space-between;gap:20px;border:1px solid #23394b;border-radius:14px;background:#0d1d2c;margin-top:22px;padding:22px 26px}
+.releases-notes h3{font-size:16px;margin:0 0 8px}
+.releases-notes p{font-size:12px;color:#9db5c7;max-width:700px;margin:0}
+.releases-notes a{color:#73dce9;font-size:12px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+@media(max-width:850px){.releases-layout{grid-template-columns:1fr}.release-history ul{grid-template-columns:1fr}.releases-notes{flex-direction:column;align-items:flex-start}}
+@media(max-width:650px){.releases-spotlight{padding:20px;margin-bottom:34px}.releases-topline{flex-wrap:wrap}.release-action-panel{padding:12px}.release-download{padding:13px}.releases-intro{margin-bottom:24px}.releases-notes{padding:20px}.release-history li a{flex-wrap:wrap}}

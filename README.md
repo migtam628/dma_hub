@@ -9,9 +9,9 @@
 
 > **Status: public alpha / active development.** The web UI runs with sample data. The local API supports accounts and versioned profile storage, but is **not yet production hardened**. There is **no signed Windows executable, live billing, working license service, or hardware control** in the published alpha. A Tauri desktop build workflow exists on `main`, but Windows installers are **unsigned preview artifacts** until verified and signed. Demo screens are not proof of connected services.
 
-**[Web preview — GitHub Pages](https://migtam628.github.io/dma_hub/)** · **[Releases](https://github.com/migtam628/dma_hub/releases)** · **[Actions](https://github.com/migtam628/dma_hub/actions)** · **[Roadmap](docs/project-roadmap.md)**
+**[Live site — dma.moobee.lol](https://dma.moobee.lol/)** · **[Downloads](https://dma.moobee.lol/#/releases)** · **[Releases](https://github.com/migtam628/dma_hub/releases)** · **[Actions](https://github.com/migtam628/dma_hub/actions)** · **[Roadmap](docs/project-roadmap.md)**
 
-The Pages link works **after GitHub Pages has been enabled and the Pages deployment succeeds**. If not yet active, see [Enable GitHub Pages](#publishing-github-pages).
+**Hosting:** GitHub Pages is live with the GoDaddy-managed custom domain `dma.moobee.lol` and Enforce HTTPS. Frontend changes deploy automatically after a successful Pages workflow.
 
 ## Overview
 
@@ -19,7 +19,7 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 
 | Area | Current status | What's included |
 |---|---|---|
-| Public website | ✅ Web preview | Homepage, product catalog, search, filters, details, guides |
+| Public website | ✅ Web preview | Homepage, catalog, setup guides, live GitHub Releases download center |
 | Customer workspace | ✅ Web preview | My Software, device list, subscription placeholder, support, status |
 | Admin workspace | ✅ Synthetic preview | Users, products, releases, system readiness |
 | Configuration Studio | ✅ Local functionality | Edit settings, live preview, JSON import/export, browser storage |
@@ -28,7 +28,7 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 | Desktop companion | 🧪 Windows scaffold | Tauri shell source, NSIS build CI, launcher and diagnostics previews; no hardware APIs |
 | Device adapters | ⏳ Planned | User-authorized USB/serial/HID/network integrations |
 | Payments/licensing | ⏳ Not connected | Real billing, entitlement verification, audit and recovery |
-| Public hosting | ⚙️ Automated workflow | GitHub Pages for static preview **only** |
+| Public hosting | ✅ Live | `https://dma.moobee.lol` via GitHub Pages; static preview **only** |
 
 ### Screens
 
@@ -138,27 +138,26 @@ See [API reference](docs/api.md) for endpoints, authorization and limitations.
 
 ## Publishing GitHub Pages
 
-The `pages.yml` workflow builds `apps/web` and uploads `apps/web/dist` to GitHub Pages. It runs on changes to the frontend/workflow and may also be started manually from Actions.
+The [Deploy GitHub Pages](https://github.com/migtam628/dma_hub/actions/workflows/pages.yml) workflow now runs on **every push to `main`** and can also be started manually. It validates and builds React/Vite with `npm run check` and publishes **only** `apps/web/dist`.
 
-**Current blocker:** GitHub Pages was not enabled when the initial workflow ran. Its build passed, but the Pages configuration action returned `Not Found`. Track activation in [issue #1](https://github.com/migtam628/dma_hub/issues/1).
+GitHub Pages must remain set to **Settings → Pages → Source: GitHub Actions**. Check the Pages workflow for a green build and deploy before describing a change as live.
 
-**One-time GitHub repository setting:**
+**Custom domain:** [https://dma.moobee.lol](https://dma.moobee.lol) uses GoDaddy DNS (host `dma`, CNAME value `migtam628.github.io`) and Pages HTTPS enforcement. You do not need to edit DNS again for code deployments.
 
-1. Visit [Settings → Pages](https://github.com/migtam628/dma_hub/settings/pages).
-2. Under **Build and deployment**, set **Source → GitHub Actions**.
-3. Open [Deploy GitHub Pages](https://github.com/migtam628/dma_hub/actions/workflows/pages.yml) and use **Run workflow** if no successful deployment is visible.
-4. Once the deployment succeeds, visit **https://migtam628.github.io/dma_hub/**.
-
-The preview uses hash navigation and relative Vite asset URLs for correct project-site hosting at `/dma_hub/`. **No server-side login, API, or payment service is hosted on Pages.**
+The public site uses hash navigation (for example `https://dma.moobee.lol/#/releases`) and relative Vite asset paths. **No server-side login, API, or payment service is hosted on Pages.**
 
 ## GitHub Releases
+
+The landing page, public **Downloads** route (`#/releases`), customer Downloads, and admin Release Center use published data from GitHub's public Releases API, including the Windows installer, checksum, and notes when available. Download URLs must point to official assets under `github.com/migtam628/dma_hub/releases/download/`. The website includes a direct link to the Releases page if the public API is rate-limited or unavailable. **No token is shipped to browsers.**
+
+**Important:** The Windows alpha installer is **unsigned test software**, not a certified or production-ready distribution. Users should review release notes and verify its published `SHA256SUMS-windows.txt` digest. The browser app doesn't connect to any production backend.
 
 [All releases](https://github.com/migtam628/dma_hub/releases) · [Alpha 2](https://github.com/migtam628/dma_hub/releases/tag/v0.2.0-alpha.2) · [Release workflow](https://github.com/migtam628/dma_hub/actions/workflows/release.yml)
 
 Versioned releases are triggered by changes to `release/version.json` on `main` or by manual workflow dispatch.
 
 - **v0.2.0-alpha.1** — initial tested static React preview ZIP, checksum and source archive.
-- **v0.2.0-alpha.2** — tested web preview bundle, plus a Windows NSIS launcher installer **after its separate Windows release job succeeds**. The Windows artifact is **UNSIGNED**, for testing only.
+- **v0.2.0-alpha.2** — tested web preview bundle, plus a real [unsigned Windows NSIS installer](https://github.com/migtam628/dma_hub/releases/tag/v0.2.0-alpha.2) available under the prerelease assets.
 - Every web bundle has a SHA-256 checksum; a successfully uploaded Windows installer has its own `SHA256SUMS-windows.txt`.
 - The release pipeline verifies that a tag belongs to its triggering commit before uploading Windows files. Re-running on an unrelated commit cannot replace artifacts associated with another tag.
 - A GitHub prerelease is **not** a production software release. Signing, device QA, updater trust and deployment readiness are separate gates.
@@ -206,7 +205,7 @@ CI runs on pushes to `main` and pull requests. Verify the **Web and API CI** wor
 
 ## Tracking remaining milestones
 
-- [GitHub Pages activation](https://github.com/migtam628/dma_hub/issues/1) — one-time administrator setting.
+- GitHub Pages activation — **resolved**. Custom domain, HTTPS and Pages deployment are operational.
 - [Production API security](https://github.com/migtam628/dma_hub/issues/2) — email verification, backups, abuse protection and deployment review.
 - [Signed Windows distribution](https://github.com/migtam628/dma_hub/issues/3) — publisher signatures and trusted updater.
 - [First hardware adapter](https://github.com/migtam628/dma_hub/issues/4) — authorized real-device QA.
