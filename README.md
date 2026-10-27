@@ -5,8 +5,9 @@
 [![Web and API CI](https://github.com/migtam628/dma_hub/actions/workflows/ci.yml/badge.svg)](https://github.com/migtam628/dma_hub/actions/workflows/ci.yml)
 [![Deploy GitHub Pages](https://github.com/migtam628/dma_hub/actions/workflows/pages.yml/badge.svg)](https://github.com/migtam628/dma_hub/actions/workflows/pages.yml)
 [![Release](https://github.com/migtam628/dma_hub/actions/workflows/release.yml/badge.svg)](https://github.com/migtam628/dma_hub/actions/workflows/release.yml)
+[![Windows Build](https://github.com/migtam628/dma_hub/actions/workflows/desktop.yml/badge.svg)](https://github.com/migtam628/dma_hub/actions/workflows/desktop.yml)
 
-> **Status: public alpha / active development.** The web UI runs with sample data. The local API supports accounts and versioned profile storage, but is **not yet production hardened**. There is **no signed Windows executable, live billing, working license service, or hardware control** in this release. Demo screens are not proof of connected services.
+> **Status: public alpha / active development.** The web UI runs with sample data. The local API supports accounts and versioned profile storage, but is **not yet production hardened**. There is **no signed Windows executable, live billing, working license service, or hardware control** in the published alpha. A Tauri desktop build workflow exists on `main`, but Windows installers are **unsigned preview artifacts** until verified and signed. Demo screens are not proof of connected services.
 
 **[Web preview — GitHub Pages](https://migtam628.github.io/dma_hub/)** · **[Releases](https://github.com/migtam628/dma_hub/releases)** · **[Actions](https://github.com/migtam628/dma_hub/actions)** · **[Roadmap](docs/project-roadmap.md)**
 
@@ -24,7 +25,7 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 | Configuration Studio | ✅ Local functionality | Edit settings, live preview, JSON import/export, browser storage |
 | API | 🧪 Local alpha | Account registration, login/logout, tenant-scoped versioned profiles |
 | Cloud profiles | 🧪 Local API | Create, load, update, delete, optimistic version checks |
-| Desktop companion | ⏳ Planned | Windows launcher, signed updates and desktop diagnostics |
+| Desktop companion | 🧪 Windows scaffold | Tauri shell source, NSIS build CI, launcher and diagnostics previews; no hardware APIs |
 | Device adapters | ⏳ Planned | User-authorized USB/serial/HID/network integrations |
 | Payments/licensing | ⏳ Not connected | Real billing, entitlement verification, audit and recovery |
 | Public hosting | ⚙️ Automated workflow | GitHub Pages for static preview **only** |
@@ -76,6 +77,7 @@ dma_hub/
 │   └── api/               # Local-development HTTP + SQLite API
 │       ├── src/
 │       └── tests/
+├── apps/desktop/           # Tauri 2 Windows shell and native build configuration
 ├── packages/
 │   └── ui/                # Shared visual components and tokens
 ├── docs/                  # Three specification batches, designs, API docs
@@ -84,7 +86,8 @@ dma_hub/
 └── .github/workflows/
     ├── ci.yml             # Test and build on pushes
     ├── pages.yml          # Deploy static web preview
-    └── release.yml        # Build and publish alpha ZIP/checksum
+    ├── release.yml        # Build and publish alpha ZIP/checksum
+    └── desktop.yml        # Build unsigned Windows NSIS preview artifact
 ```
 
 ## Quick start
@@ -137,7 +140,9 @@ See [API reference](docs/api.md) for endpoints, authorization and limitations.
 
 The `pages.yml` workflow builds `apps/web` and uploads `apps/web/dist` to GitHub Pages. It runs on changes to the frontend/workflow and may also be started manually from Actions.
 
-**One-time GitHub repository setting (if Pages has not been enabled):**
+**Current blocker:** GitHub Pages was not enabled when the initial workflow ran. Its build passed, but the Pages configuration action returned `Not Found`. Track activation in [issue #1](https://github.com/migtam628/dma_hub/issues/1).
+
+**One-time GitHub repository setting:**
 
 1. Visit [Settings → Pages](https://github.com/migtam628/dma_hub/settings/pages).
 2. Under **Build and deployment**, set **Source → GitHub Actions**.
@@ -185,7 +190,7 @@ CI runs on pushes to `main` and pull requests. Verify the **Web and API CI** wor
 - [Concept 3 — Batch 2](docs/concept-3-batch-2.md): admin, launcher and Studio
 - [Concept 3 — Batch 3](docs/concept-3-batch-3.md): secondary screens and states
 - [High-fidelity review v1](docs/design/concept-3-hifi-review-v1.md) and [v2](docs/design/concept-3-hifi-review-v2.md)
-- [Roadmap](docs/project-roadmap.md), [API reference](docs/api.md), [Implementation milestone 1](README_IMPLEMENTATION.md)
+- [Roadmap](docs/project-roadmap.md), [API reference](docs/api.md), [Windows desktop build](docs/desktop.md), [Implementation milestone 1](README_IMPLEMENTATION.md)
 
 ## Development workflow
 
