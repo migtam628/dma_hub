@@ -1,0 +1,82 @@
+name: Publish Alpha Web Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "release/version.json"
+      - ".github/workflows/release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: alpha-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Read release version
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./release/version.json').version")
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-alpha\.[0-9]+$ ]]; then
+            echo "Invalid alpha release tag: $VERSION" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Check for existing release
+        id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release $VERSION already exists; no overwrite will be attempted."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Install dependencies
+        if: steps.existing.outputs.exists == 'false'
+        run: npm install --no-audit --no-fund
+      - name: Test and build
+        if: steps.existing.outputs.exists == 'false'
+        run: npm run check
+      - name: Bundle static web preview
+        if: steps.existing.outputs.exists == 'false'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          mkdir -p build
+          (cd apps/web/dist && zip -qr "../../../build/dma-hub-web-${VERSION}.zip" .)
+          (cd build && sha256sum "dma-hub-web-${VERSION}.zip" > SHA256SUMS.txt)
+          test -s "build/dma-hub-web-${VERSION}.zip"
+          cat build/SHA256SUMS.txt
+      - name: Create GitHub prerelease
+        if: steps.existing.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          gh release create "$VERSION" "build/dma-hub-web-${VERSION}.zip" build/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "DMA Hub ${VERSION} — Web Preview" \
+            --prerelease \
+            --notes-file release/notes.md
