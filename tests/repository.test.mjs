@@ -58,3 +58,10 @@ test("installer filename validation accepts the Tauri artifact naming convention
  assert.ok(script.includes("DMA[ .]Hub_"),"Must accept Tauri's space-separated product name");
  assert.ok(script.includes("Get-AuthenticodeSignature"),"Signature status must be examined");
 });
+
+test("Windows installer verifier has one complete script without duplicate sections",()=>{
+ const s=readFileSync(join(root,"scripts/verify-windows-installer.ps1"),"utf8");
+ assert.equal(s.split("Get-AuthenticodeSignature").length-1,1);
+ assert.equal(s.split('throw "Unexpected installer filename:').length-1,1);
+ assert.ok(s.includes("DMA[ .]Hub_"));
+});
