@@ -10,6 +10,8 @@ Endpoints:
 - `POST /v1/auth/register` — email + 12–128 character password; creates customer
 - `POST /v1/auth/login` — email/password, returns 12-hour opaque Bearer token
 - `POST /v1/auth/logout` — revokes current token
+- `GET /v1/auth/sessions` — list active sessions (timestamps and current marker; raw tokens never exposed)
+- `POST /v1/auth/logout-all` — revoke every active session for the user
 - `GET /v1/me` — current session
 - `GET /v1/profiles` — current user's profiles (max 100)
 - `POST /v1/profiles` — create {name,data}
@@ -18,6 +20,8 @@ Endpoints:
 - `DELETE /v1/profiles/:id` — remove, require numeric `If-Match`
 - `GET /v1/admin/metrics` — restricted to admin role; no role assignment publicly exposed.
 
-Security implemented: scrypt salted passwords, hashed opaque tokens, 12-hour sessions, CORS origin allowlist, max JSON body, tenant-scoped SQL, profile optimistic concurrency, no-store headers, no remote admin self-promotion, audit records, simple in-memory login rate limiting.
+Security implemented: scrypt salted passwords, hashed opaque tokens, 12-hour sessions, CORS origin allowlist, max JSON body, tenant-scoped SQL, profile optimistic concurrency, no-store headers, no remote admin self-promotion, audit records, simple in-memory registration/login throttling, a maximum of five active sessions per user, expired-session cleanup, session inventory/revoke-all, and oversized-body handling with HTTP 413.
 
 Before internet exposure: enforce TLS + secure proxy, add email verification and credential resets, stronger distributed rate limiting, structured logs and alerts, account abuse monitoring, database backups/migrations, secrets management, integration tests through reverse proxy, threat model, security review and dependency audit.
+
+**Current limitations:** The rate limits are process-local and are not sufficient against distributed abuse; registration has no email verification; the API remains suitable only for local development. Do not publish it on a public interface.

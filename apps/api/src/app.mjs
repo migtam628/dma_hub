@@ -6,7 +6,13 @@ import {DatabaseSync} from "node:sqlite";
 const MAX_BODY=64*1024,SESSION_MS=12*60*60*1000;
 const hashToken=t=>createHash("sha256").update(t).digest("hex");
 function response(res,status,payload,headers={}){res.writeHead(status,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff","Referrer-Policy":"no-referrer",...headers});res.end(JSON.stringify(payload))}
-function jsonBody(req){return new Promise((resolve,reject)=>{let chunks=[],size=0;req.on("data",b=>{size+=b.length;if(size>MAX_BODY){reject(Object.assign(new Error("Body too large"),{status:413}));req.destroy();return}chunks.push(b)});req.on("end",()=>{try{const value=JSON.parse(Buffer.concat(chunks).toString("utf8"));if(!value||typeof value!=="object"||Array.isArray(value))throw Error("Expected JSON object");resolve(value)}catch{reject(Object.assign(new Error("Invalid JSON object"),{status:400}))}});req.on("error",reject)})}
+function jsonBody(req){return new Promise((resolve,reject)=>{let chunks=[],size=0,tooLarge=false;
+ if(Number(req.headers["content-length"]||0)>MAX_BODY){req.resume();reject(Object.assign(new Error("Body too large"),{status:413}));return}
+ req.on("data",b=>{size+=b.length;if(size>MAX_BODY){tooLarge=true;chunks=[];return}if(!tooLarge)chunks.push(b)});
+ req.on("end",()=>{if(tooLarge){reject(Object.assign(new Error("Body too large"),{status:413}));return}
+  try{const value=JSON.parse(Buffer.concat(chunks).toString("utf8"));if(!value||typeof value!=="object"||Array.isArray(value))throw Error("Expected JSON object");resolve(value)}catch{reject(Object.assign(new Error("Invalid JSON object"),{status:400}))}});
+ req.on("error",reject)
+})}
 function passwordHash(pass){const salt=randomBytes(16).toString("hex");return salt+":"+scryptSync(pass,salt,64).toString("hex")}
 function verifyPassword(pass,encoded){if(typeof encoded!=="string"||!encoded.includes(":"))return false;const [salt,stored]=encoded.split(":");const actual=scryptSync(pass,salt,64);const expected=Buffer.from(stored,"hex");return expected.length===actual.length&&timingSafeEqual(actual,expected)}
 function publicUser(u){return {id:u.id,email:u.email,role:u.role,createdAt:u.created_at}}
@@ -24,7 +30,8 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
  CREATE INDEX IF NOT EXISTS profiles_user ON profiles(user_id);
  CREATE TABLE IF NOT EXISTS audit(id TEXT PRIMARY KEY,actor TEXT,action TEXT NOT NULL,target TEXT,created_at INTEGER NOT NULL);
  `);
- const loginLimits=new Map();
+ const loginLimits=new Map(),registerLimits=new Map();
+ function checkLimit(buckets,key,limit,windowMs){const now=clock();const prior=(buckets.get(key)||[]).filter(t=>now-t<windowMs);if(prior.length>=limit){buckets.set(key,prior);return false}prior.push(now);buckets.set(key,prior);if(buckets.size>1000){for(const [k,list] of buckets){const alive=list.filter(t=>now-t<windowMs);if(alive.length)buckets.set(k,alive);else buckets.delete(k)}}return true}
  const audit=(actor,action,target)=>db.prepare("INSERT INTO audit VALUES(?,?,?,?,?)").run(randomUUID(),actor,action,target,clock());
  function requireUser(req){const auth=req.headers.authorization||"";if(!auth.startsWith("Bearer "))return null;const token=auth.slice(7).trim();if(token.length<30||token.length>128)return null;return db.prepare("SELECT u.id,u.email,u.role,u.created_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?").get(hashToken(token),clock())||null}
  function allowed(req){const origin=req.headers.origin;return !origin||origin===allowedOrigin}
@@ -42,20 +49,22 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
    if(pathname==="/healthz"&&req.method==="GET"){response(res,200,{status:"ok",service:"dma-hub-api",database:"ready"});return}
    if(pathname==="/v1/catalog"&&req.method==="GET"){response(res,200,{items:[{id:"device-studio",name:"Device Studio",status:"preview"},{id:"profile-cloud",name:"Profile Cloud",status:"preview"},{id:"release-center",name:"Release Center",status:"preview"}]});return}
    if(pathname==="/v1/auth/register"&&req.method==="POST"){
+    if(!checkLimit(registerLimits,req.socket.remoteAddress||"unknown",5,15*60*1000)){response(res,429,{error:"rate_limited"});return}
     const v=await jsonBody(req);const email=typeof v.email==="string"?v.email.trim().toLowerCase():"";
     if(!validEmail(email)||!validPassword(v.password)){response(res,422,{error:"invalid_registration",message:"Use a valid email and a password of 12–128 characters."});return}
     const id=randomUUID();try{db.prepare("INSERT INTO users VALUES(?,?,?,?,?)").run(id,email,passwordHash(v.password),"customer",clock())}catch(e){if(String(e).includes("UNIQUE")){response(res,409,{error:"email_unavailable"});return}throw e}
     audit(id,"user.register",id);response(res,201,{user:{id,email,role:"customer"}});return
    }
    if(pathname==="/v1/auth/login"&&req.method==="POST"){
-    const client=req.socket.remoteAddress||"unknown",now=clock();const attempts=(loginLimits.get(client)||[]).filter(t=>now-t<60000);
-    if(attempts.length>=10){response(res,429,{error:"rate_limited"});return}
-    attempts.push(now);loginLimits.set(client,attempts);
+    const client=req.socket.remoteAddress||"unknown",now=clock();
+    if(!checkLimit(loginLimits,client,10,60*1000)){response(res,429,{error:"rate_limited"});return}
     const v=await jsonBody(req),email=typeof v.email==="string"?v.email.trim().toLowerCase():"";
-    if(typeof v.password!=="string"||v.password.length>128){response(res,401,{error:"invalid_credentials"});return}
+    if(!validEmail(email)||typeof v.password!=="string"||v.password.length>128){response(res,401,{error:"invalid_credentials"});return}
     const u=db.prepare("SELECT * FROM users WHERE email=?").get(email);
     if(!u||!verifyPassword(v.password,u.password_hash)){response(res,401,{error:"invalid_credentials"});return}
+    db.prepare("DELETE FROM sessions WHERE expires_at<=?").run(now);
     const token=randomBytes(32).toString("base64url");db.prepare("INSERT INTO sessions VALUES(?,?,?,?)").run(hashToken(token),u.id,now+SESSION_MS,now);
+    db.prepare("DELETE FROM sessions WHERE token_hash IN (SELECT token_hash FROM sessions WHERE user_id=? ORDER BY created_at DESC,rowid DESC LIMIT -1 OFFSET 5)").run(u.id);
     audit(u.id,"session.login",u.id);
     response(res,200,{token,expiresAt:now+SESSION_MS,user:publicUser(u)});return
    }
@@ -63,6 +72,15 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
     const u=requireUser(req);if(!u){response(res,401,{error:"authentication_required"});return}
     if(pathname==="/v1/me"&&req.method==="GET"){response(res,200,{user:publicUser(u)});return}
     if(pathname==="/v1/auth/logout"&&req.method==="POST"){const token=req.headers.authorization.slice(7).trim();db.prepare("DELETE FROM sessions WHERE token_hash=? AND user_id=?").run(hashToken(token),u.id);audit(u.id,"session.logout",u.id);response(res,200,{ok:true});return}
+    if(pathname==="/v1/auth/sessions"&&req.method==="GET"){
+      const tokenHash=hashToken(req.headers.authorization.slice(7).trim());
+      const sessions=db.prepare("SELECT token_hash,created_at,expires_at FROM sessions WHERE user_id=? AND expires_at>? ORDER BY created_at DESC,rowid DESC").all(u.id,clock());
+      response(res,200,{items:sessions.map(s=>({createdAt:s.created_at,expiresAt:s.expires_at,current:s.token_hash===tokenHash}))});return
+    }
+    if(pathname==="/v1/auth/logout-all"&&req.method==="POST"){
+      db.prepare("DELETE FROM sessions WHERE user_id=?").run(u.id);audit(u.id,"session.logout_all",u.id);
+      response(res,200,{ok:true});return
+    }
     if(pathname==="/v1/profiles"&&req.method==="GET"){const rows=db.prepare("SELECT id,name,data_json,version,created_at,updated_at FROM profiles WHERE user_id=? ORDER BY updated_at DESC LIMIT 100").all(u.id);response(res,200,{items:rows.map(row=>({id:row.id,name:row.name,data:JSON.parse(row.data_json),version:row.version,createdAt:row.created_at,updatedAt:row.updated_at}))});return}
     if(pathname==="/v1/profiles"&&req.method==="POST"){
       const v=normalizedProfile(await jsonBody(req));if(!v){response(res,422,{error:"invalid_profile"});return}
