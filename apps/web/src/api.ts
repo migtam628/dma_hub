@@ -1,5 +1,6 @@
 export type User={id:string;email:string;role:string;createdAt?:number};
 export type Session={token:string;expiresAt:number;user:User};
+export type ActiveSession={createdAt:number;expiresAt:number;current:boolean};
 export type ProfileSettings={profileName:string;autoSync:boolean;notifications:boolean;density:number;accent:string;startup:string};
 export type CloudProfile={id:string;name:string;data:ProfileSettings;version:number;createdAt?:number;updatedAt?:number};
 export class ApiError extends Error{constructor(public status:number,public code:string,message?:string){super(message||code)}}
@@ -20,6 +21,8 @@ export const api={
  register:(email:string,password:string)=>request<{user:User}>("/v1/auth/register","POST",{email,password}),
  login:(email:string,password:string)=>request<Session>("/v1/auth/login","POST",{email,password}),
  logout:(token:string)=>request<{ok:boolean}>("/v1/auth/logout","POST",{},token),
+ sessions:(token:string)=>request<{items:ActiveSession[]}>("/v1/auth/sessions","GET",undefined,token),
+ logoutAll:(token:string)=>request<{ok:boolean}>("/v1/auth/logout-all","POST",{},token),
  me:(token:string)=>request<{user:User}>("/v1/me","GET",undefined,token),
  profiles:(token:string)=>request<{items:CloudProfile[]}>("/v1/profiles","GET",undefined,token),
  create:(token:string,name:string,data:ProfileSettings)=>request<CloudProfile>("/v1/profiles","POST",{name,data},token),
