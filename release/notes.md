@@ -1,23 +1,21 @@
-# DMA Hub v0.2.0-alpha.3
+# DMA Hub v0.2.0-alpha.4
 
-**Development prerelease — not production software.**
+**Experimental alpha release — not production-ready.**
 
-## Included
-- React Concept 3 storefront, customer and admin workspace previews.
-- Public Downloads and Release Center that read **actual releases and assets** from the official GitHub Releases API, with fallback if the API is unavailable.
-- Custom-domain GitHub Pages workflow deployed at https://dma.moobee.lol/ with HTTPS.
-- Tauri-based Windows launcher preview packaged as an **unsigned NSIS installer**.
-- Browser-local Configuration Studio, JSON import/export, live previews, and account-specific profiles when running the local development API.
-- Dockerized local API, CI/build validation, API unit tests, versioned web ZIP, installer and checksums.
+## What's new
+- **Windows Device Center:** explicit, read-only discovery of Windows COM and USB-to-serial ports. Users must click **Scan serial ports**; no ports are opened, read, configured or written.
+- **Account workspace:** view current/other active sessions and revoke every session for a local API account.
+- **Local API security:** maximum five sessions per account, session expiration cleanup, process-local registration/login throttling, predictable HTTP 413 on oversized JSON bodies and new automated tests.
+- **Distribution verification:** source/release version consistency checks and Windows artifact integrity checks in GitHub Actions.
+- Public storefront, customer workspace and admin previews with Concept 3 design; GitHub Pages at https://dma.moobee.lol/.
 
-## Download assets
-- `dma-hub-web-v0.2.0-alpha.3.zip`: static website bundle.
-- `SHA256SUMS.txt`: SHA-256 checksum of the web bundle.
-- `DMA.Hub_0.2.0_x64-setup.exe`: unsigned Windows launcher preview, uploaded only if the Windows build succeeds.
-- `SHA256SUMS-windows.txt`: checksum of the Windows installer, uploaded only if it is built and uploaded successfully.
+## Downloadable artifacts
+- `dma-hub-web-v0.2.0-alpha.4.zip` and `SHA256SUMS.txt`: static web preview and checksum.
+- Windows NSIS installer and `SHA256SUMS-windows.txt` are attached **only after** the Windows release build and integrity checks succeed.
+- GitHub-generated source archives.
 
-## Limitations
-- The Windows installer is **unsigned** and has no automatic signed-update system.
-- Account registration and profile API are local-development only and are not deployed on GitHub Pages.
-- Real hardware/device adapters, payment services, commercial subscriptions and production license enforcement are **not implemented**.
-- The public site uses sample account/device data; do not interpret demo values as live device status.
+## Important limitations
+- The Windows installer remains **unsigned**. Do not treat it as a trusted commercial distribution or a signed updater.
+- Physical Windows hardware enumeration and compatibility must still be verified manually against Device Manager.
+- The Node/SQLite API is local-development only. It is not publicly hosted; email verification, account recovery, distributed rate limiting and production operations remain outstanding.
+- No billing, subscriptions, commercial license enforcement or device-specific control exists in this build.
