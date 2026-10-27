@@ -1,0 +1,54 @@
+name: Windows Desktop Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/desktop/**"
+      - "apps/web/**"
+      - "packages/ui/**"
+      - "package.json"
+      - ".github/workflows/desktop.yml"
+  pull_request:
+    paths:
+      - "apps/desktop/**"
+      - "apps/web/**"
+      - "packages/ui/**"
+      - "package.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Rust
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "apps/desktop/src-tauri -> target"
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Generate Windows icons
+        run: npm run icons -w @dma-hub/desktop
+      - name: Validate web and API
+        run: npm run check
+      - name: Bundle NSIS installer
+        run: npm run build -w @dma-hub/desktop
+      - name: Upload unsigned preview installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: dma-hub-windows-unsigned-preview
+          path: apps/desktop/src-tauri/target/release/bundle/nsis/*-setup.exe
+          if-no-files-found: error
+          retention-days: 14

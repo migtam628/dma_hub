@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Minimal core window permissions for the DMA Hub desktop preview",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}
