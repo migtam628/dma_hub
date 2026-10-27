@@ -32,3 +32,14 @@ test("Pages auto-deploy is enabled for every main push",()=>{
   assert.ok(!workflow.split("workflow_dispatch:")[0].includes("paths:"));
   assert.ok(workflow.includes("apps/web/dist"));
 });
+
+test("native device discovery is explicit and read-only",()=>{
+  const bridge=readFileSync(join(root,"apps/desktop/src-tauri/src/lib.rs"),"utf8");
+  const ui=readFileSync(join(root,"apps/web/src/NativeDeviceCenter.tsx"),"utf8");
+  assert.ok(bridge.includes("available_ports()"));
+  assert.ok(bridge.includes("#[tauri::command]"));
+  assert.ok(!bridge.includes("serialport::new("));
+  assert.ok(ui.includes('invoke<SerialDevice[]>("list_serial_ports")'));
+  assert.ok(ui.includes('if(!native)return'));
+  assert.ok(ui.includes('stage==="idle"'));
+});
