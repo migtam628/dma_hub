@@ -156,8 +156,11 @@ jobs:
           $hashes = @()
           foreach ($file in $files) {
             $hash = (Get-FileHash -Path $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-            $hashes += "$hash  $($file.Name)"
-            gh release upload "$env:VERSION" "$($file.FullName)" --repo "$env:GITHUB_REPOSITORY" --clobber
+            $publishedName = $file.Name -replace ' ', '.'
+            $publishedPath = Join-Path $env:RUNNER_TEMP $publishedName
+            Copy-Item -LiteralPath $file.FullName -Destination $publishedPath -Force
+            $hashes += "$hash  $publishedName"
+            gh release upload "$env:VERSION" "$publishedPath" --repo "$env:GITHUB_REPOSITORY" --clobber
             if ($LASTEXITCODE -ne 0) { throw "Installer upload failed." }
           }
           $hashes | Set-Content -Path "SHA256SUMS-windows.txt" -Encoding utf8NoBOM
@@ -176,13 +179,14 @@ jobs:
           $records = @(Get-Content (Join-Path $verifyDir "SHA256SUMS-windows.txt"))
           $files = @(Get-ChildItem "apps/desktop/src-tauri/target/release/bundle/nsis/*-setup.exe")
           foreach ($file in $files) {
-            gh release download "$env:VERSION" --repo "$env:GITHUB_REPOSITORY" --pattern "$($file.Name)" --dir $verifyDir
+            $publishedName = $file.Name -replace ' ', '.'
+            gh release download "$env:VERSION" --repo "$env:GITHUB_REPOSITORY" --pattern "$publishedName" --dir $verifyDir
             if ($LASTEXITCODE -ne 0) { throw "Unable to retrieve published installer." }
             $local = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-            $downloaded = Join-Path $verifyDir $file.Name
+            $downloaded = Join-Path $verifyDir $publishedName
             if (-not (Test-Path -LiteralPath $downloaded)) { throw "Published installer missing." }
             $remote = (Get-FileHash -LiteralPath $downloaded -Algorithm SHA256).Hash.ToLowerInvariant()
             if ($local -ne $remote) { throw "Published installer differs from local build." }
-            if ($records -notcontains ("$local  " + $file.Name)) { throw "Published SHA-256 manifest does not match installer." }
+            if ($records -notcontains ("$local  " + $publishedName)) { throw "Published SHA-256 manifest does not match installer." }
           }
           Write-Host "Published Windows installer and SHA-256 records verified."

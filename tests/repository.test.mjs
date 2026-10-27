@@ -65,3 +65,10 @@ test("Windows installer verifier has one complete script without duplicate secti
  assert.equal(s.split('throw "Unexpected installer filename:').length-1,1);
  assert.ok(s.includes("DMA[ .]Hub_"));
 });
+
+test("release assets and checksums use the same GitHub-safe filename",()=>{
+ const s=readFileSync(join(root,".github/workflows/release.yml"),"utf8");
+ assert.ok(s.includes("$publishedPath"));
+ assert.ok(s.includes('Join-Path $verifyDir $publishedName'));
+ assert.equal(s.split("$publishedName = $file.Name -replace").length-1,2);
+});
