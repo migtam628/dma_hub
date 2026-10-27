@@ -157,6 +157,7 @@ The landing page, public **Downloads** route (`#/releases`), customer Downloads,
 Versioned releases are triggered by changes to `release/version.json` on `main` or by manual workflow dispatch.
 
 - **v0.2.0-alpha.1** — initial tested static React preview ZIP, checksum and source archive.
+- **v0.2.0-alpha.3** — current Concept 3 website with public downloads/Release Center, custom-domain Pages and tested unsigned Windows preview. The tagged web and desktop artifacts include changes through this release commit.
 - **v0.2.0-alpha.2** — tested web preview bundle, plus a real [unsigned Windows NSIS installer](https://github.com/migtam628/dma_hub/releases/tag/v0.2.0-alpha.2) available under the prerelease assets.
 - Every web bundle has a SHA-256 checksum; a successfully uploaded Windows installer has its own `SHA256SUMS-windows.txt`.
 - The release pipeline verifies that a tag belongs to its triggering commit before uploading Windows files. Re-running on an unrelated commit cannot replace artifacts associated with another tag.

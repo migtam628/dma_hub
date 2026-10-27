@@ -1,23 +1,23 @@
-# DMA Hub v0.2.0-alpha.2
+# DMA Hub v0.2.0-alpha.3
 
-**Development prerelease; not ready for production.**
+**Development prerelease — not production software.**
 
 ## Included
-- Built React website preview, local settings editor, product and customer/admin demonstration interfaces.
-- Node.js local API with scrypt-hashed account passwords, opaque sessions and versioned, tenant-scoped profiles.
-- Tauri 2 Windows launcher shell using the approved Concept 3 interface.
-- Windows NSIS installer produced from an automated Windows runner with build verification.
-- Loopback-only Docker API test setup and smoke checks.
-- Versioned release scripts and GitHub Pages workflow (repository-admin Pages enablement remains outstanding).
+- React Concept 3 storefront, customer and admin workspace previews.
+- Public Downloads and Release Center that read **actual releases and assets** from the official GitHub Releases API, with fallback if the API is unavailable.
+- Custom-domain GitHub Pages workflow deployed at https://dma.moobee.lol/ with HTTPS.
+- Tauri-based Windows launcher preview packaged as an **unsigned NSIS installer**.
+- Browser-local Configuration Studio, JSON import/export, live previews, and account-specific profiles when running the local development API.
+- Dockerized local API, CI/build validation, API unit tests, versioned web ZIP, installer and checksums.
 
-## Artifacts
-- `dma-hub-web-v0.2.0-alpha.2.zip`: static React website bundle.
-- `SHA256SUMS.txt`: checksum of website bundle.
-- `DMA Hub_0.2.0_x64-setup.exe`: **unsigned Windows alpha preview** (appears only if the Windows release build succeeds).
-- `SHA256SUMS-windows.txt`: installer SHA-256 checksum (appears alongside verified installer).
-- GitHub source archives.
+## Download assets
+- `dma-hub-web-v0.2.0-alpha.3.zip`: static website bundle.
+- `SHA256SUMS.txt`: SHA-256 checksum of the web bundle.
+- `DMA.Hub_0.2.0_x64-setup.exe`: unsigned Windows launcher preview, uploaded only if the Windows build succeeds.
+- `SHA256SUMS-windows.txt`: checksum of the Windows installer, uploaded only if it is built and uploaded successfully.
 
-## Security / limitations
-The Windows installer is **not publisher-signed** and should be treated as a test artifact. It does not implement drivers, device control, anti-cheat functionality, signed auto-update, production authentication, payment processing or license activation.
-
-GitHub Pages remains a static frontend and cannot host the API. An administrator must enable Pages with GitHub Actions in repository settings before the public link is active.
+## Limitations
+- The Windows installer is **unsigned** and has no automatic signed-update system.
+- Account registration and profile API are local-development only and are not deployed on GitHub Pages.
+- Real hardware/device adapters, payment services, commercial subscriptions and production license enforcement are **not implemented**.
+- The public site uses sample account/device data; do not interpret demo values as live device status.

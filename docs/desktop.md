@@ -24,7 +24,7 @@ Expected unsigned NSIS output under `apps/desktop/src-tauri/target/release/bundl
 
 ## GitHub build
 
-[Windows Desktop Build](https://github.com/migtam628/dma_hub/actions/workflows/desktop.yml) compiles a Windows NSIS preview installer and attaches the file as a **workflow artifact** on successful runs. It does not yet publish an installer to GitHub Releases, until Windows build tests and signing policy are established. A native binary, if produced, is a user-facing prototype only.
+[Windows Desktop Build](https://github.com/migtam628/dma_hub/actions/workflows/desktop.yml) compiles a Windows NSIS preview installer and attaches the file as a **workflow artifact** on successful runs. An unsigned Windows NSIS preview installer is published in alpha GitHub Releases after CI passes. This is **not** a signed or production-certified Windows installer. A native binary, if produced, is a user-facing prototype only.
 
 ## Security
 
