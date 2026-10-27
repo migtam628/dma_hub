@@ -26,7 +26,7 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 | API | 🧪 Local alpha | Account registration, login/logout, tenant-scoped versioned profiles |
 | Cloud profiles | 🧪 Local API | Create, load, update, delete, optimistic version checks |
 | Desktop companion | 🧪 Windows scaffold | Tauri shell source, NSIS build CI, launcher and diagnostics previews; no hardware APIs |
-| Device adapters | ⏳ Planned | User-authorized USB/serial/HID/network integrations |
+| Device adapters | 🧪 Read-only native serial discovery | Explicit Windows COM-port metadata scan; no port data access or device writes |
 | Payments/licensing | ⏳ Not connected | Real billing, entitlement verification, audit and recovery |
 | Public hosting | ✅ Live | `https://dma.moobee.lol` via GitHub Pages; static preview **only** |
 
@@ -144,6 +144,8 @@ GitHub Pages must remain set to **Settings → Pages → Source: GitHub Actions*
 
 **Custom domain:** [https://dma.moobee.lol](https://dma.moobee.lol) uses GoDaddy DNS (host `dma`, CNAME value `migtam628.github.io`) and Pages HTTPS enforcement. You do not need to edit DNS again for code deployments.
 
+Inside the Windows companion, Device Center now enumerates OS-reported serial port metadata on demand. Browsers cannot access this native command. This is not a verified device-specific adapter.
+
 The public site uses hash navigation (for example `https://dma.moobee.lol/#/releases`) and relative Vite asset paths. **No server-side login, API, or payment service is hosted on Pages.**
 
 ## GitHub Releases
@@ -202,14 +204,14 @@ CI runs on pushes to `main` and pull requests. Verify the **Web and API CI** wor
 - [Concept 3 — Batch 2](docs/concept-3-batch-2.md): admin, launcher and Studio
 - [Concept 3 — Batch 3](docs/concept-3-batch-3.md): secondary screens and states
 - [High-fidelity review v1](docs/design/concept-3-hifi-review-v1.md) and [v2](docs/design/concept-3-hifi-review-v2.md)
-- [Roadmap](docs/project-roadmap.md), [API reference](docs/api.md), [Windows desktop build](docs/desktop.md), [Implementation milestone 1](README_IMPLEMENTATION.md)
+- [Roadmap](docs/project-roadmap.md), [API reference](docs/api.md), [Windows desktop build](docs/desktop.md), [Native serial discovery](docs/native-device-discovery.md), [Implementation milestone 1](README_IMPLEMENTATION.md)
 
 ## Tracking remaining milestones
 
 - GitHub Pages activation — **resolved**. Custom domain, HTTPS and Pages deployment are operational.
 - [Production API security](https://github.com/migtam628/dma_hub/issues/2) — email verification, backups, abuse protection and deployment review.
 - [Signed Windows distribution](https://github.com/migtam628/dma_hub/issues/3) — publisher signatures and trusted updater.
-- [First hardware adapter](https://github.com/migtam628/dma_hub/issues/4) — authorized real-device QA.
+- [First hardware adapter](https://github.com/migtam628/dma_hub/issues/4) — initial read-only serial metadata enumeration implemented; real-device tests and a device-specific adapter remain open.
 
 ## Windows alpha distribution verification
 
