@@ -52,3 +52,9 @@ test("release integrity gates are present",()=>{
   assert.ok(workflow.includes("Confirm downloaded GitHub asset hashes match local installer"));
   assert.ok(workflow.includes("verify-windows-installer.ps1"));
 });
+
+test("installer filename validation accepts the Tauri artifact naming convention",()=>{
+ const script=readFileSync(join(root,"scripts/verify-windows-installer.ps1"),"utf8");
+ assert.ok(script.includes("DMA[ .]Hub_"),"Must accept Tauri's space-separated product name");
+ assert.ok(script.includes("Get-AuthenticodeSignature"),"Signature status must be examined");
+});
