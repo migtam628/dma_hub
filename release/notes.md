@@ -1,23 +1,23 @@
-# DMA Hub — v0.2.0-alpha.1
+# DMA Hub v0.2.0-alpha.2
 
-**Public development preview (not a production release).**
+**Development prerelease; not ready for production.**
 
 ## Included
-- Concept 3 Professional Hybrid responsive web design.
-- Storefront, product filters, product detail and public documentation views.
-- Customer and admin preview screens populated with explicitly labeled sample records.
-- Working Configuration Studio with local settings, browser persistence, profile JSON import/export and live preview.
-- Node.js local-development API for customer sessions and versioned, user-scoped configuration profiles.
-- Account and cloud-profile UI for local API testing.
-- GitHub Actions checks, static GitHub Pages publishing and versioned source/bundle release process.
+- Built React website preview, local settings editor, product and customer/admin demonstration interfaces.
+- Node.js local API with scrypt-hashed account passwords, opaque sessions and versioned, tenant-scoped profiles.
+- Tauri 2 Windows launcher shell using the approved Concept 3 interface.
+- Windows NSIS installer produced from an automated Windows runner with build verification.
+- Loopback-only Docker API test setup and smoke checks.
+- Versioned release scripts and GitHub Pages workflow (repository-admin Pages enablement remains outstanding).
 
-## Download assets
-- `dma-hub-web-v0.2.0-alpha.1.zip`: built static frontend for a static web host (not a Windows executable).
-- `SHA256SUMS.txt`: SHA-256 checksum of the ZIP.
-- Source archives: supplied by GitHub automatically.
+## Artifacts
+- `dma-hub-web-v0.2.0-alpha.2.zip`: static React website bundle.
+- `SHA256SUMS.txt`: checksum of website bundle.
+- `DMA Hub_0.2.0_x64-setup.exe`: **unsigned Windows alpha preview** (appears only if the Windows release build succeeds).
+- `SHA256SUMS-windows.txt`: installer SHA-256 checksum (appears alongside verified installer).
+- GitHub source archives.
 
-## Not included
-Production authentication hardening, payment and license services, native Windows application, hardware adapters, signed executable installer and any live device control.
+## Security / limitations
+The Windows installer is **not publisher-signed** and should be treated as a test artifact. It does not implement drivers, device control, anti-cheat functionality, signed auto-update, production authentication, payment processing or license activation.
 
-## Security note
-The backend is local-development only and must not be opened to the public internet without a security review, TLS, backups, identity verification, hardened rate limiting and operational monitoring.
+GitHub Pages remains a static frontend and cannot host the API. An administrator must enable Pages with GitHub Actions in repository settings before the public link is active.

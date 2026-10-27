@@ -1,11 +1,10 @@
-name: Publish Alpha Web Release
+name: Publish Alpha Release
 
 on:
   push:
     branches: [main]
     paths:
       - "release/version.json"
-      - ".github/workflows/release.yml"
   workflow_dispatch:
 
 permissions:
@@ -20,6 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      tag: ${{ steps.version.outputs.version }}
+      same_commit: ${{ steps.check_ref.outputs.current }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,7 +39,7 @@ jobs:
             exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-      - name: Check for existing release
+      - name: Check existing release
         id: existing
         env:
           GH_TOKEN: ${{ github.token }}
@@ -46,7 +48,7 @@ jobs:
         run: |
           if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "Release $VERSION already exists; no overwrite will be attempted."
+            echo "Release $VERSION already exists."
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
@@ -56,7 +58,7 @@ jobs:
       - name: Test and build
         if: steps.existing.outputs.exists == 'false'
         run: npm run check
-      - name: Bundle static web preview
+      - name: Bundle web preview
         if: steps.existing.outputs.exists == 'false'
         env:
           VERSION: ${{ steps.version.outputs.version }}
@@ -66,7 +68,6 @@ jobs:
           (cd apps/web/dist && zip -qr "../../../build/dma-hub-web-${VERSION}.zip" .)
           (cd build && sha256sum "dma-hub-web-${VERSION}.zip" > SHA256SUMS.txt)
           test -s "build/dma-hub-web-${VERSION}.zip"
-          cat build/SHA256SUMS.txt
       - name: Create GitHub prerelease
         if: steps.existing.outputs.exists == 'false'
         env:
@@ -77,6 +78,67 @@ jobs:
           gh release create "$VERSION" "build/dma-hub-web-${VERSION}.zip" build/SHA256SUMS.txt \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
-            --title "DMA Hub ${VERSION} — Web Preview" \
+            --title "DMA Hub ${VERSION} — Alpha Preview" \
             --prerelease \
             --notes-file release/notes.md
+      - name: Verify tag references this build commit
+        id: check_ref
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          TARGET="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${VERSION}" --jq '.object.sha')"
+          if [[ "$TARGET" == "$GITHUB_SHA" ]]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "current=false" >> "$GITHUB_OUTPUT"
+            echo "Existing tag $VERSION points to $TARGET, not the current commit. Skipping desktop upload."
+          fi
+
+  windows:
+    needs: release
+    if: needs.release.outputs.same_commit == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout tagged source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release.outputs.tag }}
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Rust
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "apps/desktop/src-tauri -> target"
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Generate icons
+        run: npm run icons -w @dma-hub/desktop
+      - name: Build Windows installer
+        run: npm run build -w @dma-hub/desktop
+      - name: Upload unsigned installer and checksum to prerelease
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.release.outputs.tag }}
+        run: |
+          $files = @(Get-ChildItem "apps/desktop/src-tauri/target/release/bundle/nsis/*-setup.exe")
+          if ($files.Count -eq 0) { throw "No Windows installer was built." }
+          $hashes = @()
+          foreach ($file in $files) {
+            $hash = (Get-FileHash -Path $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            $hashes += "$hash  $($file.Name)"
+            gh release upload "$env:VERSION" "$($file.FullName)" --repo "$env:GITHUB_REPOSITORY" --clobber
+            if ($LASTEXITCODE -ne 0) { throw "Installer upload failed." }
+          }
+          $hashes | Set-Content -Path "SHA256SUMS-windows.txt" -Encoding utf8NoBOM
+          gh release upload "$env:VERSION" "SHA256SUMS-windows.txt" --repo "$env:GITHUB_REPOSITORY" --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Checksum upload failed." }
