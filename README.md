@@ -20,7 +20,7 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 | Area | Current status | What's included |
 |---|---|---|
 | Public website | ✅ Web preview | Homepage, catalog, setup guides, live GitHub Releases download center |
-| Customer workspace | ✅ Web preview | My Software, device list, subscription placeholder, support, status |
+| Customer workspace | 🧪 Mixed preview | Signed-in users can view API-backed manual test entitlements in My Software; other pages and logged-out previews remain sample data |
 | Admin workspace | ✅ Synthetic preview | Users, products, releases, system readiness |
 | Configuration Studio | ✅ Local functionality | Edit settings, live preview, JSON import/export, browser storage |
 | API | 🧪 Local alpha | Account sessions, schema v3, opt-in mail-backed verification/recovery, password changes, profiles, manual backup/restore tests |
@@ -174,6 +174,12 @@ Versioned releases are triggered by changes to `release/version.json` on `main` 
 - A GitHub prerelease is **not** a production software release. Signing, device QA, updater trust and deployment readiness are separate gates.
 
 To create the next alpha, update `release/version.json` to a unique version and edit `release/notes.md`, then commit and push. The release workflow builds/tests the React project, packages the static site, creates the tag/release, then compiles Windows NSIS on a Windows runner.
+
+### My Software — real test-access view
+
+When signed in through the **local API**, My Software fetches only the authenticated user's entitlements from `GET /v1/me/entitlements` and clearly labels each as a **manual test grant** (active, scheduled, expired, revoked or unavailable). Loading and network failure states never imply access. Logged-out views remain a labeled design preview.
+
+This does **not** install software, connect licenses, charge customers, or synchronize production accounts. The public GitHub Pages demo cannot access a server-side account API.
 
 ### Plan pricing and test entitlements (backend only)
 
