@@ -75,3 +75,26 @@ test("disabled account cannot log in or keep using its previous session",()=>wit
   assert.equal((await post("/v1/auth/login",{email:"blocked@example.test",password:"long-password-12345"})).status,401);
  }finally{await app.close()}
 }));
+
+test("schema v2 upgrades to v3 without losing existing user sessions or profiles",()=>withTempDir(async(folder)=>{
+ const path=join(folder,"v2.sqlite");
+ const db=new DatabaseSync(path);
+ db.exec(`PRAGMA foreign_keys=ON;
+ CREATE TABLE users(id TEXT PRIMARY KEY,email TEXT UNIQUE NOT NULL,password_hash TEXT NOT NULL,role TEXT NOT NULL DEFAULT 'customer',created_at INTEGER NOT NULL,disabled_at INTEGER);
+ CREATE TABLE sessions(token_hash TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,expires_at INTEGER NOT NULL,created_at INTEGER NOT NULL);
+ CREATE TABLE profiles(id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,name TEXT NOT NULL,data_json TEXT NOT NULL,version INTEGER NOT NULL DEFAULT 1,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL);
+ CREATE TABLE audit(id TEXT PRIMARY KEY,actor TEXT,action TEXT NOT NULL,target TEXT,created_at INTEGER NOT NULL);
+ INSERT INTO users VALUES ('existing','kept@example.test','password-hash','customer',1,NULL);
+ INSERT INTO sessions VALUES ('opaque-hash','existing',9999999999999,1);
+ INSERT INTO profiles VALUES ('profile','existing','Kept','{}',1,1,1);
+ PRAGMA user_version=2;`);
+ db.close();
+ const app=createApp({dbPath:path});
+ assert.equal(app.db.prepare("PRAGMA user_version").get().user_version,3);
+ assert.equal(app.db.prepare("SELECT email FROM users WHERE id='existing'").get().email,"kept@example.test");
+ assert.equal(app.db.prepare("SELECT count(*) n FROM sessions").get().n,1);
+ assert.equal(app.db.prepare("SELECT count(*) n FROM profiles").get().n,1);
+ assert.equal(app.db.prepare("SELECT email_verified_at FROM users WHERE id='existing'").get().email_verified_at,null);
+ assert.ok(app.db.prepare("SELECT name FROM sqlite_master WHERE name='auth_tokens'").get());
+ app.db.close();
+}));

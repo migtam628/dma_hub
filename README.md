@@ -23,7 +23,7 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 | Customer workspace | ✅ Web preview | My Software, device list, subscription placeholder, support, status |
 | Admin workspace | ✅ Synthetic preview | Users, products, releases, system readiness |
 | Configuration Studio | ✅ Local functionality | Edit settings, live preview, JSON import/export, browser storage |
-| API | 🧪 Local alpha | Account sessions, optional mail-backed verification/recovery, password changes with session revocation, versioned profiles, tracked SQLite migrations, verified manual backup/recovery |
+| API | 🧪 Local alpha | Account sessions, schema v3, opt-in mail-backed verification/recovery, password changes, profiles, manual backup/restore tests |
 | Cloud profiles | 🧪 Local API | Create, load, update, delete, optimistic version checks |
 | Desktop companion | 🧪 Windows scaffold | Tauri shell source, NSIS build CI, launcher and diagnostics previews; no hardware APIs |
 | Device adapters | 🧪 Read-only native serial discovery | Explicit Windows COM-port metadata scan; no port data access or device writes |
@@ -159,7 +159,7 @@ The landing page, public **Downloads** route (`#/releases`), customer Downloads,
 Versioned releases are triggered by changes to `release/version.json` on `main` or by manual workflow dispatch.
 
 - **v0.2.0-alpha.1** — initial tested static React preview ZIP, checksum and source archive.
-- **v0.2.0-alpha.7** — transactional database migrations, verified manual backups/restore drills, disabled-account enforcement, password changes with all-session revocation and a refreshed engineering roadmap. The Windows build is still an unsigned prototype.
+- **v0.2.0-alpha.8** — optional mail-backed verification/recovery, hashed one-time codes, schema v3 and account recovery UI; email provider configuration is required before use.\n- **v0.2.0-alpha.7** — transactional database migrations, verified manual backups/restore drills, disabled-account enforcement, password changes with all-session revocation and a refreshed engineering roadmap. The Windows build is still an unsigned prototype.
 - **v0.2.0-alpha.6** — normalizes Windows installer filenames before GitHub upload and checksums, and verifies downloaded release artifacts against the build output.
 - **v0.2.0-alpha.5** — fixes Windows installer verification and packages on-demand native COM-port discovery, account sessions and API safety checks. Installer is published only after the Windows release job succeeds.
 - **v0.2.0-alpha.4** — introduces read-only Windows serial-port discovery, account-wide session revocation and additional API security tests. Requires Windows build and release checks to pass before the installer is published.
@@ -170,6 +170,14 @@ Versioned releases are triggered by changes to `release/version.json` on `main` 
 - A GitHub prerelease is **not** a production software release. Signing, device QA, updater trust and deployment readiness are separate gates.
 
 To create the next alpha, update `release/version.json` to a unique version and edit `release/notes.md`, then commit and push. The release workflow builds/tests the React project, packages the static site, creates the tag/release, then compiles Windows NSIS on a Windows runner.
+
+### Email verification and password recovery (disabled until configured)
+
+The API now supports expiring, single-use email-verification and password-recovery codes. Codes are stored as SHA-256 hashes; the browser prompts users to paste a code from their email. Password recovery revokes every active session.
+
+A backend operator can optionally configure a verified Resend sending domain, server-only `RESEND_API_KEY`, `MAIL_FROM`, and `REQUIRE_EMAIL_VERIFICATION=1`. **Do not place email API keys into Vite/GitHub Pages**, and do not publicly host this development API. Without a mail transport, sign-in continues in local demo mode but recovery is explicitly unavailable.
+
+See [Email authentication integration](docs/email-auth.md) for setup, test coverage and remaining production safeguards.
 
 ### SQLite migration and recovery tools (local API)
 
@@ -182,7 +190,7 @@ node apps/api/src/maintenance.mjs backup ./apps/api/data/dma-hub.sqlite ./backup
 node apps/api/src/maintenance.mjs verify ./backups/dma-hub-example.sqlite
 ```
 
-The SQLite online backup command refuses overwriting an existing snapshot, checks database integrity, and writes a private file. See the [recovery runbook](docs/database-recovery.md) for restore drills and limitations. Off-host encrypted scheduling, operational monitoring, email verification and production safety testing remain **not implemented**.
+The SQLite online backup command refuses overwriting an existing snapshot, checks database integrity, and writes a private file. See the [recovery runbook](docs/database-recovery.md) for restore drills and limitations. Off-host encrypted scheduling, operational monitoring, public mail delivery configuration and production safety testing remain **not implemented**. Email verification and recovery code paths exist but require a configured mail provider.
 
 ### Docker API preview
 
@@ -226,7 +234,7 @@ CI runs on pushes to `main` and pull requests. Verify the **Web and API CI** wor
 ## Tracking remaining milestones
 
 - GitHub Pages activation — **resolved**. Custom domain, HTTPS and Pages deployment are operational.
-- [Production API security](https://github.com/migtam628/dma_hub/issues/2) — email verification, backups, abuse protection and deployment review.
+- [Production API security](https://github.com/migtam628/dma_hub/issues/2) — mail provider setup, encrypted backups, distributed abuse protection and deployment review.
 - [Signed Windows distribution](https://github.com/migtam628/dma_hub/issues/3) — publisher signatures and trusted updater.
 - [First hardware adapter](https://github.com/migtam628/dma_hub/issues/4) — initial read-only serial metadata enumeration implemented; real-device tests and a device-specific adapter remain open.
 

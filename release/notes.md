@@ -1,29 +1,24 @@
-# DMA Hub v0.2.0-alpha.7
+# DMA Hub v0.2.0-alpha.8
 
-**Development alpha — do not use as a publicly exposed production authentication service.**
+**Development alpha only — public account services are NOT deployed or approved.**
 
-## New in alpha.7
+## Added
+- Backend email verification and password recovery with purpose-scoped, SHA-256 hashed, expiring, single-use 256-bit tokens.
+- Verification codes valid for 24 hours and recovery codes for one hour; used or replaced codes cannot be reused.
+- Password recovery revokes all existing sessions and clears account codes, recording an audit event.
+- Generic public request responses for known/unknown addresses, local request throttling and no token plaintext in database.
+- Optional Resend HTTP email transport with server-only credentials; mandatory email verification fails closed if no mail transport is configured.
+- Customer Account views for requesting email/recovery codes, verifying email, and changing forgotten passwords.
+- SQLite v3 migration preserving existing data and new tests for v2→v3 upgrades, account enumeration and token expiry.
+- Updated README, account-security docs, database recovery and roadmap.
 
-- Transactional SQLite schema migrations (tracked to v2), supporting upgrades from the original user/session/profile schema and safe refusal of unsupported database versions.
-- A verified manual SQLite backup command using the online backup API with non-overwriting, private snapshots, integrity checking and restore-drill tests.
-- Disabled-account checks on login and existing sessions.
-- Authenticated password changes requiring the existing password, with session-wide revocation and an audit trail.
-- Customer Account settings to change a password and sign in again.
-- Updated README, API documentation, database-recovery instructions, and implementation roadmap.
+## Previous alpha foundation
+Responsive Concept 3 storefront and dashboards, cloud configuration profiles, Tauri Windows launcher, read-only serial metadata discovery, GitHub Pages and Release Center.
 
-## Existing alpha functionality
+## Artifacts
+Static web preview ZIP + SHA-256 checksum; unsigned Windows NSIS installer and its checksum are attached only after Windows CI succeeds.
 
-- Concept 3 React storefront and cloud-profile UI, live GitHub Release Center, static Pages deployment at https://dma.moobee.lol/.
-- Unsigned Tauri Windows launcher, manually triggered read-only COM/USB-to-serial port metadata discovery.
-- Local-only Node/SQLite account API, versioned user profiles and Docker test deployment.
+## Important limitations
+No verified production email sender has been configured in this repository. GitHub Pages cannot host the API. Distributed rate limiting, account abuse monitoring, email deliverability, independent security review, encrypted off-site backups, code signing, real commerce and licensing are unfinished.
 
-## Assets
-
-- `dma-hub-web-v0.2.0-alpha.7.zip`, `SHA256SUMS.txt`, GitHub source archives.
-- Windows NSIS installer and Windows checksum only after Windows CI and published-download checksum verification succeed.
-
-## Still missing
-
-Email ownership verification, out-of-band account recovery, distributed rate limits, encrypted off-site backup automation, secure public API hosting, commercial billing/licensing, signed Windows installers and updater, and physical device integration QA.
-
-**The Windows installer remains unsigned and should be used only in a controlled test environment.** The Pages frontend does not host the API.
+Windows installer remains UNSIGNED, for testing only.

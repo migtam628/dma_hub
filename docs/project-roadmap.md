@@ -1,6 +1,6 @@
 # DMA Hub — Engineering Roadmap and Reality Check
 
-**Updated:** October 27, 2026  
+**Updated:** October 28, 2026  
 **Project:** [migtam628/dma_hub](https://github.com/migtam628/dma_hub)  
 **Approved UI:** Concept 3 — Professional Hybrid  
 **Status:** Functional alpha with a public static preview and unsigned Windows installer. **Not production ready.**
@@ -14,7 +14,7 @@
 | Customer portal | Software/devices/account UI; synthetic state | Real authenticated account/entitlement data |
 | Admin portal | Synthetic users, products, releases | Server-enforced roles and operational workflows |
 | Configuration Studio | Local editor, JSON import/export, local API profile revisions | Validation, sync trust, applied-state receipts |
-| API | Node.js/SQLite alpha with password accounts, sessions, tenant-scoped profiles | Email verification, password resets, distributed abuse protection |
+| API | Node.js/SQLite alpha with password accounts, sessions, tenant-scoped profiles | Mail-provider deployment and verification, distributed abuse protection |
 | Data recovery | Versioned SQLite migrations and tested manual backup/restore tools | Encrypted off-host backups, restore drills and SLOs |
 | Windows | Tauri NSIS unsigned preview, on-demand read-only COM metadata scan | Code signing, trusted updater, physical hardware tests |
 | Releases | GitHub Actions, prerelease artifacts/checksums and automated checks | Signed Windows builds, release provenance and rollback |
