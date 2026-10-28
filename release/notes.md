@@ -1,22 +1,29 @@
-# DMA Hub v0.2.0-alpha.6
+# DMA Hub v0.2.0-alpha.7
 
-**Unsigned preview release — not approved for production.**
+**Development alpha — do not use as a publicly exposed production authentication service.**
 
-## Included
-- Responsive Concept 3 React storefront, public Downloads/Release Center, customer and admin previews.
-- Tauri Windows launcher with explicit read-only local serial/USB-to-serial port enumeration.
-- Local-development API accounts, versions of user profiles, session inventory and revoke-all; registration/login throttling and API tests.
-- GitHub Pages custom domain at https://dma.moobee.lol/, Docker API smoke checks, and Windows native builds.
-- Release pipeline fix: Windows installer file normalized to the published GitHub asset name `DMA.Hub_0.2.0_x64-setup.exe`, with a SHA-256 manifest entry using the same name.
-- CI build verifies installer structure, version and signature status and downloads published assets to compare their hashes.
+## New in alpha.7
 
-## Artifacts
-- Static web preview ZIP and `SHA256SUMS.txt`.
-- An **unsigned Windows NSIS installer** and `SHA256SUMS-windows.txt`, uploaded only if Windows release steps succeed.
-- GitHub-provided source archives.
+- Transactional SQLite schema migrations (tracked to v2), supporting upgrades from the original user/session/profile schema and safe refusal of unsupported database versions.
+- A verified manual SQLite backup command using the online backup API with non-overwriting, private snapshots, integrity checking and restore-drill tests.
+- Disabled-account checks on login and existing sessions.
+- Authenticated password changes requiring the existing password, with session-wide revocation and an audit trail.
+- Customer Account settings to change a password and sign in again.
+- Updated README, API documentation, database-recovery instructions, and implementation roadmap.
 
-## Release history
-Alpha.4 had an installer-check filename error. Alpha.5 uploaded its Windows installer but its final download-back verification failed because GitHub replaced spaces with periods in the published filename. This alpha resolves both errors.
+## Existing alpha functionality
 
-## Limitations
-Windows publisher code-signing, physical-device tests, secure updater, production backend security, real license issuance and payment processing remain unfinished. The public Pages site is frontend-only, and its demonstration account/device data is synthetic.
+- Concept 3 React storefront and cloud-profile UI, live GitHub Release Center, static Pages deployment at https://dma.moobee.lol/.
+- Unsigned Tauri Windows launcher, manually triggered read-only COM/USB-to-serial port metadata discovery.
+- Local-only Node/SQLite account API, versioned user profiles and Docker test deployment.
+
+## Assets
+
+- `dma-hub-web-v0.2.0-alpha.7.zip`, `SHA256SUMS.txt`, GitHub source archives.
+- Windows NSIS installer and Windows checksum only after Windows CI and published-download checksum verification succeed.
+
+## Still missing
+
+Email ownership verification, out-of-band account recovery, distributed rate limits, encrypted off-site backup automation, secure public API hosting, commercial billing/licensing, signed Windows installers and updater, and physical device integration QA.
+
+**The Windows installer remains unsigned and should be used only in a controlled test environment.** The Pages frontend does not host the API.

@@ -159,6 +159,7 @@ The landing page, public **Downloads** route (`#/releases`), customer Downloads,
 Versioned releases are triggered by changes to `release/version.json` on `main` or by manual workflow dispatch.
 
 - **v0.2.0-alpha.1** — initial tested static React preview ZIP, checksum and source archive.
+- **v0.2.0-alpha.7** — transactional database migrations, verified manual backups/restore drills, disabled-account enforcement, password changes with all-session revocation and a refreshed engineering roadmap. The Windows build is still an unsigned prototype.
 - **v0.2.0-alpha.6** — normalizes Windows installer filenames before GitHub upload and checksums, and verifies downloaded release artifacts against the build output.
 - **v0.2.0-alpha.5** — fixes Windows installer verification and packages on-demand native COM-port discovery, account sessions and API safety checks. Installer is published only after the Windows release job succeeds.
 - **v0.2.0-alpha.4** — introduces read-only Windows serial-port discovery, account-wide session revocation and additional API security tests. Requires Windows build and release checks to pass before the installer is published.
