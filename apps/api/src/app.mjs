@@ -24,7 +24,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
  if(dbPath!==":memory:")mkdirSync(dirname(dbPath),{recursive:true});
  const db=new DatabaseSync(dbPath);
  try{migrateDatabase(db)}catch(error){db.close();throw error}
- const loginLimits=new Map(),registerLimits=new Map();
+ const loginLimits=new Map(),registerLimits=new Map(),passwordChangeLimits=new Map();
  function checkLimit(buckets,key,limit,windowMs){const now=clock();const prior=(buckets.get(key)||[]).filter(t=>now-t<windowMs);if(prior.length>=limit){buckets.set(key,prior);return false}prior.push(now);buckets.set(key,prior);if(buckets.size>1000){for(const [k,list] of buckets){const alive=list.filter(t=>now-t<windowMs);if(alive.length)buckets.set(k,alive);else buckets.delete(k)}}return true}
  const audit=(actor,action,target)=>db.prepare("INSERT INTO audit VALUES(?,?,?,?,?)").run(randomUUID(),actor,action,target,clock());
  function requireUser(req){const auth=req.headers.authorization||"";if(!auth.startsWith("Bearer "))return null;const token=auth.slice(7).trim();if(token.length<30||token.length>128)return null;return db.prepare("SELECT u.id,u.email,u.role,u.created_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.disabled_at IS NULL").get(hashToken(token),clock())||null}
@@ -74,6 +74,25 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
     if(pathname==="/v1/auth/logout-all"&&req.method==="POST"){
       db.prepare("DELETE FROM sessions WHERE user_id=?").run(u.id);audit(u.id,"session.logout_all",u.id);
       response(res,200,{ok:true});return
+    }
+    if(pathname==="/v1/auth/change-password"&&req.method==="POST"){
+      if(!checkLimit(passwordChangeLimits,u.id,5,15*60*1000)){response(res,429,{error:"rate_limited"});return}
+      const v=await jsonBody(req);
+      if(!validPassword(v.newPassword)||v.currentPassword===v.newPassword){
+        response(res,422,{error:"invalid_new_password",message:"Use a different password containing 12–128 characters."});return
+      }
+      const account=db.prepare("SELECT password_hash FROM users WHERE id=? AND disabled_at IS NULL").get(u.id);
+      if(!account||typeof v.currentPassword!=="string"||v.currentPassword.length>128||!verifyPassword(v.currentPassword,account.password_hash)){
+        response(res,401,{error:"invalid_credentials"});return
+      }
+      db.exec("BEGIN IMMEDIATE");
+      try{
+        db.prepare("UPDATE users SET password_hash=? WHERE id=?").run(passwordHash(v.newPassword),u.id);
+        db.prepare("DELETE FROM sessions WHERE user_id=?").run(u.id);
+        audit(u.id,"account.password_changed",u.id);
+        db.exec("COMMIT");
+      }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
+      response(res,200,{ok:true,sessionsRevoked:true});return
     }
     if(pathname==="/v1/profiles"&&req.method==="GET"){const rows=db.prepare("SELECT id,name,data_json,version,created_at,updated_at FROM profiles WHERE user_id=? ORDER BY updated_at DESC LIMIT 100").all(u.id);response(res,200,{items:rows.map(row=>({id:row.id,name:row.name,data:JSON.parse(row.data_json),version:row.version,createdAt:row.created_at,updatedAt:row.updated_at}))});return}
     if(pathname==="/v1/profiles"&&req.method==="POST"){

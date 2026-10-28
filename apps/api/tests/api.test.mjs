@@ -44,3 +44,20 @@ test("expired sessions cannot access protected resources",async()=>{
   assert.equal((await call("/v1/me","GET",undefined,token)).status,401);
  },{clock:()=>now});
 });
+
+test("changing a password requires the current password and revokes all sessions",async()=>apiTest(async(call)=>{
+ const email="rotate@example.test",oldPassword="original-password-123",newPassword="new-password-456";
+ assert.equal((await call("/v1/auth/register","POST",{email,password:oldPassword})).status,201);
+ const first=(await call("/v1/auth/login","POST",{email,password:oldPassword})).body.token;
+ const second=(await call("/v1/auth/login","POST",{email,password:oldPassword})).body.token;
+ assert.equal((await call("/v1/auth/change-password","POST",{currentPassword:"incorrect",newPassword},first)).status,401);
+ assert.equal((await call("/v1/auth/change-password","POST",{currentPassword:oldPassword,newPassword:"short"},first)).status,422);
+ assert.equal((await call("/v1/me","GET",undefined,second)).status,200);
+ const rotated=await call("/v1/auth/change-password","POST",{currentPassword:oldPassword,newPassword},first);
+ assert.equal(rotated.status,200);
+ assert.equal(rotated.body.sessionsRevoked,true);
+ assert.equal((await call("/v1/me","GET",undefined,first)).status,401);
+ assert.equal((await call("/v1/me","GET",undefined,second)).status,401);
+ assert.equal((await call("/v1/auth/login","POST",{email,password:oldPassword})).status,401);
+ assert.equal((await call("/v1/auth/login","POST",{email,password:newPassword})).status,200);
+}));

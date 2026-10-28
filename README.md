@@ -23,7 +23,7 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 | Customer workspace | ✅ Web preview | My Software, device list, subscription placeholder, support, status |
 | Admin workspace | ✅ Synthetic preview | Users, products, releases, system readiness |
 | Configuration Studio | ✅ Local functionality | Edit settings, live preview, JSON import/export, browser storage |
-| API | 🧪 Local alpha | Account sessions, versioned profiles, tracked SQLite migrations, verified manual backup/recovery |
+| API | 🧪 Local alpha | Account sessions, password changes with session revocation, versioned profiles, tracked SQLite migrations, verified manual backup/recovery |
 | Cloud profiles | 🧪 Local API | Create, load, update, delete, optimistic version checks |
 | Desktop companion | 🧪 Windows scaffold | Tauri shell source, NSIS build CI, launcher and diagnostics previews; no hardware APIs |
 | Device adapters | 🧪 Read-only native serial discovery | Explicit Windows COM-port metadata scan; no port data access or device writes |

@@ -23,6 +23,7 @@ export const api={
  logout:(token:string)=>request<{ok:boolean}>("/v1/auth/logout","POST",{},token),
  sessions:(token:string)=>request<{items:ActiveSession[]}>("/v1/auth/sessions","GET",undefined,token),
  logoutAll:(token:string)=>request<{ok:boolean}>("/v1/auth/logout-all","POST",{},token),
+ changePassword:(token:string,currentPassword:string,newPassword:string)=>request<{ok:boolean;sessionsRevoked:boolean}>("/v1/auth/change-password","POST",{currentPassword,newPassword},token),
  me:(token:string)=>request<{user:User}>("/v1/me","GET",undefined,token),
  profiles:(token:string)=>request<{items:CloudProfile[]}>("/v1/profiles","GET",undefined,token),
  create:(token:string,name:string,data:ProfileSettings)=>request<CloudProfile>("/v1/profiles","POST",{name,data},token),
