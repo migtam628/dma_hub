@@ -8,6 +8,13 @@ Endpoints:
 - `GET /healthz` — status; unauthenticated
 - `GET /v1/catalog` — preview catalog
 - `GET /v1/catalog/live` — published persisted catalog products only
+- `GET /v1/catalog/pricing` — active USD plan prices for published products; no payment flow
+- `GET/POST /v1/admin/products/:uuid/plans` — admin-only plan list/create
+- `GET/PATCH /v1/admin/plans/:uuid` — admin-only plan metadata; price/currency/period immutable, update needs `If-Match`
+- `GET/POST /v1/admin/entitlements` — admin-only listing/explicit test grants, not purchases
+- `POST /v1/admin/entitlements/:uuid/revoke` — audit-recorded test grant revocation
+- `GET /v1/me/entitlements` — only signed-in customer's test grants
+- `GET /v1/me/access/:productUuid` — server-evaluated active access check
 - `GET/POST /v1/admin/products` — admin-only catalog listing and creation; authenticated
 - `GET/PATCH /v1/admin/products/:uuid` — admin-only retrieval/update; PATCH requires numeric `If-Match`
 - `POST /v1/auth/register` — email + 12–128 character password; creates customer
@@ -34,3 +41,5 @@ Security implemented: scrypt salted passwords, hashed opaque tokens, 12-hour ses
 Before internet exposure: enforce TLS + secure proxy, add email verification and recovery, stronger distributed rate limiting, structured logs and alerts, account abuse monitoring, encrypted off-host backups, secrets management, integration tests through reverse proxy, threat model, security review and dependency audit. Manual database migrations and backup verification are described in [database recovery](database-recovery.md).
 
 **Current limitations:** The rate limits are process-local and are not sufficient against distributed abuse; registration has no email verification; the API remains suitable only for local development. Do not publish it on a public interface.
+
+**Commerce foundation:** schema v5 adds plan amounts (USD cents) and time-limited test grants. The admin must grant access manually. Payment, purchases, license enforcement, signed activation and billing webhooks remain unimplemented. See [commerce foundation](commerce-foundation.md).

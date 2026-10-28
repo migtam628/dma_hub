@@ -28,7 +28,8 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 | Desktop companion | 🧪 Windows scaffold | Tauri shell source, NSIS build CI, launcher and diagnostics previews; no hardware APIs |
 | Device adapters | 🧪 Read-only native serial discovery | Explicit Windows COM-port metadata scan; no port data access or device writes |
 | Persistent catalog | 🧪 API alpha | Admin-gated product records, public published-only listings, versions and audit records; storefront still uses demo catalog |
-| Payments/licensing | ⏳ Not connected | Real billing, entitlement verification, audit and recovery |
+| Pricing & entitlements | 🧪 API alpha | Versioned USD plans and manually issued, expiring test grants; customer-only access checks and audit logs |
+| Payments/licensing | ⏳ Not connected | No actual checkout, subscription charges, license activation or payment webhook |
 | Public hosting | ✅ Live | `https://dma.moobee.lol` via GitHub Pages; static preview **only** |
 
 ### Screens
@@ -160,6 +161,7 @@ The landing page, public **Downloads** route (`#/releases`), customer Downloads,
 Versioned releases are triggered by changes to `release/version.json` on `main` or by manual workflow dispatch.
 
 - **v0.2.0-alpha.1** — initial tested static React preview ZIP, checksum and source archive.
+- **Development on main after alpha.9** — plan pricing API and manually granted, user-scoped test entitlements. Not a payment, subscription or commercial license.
 - **v0.2.0-alpha.9** — persisted admin-managed catalog records with separate published-only public API, optimistic version checks and auditable updates. Still no payment, license issuance or merchant CMS integration.
 - **v0.2.0-alpha.8** — optional mail-backed verification/recovery, hashed one-time codes, schema v3 and account recovery UI; email provider configuration is required before use.\n- **v0.2.0-alpha.7** — transactional database migrations, verified manual backups/restore drills, disabled-account enforcement, password changes with all-session revocation and a refreshed engineering roadmap. The Windows build is still an unsigned prototype.
 - **v0.2.0-alpha.6** — normalizes Windows installer filenames before GitHub upload and checksums, and verifies downloaded release artifacts against the build output.
@@ -172,6 +174,12 @@ Versioned releases are triggered by changes to `release/version.json` on `main` 
 - A GitHub prerelease is **not** a production software release. Signing, device QA, updater trust and deployment readiness are separate gates.
 
 To create the next alpha, update `release/version.json` to a unique version and edit `release/notes.md`, then commit and push. The release workflow builds/tests the React project, packages the static site, creates the tag/release, then compiles Windows NSIS on a Windows runner.
+
+### Plan pricing and test entitlements (backend only)
+
+The API can maintain USD plan amounts in integer cents and explicit billing periods, and lets authorized admins manually grant or revoke **test** entitlements with required expirations. Customer access checks are enforced by the API and isolated to the signed-in user. This does **not** process money, issue cryptographic licenses, or activate devices.
+
+See [Pricing and test entitlements](docs/commerce-foundation.md) for endpoints and safeguards. GitHub Pages and the existing UI still display sample commercial data until a dedicated secured backend is deployed.
 
 ### Persistent product catalog (backend alpha)
 

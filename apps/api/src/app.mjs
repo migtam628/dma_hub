@@ -4,6 +4,7 @@ import {mkdirSync} from "node:fs";
 import {dirname} from "node:path";
 import {DatabaseSync} from "node:sqlite";
 import {migrateDatabase} from "./migrations.mjs";
+import {createCommerce} from "./commerce.mjs";
 const MAX_BODY=64*1024,SESSION_MS=12*60*60*1000,VERIFY_MS=24*60*60*1000,RESET_MS=60*60*1000;
 const hashToken=t=>createHash("sha256").update(t).digest("hex");
 function response(res,status,payload,headers={}){res.writeHead(status,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff","Referrer-Policy":"no-referrer",...headers});res.end(JSON.stringify(payload))}
@@ -37,6 +38,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
  const loginLimits=new Map(),registerLimits=new Map(),passwordChangeLimits=new Map(),verificationLimits=new Map(),recoveryLimits=new Map();
  function checkLimit(buckets,key,limit,windowMs){const now=clock();const prior=(buckets.get(key)||[]).filter(t=>now-t<windowMs);if(prior.length>=limit){buckets.set(key,prior);return false}prior.push(now);buckets.set(key,prior);if(buckets.size>1000){for(const [k,list] of buckets){const alive=list.filter(t=>now-t<windowMs);if(alive.length)buckets.set(k,alive);else buckets.delete(k)}}return true}
  const audit=(actor,action,target)=>db.prepare("INSERT INTO audit VALUES(?,?,?,?,?)").run(randomUUID(),actor,action,target,clock());
+ const commerce=createCommerce({db,clock,audit,readBody:jsonBody});
  function issueToken(userId,purpose,ttl){
   const token=randomBytes(32).toString("base64url");
   db.prepare("DELETE FROM auth_tokens WHERE user_id=? AND purpose=?").run(userId,purpose);
@@ -77,6 +79,8 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
      const rows=db.prepare("SELECT id,slug,name,description,updated_at FROM catalog_products WHERE status='published' ORDER BY name ASC LIMIT 200").all();
      response(res,200,{items:rows.map(x=>({id:x.id,slug:x.slug,name:x.name,description:x.description,updatedAt:x.updated_at}))});return
    }
+   const priced=commerce.publicRoute(pathname,req.method);
+   if(priced){response(res,priced.status,priced.payload);return}
    if(pathname==="/v1/auth/capabilities"&&req.method==="GET"){
      response(res,200,{emailVerificationRequired:requireEmailVerification,passwordRecoveryAvailable:typeof sendEmail==="function"});return
    }
@@ -207,6 +211,8 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
       }
       if(req.method==="DELETE"){const version=Number(req.headers["if-match"]);if(!Number.isInteger(version)||version<1){response(res,428,{error:"version_required"});return}const run=db.prepare("DELETE FROM profiles WHERE id=? AND user_id=? AND version=?").run(id,u.id,version);if(!run.changes){response(res,409,{error:"version_conflict"});return}audit(u.id,"profile.delete",id);response(res,200,{ok:true});return}
     }
+    const commerceResult=await commerce.authenticatedRoute(pathname,req,u);
+    if(commerceResult){response(res,commerceResult.status,commerceResult.payload);return}
     if(pathname==="/v1/admin/metrics"&&req.method==="GET"){if(u.role!=="admin"){response(res,403,{error:"forbidden"});return}response(res,200,{users:db.prepare("SELECT COUNT(*) n FROM users").get().n,profiles:db.prepare("SELECT COUNT(*) n FROM profiles").get().n});return}
     if(pathname==="/v1/admin/products"&&(req.method==="GET"||req.method==="POST")){
       if(u.role!=="admin"){response(res,403,{error:"forbidden"});return}

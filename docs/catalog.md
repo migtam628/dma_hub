@@ -16,3 +16,8 @@ This is a server-side core only, without plan prices, payments, licenses, purcha
 
 ## Production gates
 Catalog review/approval, account role provisioning, field-level permissions, audit consumption, server backup, and a real customer UX must be completed before commercial use.
+
+
+## Plan/entitlement milestone
+
+Pricing and manual test entitlements have been added in a separate API module. See [Pricing and test entitlements](commerce-foundation.md). These definitions are not checkout prices charged to customers and do not constitute commercial licenses.
