@@ -42,7 +42,7 @@ tests/                 Repository validation
 |---|---|---|
 | G0 — Completed | Concept 3 approved, design batches, web/desktop foundation and CI | Code and tests present, alpha release |
 | G1 — In progress | Backend identity and recoverability | Transactional schema upgrades, verified backups, mail-backed email verification and recovery integration tests, hardened operational abuse controls and security review |
-| G2 — Next | Catalog, pricing and entitlement domain | Real product records, role-safe APIs and auditable access events |
+| G2 — Next | Catalog, pricing and entitlement domain | Admin-gated persistent product records implemented; prices, entitlement model and auditable access events still outstanding |
 | G3 | Commerce | Payment provider, signed webhook handling, invoices/refunds, test/live isolation |
 | G4 | Windows trust | Signed installers, signed update manifest, rollback and install/uninstall QA |
 | G5 | Authorized device integration | One supported model, consent, read-only diagnostics and device test evidence |

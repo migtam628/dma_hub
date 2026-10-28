@@ -7,6 +7,9 @@ Run `npm run dev:api` from the repository root, optionally set environment varia
 Endpoints:
 - `GET /healthz` — status; unauthenticated
 - `GET /v1/catalog` — preview catalog
+- `GET /v1/catalog/live` — published persisted catalog products only
+- `GET/POST /v1/admin/products` — admin-only catalog listing and creation; authenticated
+- `GET/PATCH /v1/admin/products/:uuid` — admin-only retrieval/update; PATCH requires numeric `If-Match`
 - `POST /v1/auth/register` — email + 12–128 character password; creates customer
 - `POST /v1/auth/login` — email/password, returns 12-hour opaque Bearer token
 - `GET /v1/auth/capabilities` — email-verification and recovery availability flags

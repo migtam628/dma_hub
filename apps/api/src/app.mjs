@@ -19,6 +19,15 @@ function verifyPassword(pass,encoded){if(typeof encoded!=="string"||!encoded.inc
 function publicUser(u){return {id:u.id,email:u.email,role:u.role,createdAt:u.created_at,emailVerified:u.email_verified_at!=null}}
 function validEmail(v){return typeof v==="string"&&v.length<255&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)}
 function validPassword(v){return typeof v==="string"&&v.length>=12&&v.length<=128}
+function normalizedProduct(v){
+ if(!v||typeof v!=="object"||Array.isArray(v))return null;
+ const slug=typeof v.slug==="string"?v.slug.trim().toLowerCase():"";
+ const name=typeof v.name==="string"?v.name.trim():"";
+ const description=typeof v.description==="string"?v.description.trim():"";
+ const status=v.status===undefined?"draft":v.status;
+ if(!/^[a-z0-9][a-z0-9-]{2,59}$/.test(slug)||name.length<2||name.length>100||description.length>2000||!["draft","published","archived"].includes(status))return null;
+ return {slug,name,description,status};
+}
 function normalizedProfile(v){if(!v||typeof v!=="object"||Array.isArray(v))return null;const name=typeof v.name==="string"?v.name.trim():"";if(name.length<1||name.length>80)return null;const data=v.data;if(!data||typeof data!=="object"||Array.isArray(data))return null;const serialized=JSON.stringify(data);if(serialized.length>16000)return null;return {name,data:serialized}}
 export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:5173",clock=()=>Date.now(),sendEmail=null,requireEmailVerification=false}={}){
  if(requireEmailVerification&&typeof sendEmail!=="function")throw new Error("Email verification requires a configured mail transport");
@@ -64,6 +73,10 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
   try{
    if(pathname==="/healthz"&&req.method==="GET"){response(res,200,{status:"ok",service:"dma-hub-api",database:"ready"});return}
    if(pathname==="/v1/catalog"&&req.method==="GET"){response(res,200,{items:[{id:"device-studio",name:"Device Studio",status:"preview"},{id:"profile-cloud",name:"Profile Cloud",status:"preview"},{id:"release-center",name:"Release Center",status:"preview"}]});return}
+   if(pathname==="/v1/catalog/live"&&req.method==="GET"){
+     const rows=db.prepare("SELECT id,slug,name,description,updated_at FROM catalog_products WHERE status='published' ORDER BY name ASC LIMIT 200").all();
+     response(res,200,{items:rows.map(x=>({id:x.id,slug:x.slug,name:x.name,description:x.description,updatedAt:x.updated_at}))});return
+   }
    if(pathname==="/v1/auth/capabilities"&&req.method==="GET"){
      response(res,200,{emailVerificationRequired:requireEmailVerification,passwordRecoveryAvailable:typeof sendEmail==="function"});return
    }
@@ -195,6 +208,54 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
       if(req.method==="DELETE"){const version=Number(req.headers["if-match"]);if(!Number.isInteger(version)||version<1){response(res,428,{error:"version_required"});return}const run=db.prepare("DELETE FROM profiles WHERE id=? AND user_id=? AND version=?").run(id,u.id,version);if(!run.changes){response(res,409,{error:"version_conflict"});return}audit(u.id,"profile.delete",id);response(res,200,{ok:true});return}
     }
     if(pathname==="/v1/admin/metrics"&&req.method==="GET"){if(u.role!=="admin"){response(res,403,{error:"forbidden"});return}response(res,200,{users:db.prepare("SELECT COUNT(*) n FROM users").get().n,profiles:db.prepare("SELECT COUNT(*) n FROM profiles").get().n});return}
+    if(pathname==="/v1/admin/products"&&(req.method==="GET"||req.method==="POST")){
+      if(u.role!=="admin"){response(res,403,{error:"forbidden"});return}
+      if(req.method==="GET"){
+        const products=db.prepare("SELECT id,slug,name,description,status,version,created_at,updated_at FROM catalog_products ORDER BY updated_at DESC LIMIT 200").all();
+        response(res,200,{items:products.map(p=>({id:p.id,slug:p.slug,name:p.name,description:p.description,status:p.status,version:p.version,createdAt:p.created_at,updatedAt:p.updated_at}))});return
+      }
+      const product=normalizedProduct(await jsonBody(req));
+      if(!product){response(res,422,{error:"invalid_product"});return}
+      const id=randomUUID(),now=clock();
+      try{
+        db.exec("BEGIN IMMEDIATE");
+        db.prepare("INSERT INTO catalog_products(id,slug,name,description,status,version,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)")
+          .run(id,product.slug,product.name,product.description,product.status,1,now,now);
+        audit(u.id,"catalog.product_created",id);db.exec("COMMIT");
+      }catch(error){
+        if(db.isTransaction)db.exec("ROLLBACK");
+        if(String(error).includes("UNIQUE")){response(res,409,{error:"slug_already_exists"});return}
+        throw error
+      }
+      response(res,201,{id,...product,version:1,createdAt:now,updatedAt:now});return
+    }
+    const adminProductPath=pathname.match(/^\/v1\/admin\/products\/([0-9a-f-]{36})$/i);
+    if(adminProductPath&&(req.method==="GET"||req.method==="PATCH")){
+      if(u.role!=="admin"){response(res,403,{error:"forbidden"});return}
+      const id=adminProductPath[1];
+      const existing=db.prepare("SELECT * FROM catalog_products WHERE id=?").get(id);
+      if(!existing){response(res,404,{error:"not_found"});return}
+      if(req.method==="GET"){response(res,200,{id,slug:existing.slug,name:existing.name,description:existing.description,status:existing.status,version:existing.version,createdAt:existing.created_at,updatedAt:existing.updated_at});return}
+      const version=Number(req.headers["if-match"]);
+      if(!Number.isInteger(version)||version<1){response(res,428,{error:"version_required"});return}
+      const product=normalizedProduct(await jsonBody(req));
+      if(!product){response(res,422,{error:"invalid_product"});return}
+      const now=clock();
+      try{
+        db.exec("BEGIN IMMEDIATE");
+        const updated=db.prepare("UPDATE catalog_products SET slug=?,name=?,description=?,status=?,version=version+1,updated_at=? WHERE id=? AND version=?")
+          .run(product.slug,product.name,product.description,product.status,now,id,version);
+        if(!updated.changes){db.exec("ROLLBACK");response(res,409,{error:"version_conflict"});return}
+        audit(u.id,"catalog.product_updated",id);
+        db.exec("COMMIT");
+      }catch(error){
+        if(db.isTransaction)db.exec("ROLLBACK");
+        if(String(error).includes("UNIQUE")){response(res,409,{error:"slug_already_exists"});return}
+        throw error
+      }
+      response(res,200,{id,...product,version:version+1,updatedAt:now});return
+    }
+
     response(res,404,{error:"not_found"});return
    }
    response(res,404,{error:"not_found"});

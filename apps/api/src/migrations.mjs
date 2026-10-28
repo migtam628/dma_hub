@@ -1,6 +1,6 @@
 import {DatabaseSync} from "node:sqlite";
 
-export const SCHEMA_VERSION=3;
+export const SCHEMA_VERSION=4;
 
 const BASE_SCHEMA=`CREATE TABLE IF NOT EXISTS users(
  id TEXT PRIMARY KEY,
@@ -85,8 +85,27 @@ export function migrateDatabase(db){
    );
    CREATE INDEX IF NOT EXISTS auth_tokens_user_purpose ON auth_tokens(user_id,purpose);`);
    db.exec("PRAGMA user_version=3; COMMIT;");
+   version=3;
   }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
  }
+ if(version===3){
+  db.exec("BEGIN IMMEDIATE");
+  try{
+   db.exec(`CREATE TABLE IF NOT EXISTS catalog_products(
+    id TEXT PRIMARY KEY,
+    slug TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft','published','archived')),
+    version INTEGER NOT NULL DEFAULT 1,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+   );
+   CREATE INDEX IF NOT EXISTS catalog_products_status ON catalog_products(status,updated_at);`);
+   db.exec("PRAGMA user_version=4; COMMIT;");
+  }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
+ }
+ requiredColumns(db,"catalog_products",["id","slug","name","description","status","version","created_at","updated_at"]);
  requiredColumns(db,"users",["id","email","password_hash","role","created_at","disabled_at","email_verified_at"]);
  requiredColumns(db,"auth_tokens",["token_hash","user_id","purpose","created_at","expires_at"]);
  requiredColumns(db,"sessions",["token_hash","user_id","expires_at","created_at"]);
