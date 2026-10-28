@@ -1,24 +1,24 @@
-# DMA Hub v0.2.0-alpha.8
+# DMA Hub v0.2.0-alpha.9
 
-**Development alpha only — public account services are NOT deployed or approved.**
+**Development alpha only — payments and production access are not enabled.**
 
-## Added
-- Backend email verification and password recovery with purpose-scoped, SHA-256 hashed, expiring, single-use 256-bit tokens.
-- Verification codes valid for 24 hours and recovery codes for one hour; used or replaced codes cannot be reused.
-- Password recovery revokes all existing sessions and clears account codes, recording an audit event.
-- Generic public request responses for known/unknown addresses, local request throttling and no token plaintext in database.
-- Optional Resend HTTP email transport with server-only credentials; mandatory email verification fails closed if no mail transport is configured.
-- Customer Account views for requesting email/recovery codes, verifying email, and changing forgotten passwords.
-- SQLite v3 migration preserving existing data and new tests for v2→v3 upgrades, account enumeration and token expiry.
-- Updated README, account-security docs, database recovery and roadmap.
+## New
+- SQLite v4 `catalog_products` migration preserving legacy users, sessions and profiles.
+- Admin-only persistent product management: create draft items, list and update catalog records with version conflict protection.
+- Public `GET /v1/catalog/live` returns published records only; archived and draft products are never exposed.
+- Server-enforced role access controls and auditable product creation/updates.
+- Endpoint tests for customer authorization denial, status transitions, duplicates and stale updates.
+- README, API reference, catalog documentation and updated roadmap.
 
-## Previous alpha foundation
-Responsive Concept 3 storefront and dashboards, cloud configuration profiles, Tauri Windows launcher, read-only serial metadata discovery, GitHub Pages and Release Center.
+## Included from alpha.8
+- Optional backend email verification and password recovery using expiring purpose-bound one-time token hashes and optional Resend delivery.
+- Customer password reset / email verification flows and account session revocation.
+- Tauri Windows launcher preview, local profile editor, read-only COM metadata discovery and GitHub Pages preview.
 
-## Artifacts
-Static web preview ZIP + SHA-256 checksum; unsigned Windows NSIS installer and its checksum are attached only after Windows CI succeeds.
+## Distribution
+Web preview ZIP and checksum; unsigned Windows NSIS installer and checksum after Windows runner build validation.
 
 ## Important limitations
-No verified production email sender has been configured in this repository. GitHub Pages cannot host the API. Distributed rate limiting, account abuse monitoring, email deliverability, independent security review, encrypted off-site backups, code signing, real commerce and licensing are unfinished.
+The customer-facing site still displays demo catalog records. The new `/v1/catalog/live` is the real persisted API, but prices, license entitlements, checkout, merchant CMS binding and real payment processing have not been implemented. An operator must provision an admin role offline; public self-promotion is prohibited.
 
-Windows installer remains UNSIGNED, for testing only.
+Windows executables are **unsigned alpha**. The Node/SQLite service is **local development only** and must not be exposed publicly without verified email delivery, distributed throttling, TLS, operational security and recovery controls.
