@@ -1,5 +1,6 @@
 export type User={id:string;email:string;role:string;createdAt?:number};
 export type Session={token:string;expiresAt:number;user:User};
+export type AuthCapabilities={emailVerificationRequired:boolean;passwordRecoveryAvailable:boolean};
 export type ActiveSession={createdAt:number;expiresAt:number;current:boolean};
 export type ProfileSettings={profileName:string;autoSync:boolean;notifications:boolean;density:number;accent:string;startup:string};
 export type CloudProfile={id:string;name:string;data:ProfileSettings;version:number;createdAt?:number;updatedAt?:number};
@@ -18,8 +19,13 @@ async function request<T>(path:string,method="GET",body?:unknown,token?:string,v
 }
 export const api={
  health:()=>request<{status:string}>("/healthz"),
- register:(email:string,password:string)=>request<{user:User}>("/v1/auth/register","POST",{email,password}),
+ register:(email:string,password:string)=>request<{user:User;verificationRequired:boolean;mailAccepted:boolean|null}>("/v1/auth/register","POST",{email,password}),
  login:(email:string,password:string)=>request<Session>("/v1/auth/login","POST",{email,password}),
+ capabilities:()=>request<AuthCapabilities>("/v1/auth/capabilities"),
+ verifyEmail:(token:string)=>request<{ok:boolean}>("/v1/auth/verify-email","POST",{token}),
+ resendVerification:(email:string)=>request<{ok:boolean}>("/v1/auth/request-verification","POST",{email}),
+ forgotPassword:(email:string)=>request<{ok:boolean}>("/v1/auth/forgot-password","POST",{email}),
+ resetPassword:(token:string,newPassword:string)=>request<{ok:boolean;sessionsRevoked:boolean}>("/v1/auth/reset-password","POST",{token,newPassword}),
  logout:(token:string)=>request<{ok:boolean}>("/v1/auth/logout","POST",{},token),
  sessions:(token:string)=>request<{items:ActiveSession[]}>("/v1/auth/sessions","GET",undefined,token),
  logoutAll:(token:string)=>request<{ok:boolean}>("/v1/auth/logout-all","POST",{},token),

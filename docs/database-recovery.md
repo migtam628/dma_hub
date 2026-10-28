@@ -1,10 +1,10 @@
 # Database migrations, backup and recovery — DMA Hub API
 
-**Scope:** Local-development Node.js/SQLite service, schema version 2. This is an implemented recoverability foundation, **not** a production backup service.
+**Scope:** Local-development Node.js/SQLite service, schema version 3. This is an implemented recoverability foundation, **not** a production backup service.
 
 ## Migrations
 
-The API now runs transactional SQLite `PRAGMA user_version` migrations at startup, preserving existing users, sessions, audit records and configuration profiles. Version 1 describes the original schema; version 2 adds `users.disabled_at` to support revoking access for disabled accounts. Login and session lookups reject disabled accounts. There is no public endpoint for disabling accounts.
+The API now runs transactional SQLite `PRAGMA user_version` migrations at startup, preserving existing users, sessions, audit records and configuration profiles. Version 1 describes the original schema; version 2 adds `users.disabled_at` to support revoking access for disabled accounts; version 3 adds `users.email_verified_at` and hashed, expiring one-time verification/recovery tokens. Login and session lookups reject disabled accounts. There is no public endpoint for disabling accounts.
 
 Unknown future versions, invalid table structures and failed migrations stop startup rather than resetting the database. Never downgrade by modifying `user_version` manually.
 

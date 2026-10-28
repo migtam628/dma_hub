@@ -1,6 +1,6 @@
 import {DatabaseSync} from "node:sqlite";
 
-export const SCHEMA_VERSION=2;
+export const SCHEMA_VERSION=3;
 
 const BASE_SCHEMA=`CREATE TABLE IF NOT EXISTS users(
  id TEXT PRIMARY KEY,
@@ -70,7 +70,24 @@ export function migrateDatabase(db){
    db.exec("PRAGMA user_version=2; COMMIT;");
   }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
  }
- requiredColumns(db,"users",["id","email","password_hash","role","created_at","disabled_at"]);
+ if(version===2){
+  db.exec("BEGIN IMMEDIATE");
+  try{
+   const fields=new Set(db.prepare("PRAGMA table_info(users)").all().map(c=>c.name));
+   if(!fields.has("email_verified_at"))db.exec("ALTER TABLE users ADD COLUMN email_verified_at INTEGER");
+   db.exec(`CREATE TABLE IF NOT EXISTS auth_tokens(
+    token_hash TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    purpose TEXT NOT NULL CHECK (purpose IN ('verify_email','reset_password')),
+    created_at INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL
+   );
+   CREATE INDEX IF NOT EXISTS auth_tokens_user_purpose ON auth_tokens(user_id,purpose);`);
+   db.exec("PRAGMA user_version=3; COMMIT;");
+  }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
+ }
+ requiredColumns(db,"users",["id","email","password_hash","role","created_at","disabled_at","email_verified_at"]);
+ requiredColumns(db,"auth_tokens",["token_hash","user_id","purpose","created_at","expires_at"]);
  requiredColumns(db,"sessions",["token_hash","user_id","expires_at","created_at"]);
  requiredColumns(db,"profiles",["id","user_id","name","data_json","version","created_at","updated_at"]);
  requiredColumns(db,"audit",["id","actor","action","target","created_at"]);

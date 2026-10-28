@@ -1,6 +1,6 @@
 # DMA Hub API v0.2 — local development
 
-The backend is a Node 22 HTTP + SQLite service. Requires a secure private deployment configuration and reverse proxy before exposure. No billing, user licensing, email verification, or production hardening is claimed.
+The backend is a Node 22 HTTP + SQLite service. Requires a secure private deployment configuration and reverse proxy before exposure. No billing, user licensing or production hardening is claimed. Email verification and recovery require an explicitly configured transactional mail provider.
 
 Run `npm run dev:api` from the repository root, optionally set environment variables from `apps/api/.env.example`. Default is loopback port 8787 with a persistent database in the app working directory. For Vite's browser dev origin `http://localhost:5173`, configure `WEB_ORIGIN=http://localhost:5173`. Do **not** expose this local prototype directly to the internet.
 
@@ -9,6 +9,11 @@ Endpoints:
 - `GET /v1/catalog` — preview catalog
 - `POST /v1/auth/register` — email + 12–128 character password; creates customer
 - `POST /v1/auth/login` — email/password, returns 12-hour opaque Bearer token
+- `GET /v1/auth/capabilities` — email-verification and recovery availability flags
+- `POST /v1/auth/verify-email` — consume a single-use 24-hour email token
+- `POST /v1/auth/request-verification` — request a verification code; generic response
+- `POST /v1/auth/forgot-password` — request a one-hour password recovery code; generic response
+- `POST /v1/auth/reset-password` — consume recovery token and revoke all active sessions
 - `POST /v1/auth/logout` — revokes current token
 - `GET /v1/auth/sessions` — list active sessions (timestamps and current marker; raw tokens never exposed)
 - `POST /v1/auth/logout-all` — revoke every active session for the user
