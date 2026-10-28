@@ -8,3 +8,11 @@ coverage/
 .env.*
 !.env.example
 *.tsbuildinfo
+
+# Local API state and sensitive snapshots
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+apps/api/data/
+backups/

@@ -1,91 +1,73 @@
-# DMA Hub — Architecture & Documentation-First Roadmap
+# DMA Hub — Engineering Roadmap and Reality Check
 
-**Date:** 2026-10-27  
-**Status:** Planning only; repository was empty at review (GitHub returned no contents and no commit history).  
-**Design:** Concept 3 Professional Hybrid  
-**Working title:** DMA Hub — name/product positioning subject to confirmation.
+**Updated:** October 27, 2026  
+**Project:** [migtam628/dma_hub](https://github.com/migtam628/dma_hub)  
+**Approved UI:** Concept 3 — Professional Hybrid  
+**Status:** Functional alpha with a public static preview and unsigned Windows installer. **Not production ready.**
 
-## Outcome
+## What actually exists
 
-One cohesive public storefront, customer portal, admin dashboard, and Windows Tauri companion, backed by a permissioned modular TypeScript API and versioned configuration/profile model. This is an original, authorized-software platform, not a copy of another vendor's proprietary implementation.
+| Area | Evidence / current state | Next gate |
+|---|---|---|
+| Monorepo | `apps/web`, `apps/api`, `apps/desktop`, `packages/ui` and CI | Consistent contracts and integration testing |
+| Storefront | React preview deployed to `https://dma.moobee.lol` | Real catalog, plans and checkout |
+| Customer portal | Software/devices/account UI; synthetic state | Real authenticated account/entitlement data |
+| Admin portal | Synthetic users, products, releases | Server-enforced roles and operational workflows |
+| Configuration Studio | Local editor, JSON import/export, local API profile revisions | Validation, sync trust, applied-state receipts |
+| API | Node.js/SQLite alpha with password accounts, sessions, tenant-scoped profiles | Email verification, password resets, distributed abuse protection |
+| Data recovery | Versioned SQLite migrations and tested manual backup/restore tools | Encrypted off-host backups, restore drills and SLOs |
+| Windows | Tauri NSIS unsigned preview, on-demand read-only COM metadata scan | Code signing, trusted updater, physical hardware tests |
+| Releases | GitHub Actions, prerelease artifacts/checksums and automated checks | Signed Windows builds, release provenance and rollback |
+| Hardware | Read-only serial-port discovery; no port opens or writes | Documented pilot adapter and physical compatibility QA |
+| Billing/licenses | Not connected | Provider selection, webhook handling, auditable entitlements |
+| Production hosting | GitHub Pages static frontend; local-only API/Docker | Dedicated secured API environment and observability |
 
-## Repository layout — proposed, NOT present yet
+### Repository layout (implemented)
 
 ```text
-dma_hub/
-  README.md
-  docs/
-    concept-3-batch-3.md
-    project-roadmap.md
-    concept-3-batch-1.md       # add reviewed prior spec later
-    concept-3-batch-2.md       # add reviewed prior spec later
-    design-tokens.md            # future approved design token export
-    architecture.md             # future ADR and threat model
-    api-contracts.md            # future OpenAPI and realtime events
-    device-adapter-contract.md  # future documented device integrations
-  apps/
-    storefront/                 # proposed React application
-    customer/                   # proposed React application
-    admin/                      # proposed React application
-    desktop/                    # proposed Tauri React/Rust
-  services/
-    api/                        # proposed Node/TypeScript modular API
-  packages/
-    ui/                         # shared tokens and components
-    contracts/                  # runtime validation and types
-    config-schema/              # configuration and migrations
-  infrastructure/
-    docker/
-    workflows/
+apps/
+  web/                 React 19, TypeScript, Vite
+  api/                 Node.js HTTP, SQLite, migration + maintenance tools
+  desktop/             Tauri / Rust Windows app shell
+packages/ui/           Shared visual components
+.github/workflows/     CI, Pages, Windows, API Docker smoke, release
+docs/                  Design batches, native device QA, API and recovery
+release/               Version manifest and release notes
+tests/                 Repository validation
 ```
 
-**Note:** The folders under `apps/`, `services/`, `packages/`, and `infrastructure/` are illustrative future structure only; do not create them until planning approval.
+## Phase gates and order
 
-## Domain model — proposed
-
-- Identity: `User`, `Role`, `Session`, `DeviceRegistration`.
-- Catalog: `Product`, `ProductRevision`, `Plan`, `PlanPriceVersion`, `Partner`.
-- Access: `Entitlement`, `LicenseActivation`, `AccessEvent`.
-- Downloads: `Release`, `ReleaseArtifact`, `ReleaseRollout`, `UpdateEvent`.
-- Settings: `ConfigSchema`, `ConfigProfile`, `ProfileRevision`, `AppliedProfileReceipt`.
-- Hardware: `HardwareModel`, `CompatibilityTest`, `AdapterCapability`.
-- Operations: `SupportTicket`, `DiagnosticReport`, `ServiceIncident`, `AuditEvent`.
-
-Use real state transitions (not optimistic claims) and RBAC on backend. Select PostgreSQL as default relational database, Redis/queue only if justified; Tauri/Rust for Windows, Node/TypeScript for backend, React/Tailwind for web. Auth system selection remains a decision, not a deployed fact.
-
-## Engineering phases and gates
-
-| Phase | Output | Definition of done |
+| Gate | Deliverable | Acceptance criteria |
 |---|---|---|
-| 0. Scope/design | Signed-off user stories, screen specs, visual board | Product use case & supported integration decided |
-| 1. Foundation | Monorepo, CI, app shells, auth/RBAC | Tests, threat model, observability baseline |
-| 2. Store/portal | Public site, library, accounts, plan catalog | Accessible responsive flows and data contracts |
-| 3. Licensing/releases | Entitlements, signed artifacts, staged releases | No unsigned updates, auditable grants/revocations |
-| 4. Windows companion | Install, sign-in, update, pairing, diagnostics | Tested installer, recovery and privacy controls |
-| 5. Config Studio | Schema-driven settings, versioned cloud profiles | Conflict resolution and verified apply receipts |
-| 6. Supported adapter | One documented/authorized device/application | Compatibility test suite and hardware evidence |
-| 7. Admin/operations | Catalog, plans, releases, tickets, audit | RBAC, approval flows, incident handling |
-| 8. Beta QA | User testing, hardening, documentation | Backup/restore, accessibility, deployment checklists |
+| G0 — Completed | Concept 3 approved, design batches, web/desktop foundation and CI | Code and tests present, alpha release |
+| G1 — In progress | Backend identity and recoverability | Transactional schema upgrades, verified backups, email verification, recovery, abuse controls, security review |
+| G2 — Next | Catalog, pricing and entitlement domain | Real product records, role-safe APIs and auditable access events |
+| G3 | Commerce | Payment provider, signed webhook handling, invoices/refunds, test/live isolation |
+| G4 | Windows trust | Signed installers, signed update manifest, rollback and install/uninstall QA |
+| G5 | Authorized device integration | One supported model, consent, read-only diagnostics and device test evidence |
+| G6 | Operations | Admin RBAC, ticketing, incident controls, retention and audit reports |
+| G7 | Beta and launch | End-to-end tests, accessibility, load/security tests, backups and restore, runbooks and business policies |
 
-## Candidate MVP scope
+**No commercial purchase/activation claim before G2/G3 is complete.** Public site data that is still simulated must remain labeled.
 
-- Included: platform account, library, clear entitlement state, signed downloads, updates, cloud profiles, diagnostics and one authorized first-party/documented adapter.
-- Deferred: reseller payouts, plugin marketplace, multi-provider commerce, complex overlay engine, broad vendor/hardware support and automation beyond validated product need.
-- Explicitly excluded from generic MVP: clandestine memory acquisition, anti-cheat evasion, impersonation of protected input devices and unauthorized firmware operations.
+## Approved principles
 
-## Repo readiness review (observed via GitHub connector)
+- Original software and user-authorized hardware integration; no unauthorized access to protected processes or anti-cheat evasion.
+- Backend is the source of truth for accounts, licenses, entitlements and payments.
+- Signed build provenance and revocation/rollback are prerequisites for production downloads.
+- Separate static site hosting and secured API hosting.
+- Sensitive local SQLite files, backups, and secrets stay out of Git and public artifacts.
+- Every substantial change: code, tests, README, GitHub push, CI verification. Production release gates remain distinct from passing compilation.
 
-- Repo: `migtam628/dma_hub` (public).
-- Configured default branch: `main`.
-- GitHub repository size reported as `0`.
-- Root contents request returned `404` with `This repository is empty.`.
-- Recent commits query returned `409` with `Git Repository is empty.`.
-- No dependency tree, source, tests or CI existed to assess at this checkpoint.
+## Open tracked issues
 
-## Next decisions
+- [#2 Production account and API security](https://github.com/migtam628/dma_hub/issues/2)
+- [#3 Signed Windows installer and updater](https://github.com/migtam628/dma_hub/issues/3)
+- [#4 First documented hardware adapter](https://github.com/migtam628/dma_hub/issues/4)
 
-1. Confirm product description and supported authorized Windows application or hardware model for pilot.
-2. Approve user-facing brand naming, admin permissions, commercial model and payments feasibility.
-3. Complete separate high-fidelity comps for all five application surfaces.
-4. Choose initial release platform/hosting and identity provider.
-5. Open implementation branch only after design signoff; never claim code has been written from planning artifacts.
+[GitHub Pages activation issue #1](https://github.com/migtam628/dma_hub/issues/1) is resolved.
+
+## Decisions still needed before commercial launch
+
+Payment provider, business terms, first supported production software/hardware catalog, deployment/identity provider, publisher signing certificate, user privacy and retention policies. These do not block implementing local tests and safe scaffolding.

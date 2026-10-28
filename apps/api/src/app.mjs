@@ -3,6 +3,7 @@ import {randomBytes,randomUUID,scryptSync,timingSafeEqual,createHash} from "node
 import {mkdirSync} from "node:fs";
 import {dirname} from "node:path";
 import {DatabaseSync} from "node:sqlite";
+import {migrateDatabase} from "./migrations.mjs";
 const MAX_BODY=64*1024,SESSION_MS=12*60*60*1000;
 const hashToken=t=>createHash("sha256").update(t).digest("hex");
 function response(res,status,payload,headers={}){res.writeHead(status,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff","Referrer-Policy":"no-referrer",...headers});res.end(JSON.stringify(payload))}
@@ -22,18 +23,11 @@ function normalizedProfile(v){if(!v||typeof v!=="object"||Array.isArray(v))retur
 export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:5173",clock=()=>Date.now()}={}){
  if(dbPath!==":memory:")mkdirSync(dirname(dbPath),{recursive:true});
  const db=new DatabaseSync(dbPath);
- db.exec(`PRAGMA foreign_keys=ON;
- CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY,email TEXT UNIQUE NOT NULL,password_hash TEXT NOT NULL,role TEXT NOT NULL DEFAULT 'customer',created_at INTEGER NOT NULL);
- CREATE TABLE IF NOT EXISTS sessions(token_hash TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,expires_at INTEGER NOT NULL,created_at INTEGER NOT NULL);
- CREATE INDEX IF NOT EXISTS sessions_user ON sessions(user_id);
- CREATE TABLE IF NOT EXISTS profiles(id TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,name TEXT NOT NULL,data_json TEXT NOT NULL,version INTEGER NOT NULL DEFAULT 1,created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL);
- CREATE INDEX IF NOT EXISTS profiles_user ON profiles(user_id);
- CREATE TABLE IF NOT EXISTS audit(id TEXT PRIMARY KEY,actor TEXT,action TEXT NOT NULL,target TEXT,created_at INTEGER NOT NULL);
- `);
+ try{migrateDatabase(db)}catch(error){db.close();throw error}
  const loginLimits=new Map(),registerLimits=new Map();
  function checkLimit(buckets,key,limit,windowMs){const now=clock();const prior=(buckets.get(key)||[]).filter(t=>now-t<windowMs);if(prior.length>=limit){buckets.set(key,prior);return false}prior.push(now);buckets.set(key,prior);if(buckets.size>1000){for(const [k,list] of buckets){const alive=list.filter(t=>now-t<windowMs);if(alive.length)buckets.set(k,alive);else buckets.delete(k)}}return true}
  const audit=(actor,action,target)=>db.prepare("INSERT INTO audit VALUES(?,?,?,?,?)").run(randomUUID(),actor,action,target,clock());
- function requireUser(req){const auth=req.headers.authorization||"";if(!auth.startsWith("Bearer "))return null;const token=auth.slice(7).trim();if(token.length<30||token.length>128)return null;return db.prepare("SELECT u.id,u.email,u.role,u.created_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?").get(hashToken(token),clock())||null}
+ function requireUser(req){const auth=req.headers.authorization||"";if(!auth.startsWith("Bearer "))return null;const token=auth.slice(7).trim();if(token.length<30||token.length>128)return null;return db.prepare("SELECT u.id,u.email,u.role,u.created_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.disabled_at IS NULL").get(hashToken(token),clock())||null}
  function allowed(req){const origin=req.headers.origin;return !origin||origin===allowedOrigin}
  const handler=async(req,res)=>{
   res.setHeader("Vary","Origin");
@@ -61,7 +55,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
     const v=await jsonBody(req),email=typeof v.email==="string"?v.email.trim().toLowerCase():"";
     if(!validEmail(email)||typeof v.password!=="string"||v.password.length>128){response(res,401,{error:"invalid_credentials"});return}
     const u=db.prepare("SELECT * FROM users WHERE email=?").get(email);
-    if(!u||!verifyPassword(v.password,u.password_hash)){response(res,401,{error:"invalid_credentials"});return}
+    if(!u||u.disabled_at!==null||!verifyPassword(v.password,u.password_hash)){response(res,401,{error:"invalid_credentials"});return}
     db.prepare("DELETE FROM sessions WHERE expires_at<=?").run(now);
     const token=randomBytes(32).toString("base64url");db.prepare("INSERT INTO sessions VALUES(?,?,?,?)").run(hashToken(token),u.id,now+SESSION_MS,now);
     db.prepare("DELETE FROM sessions WHERE token_hash IN (SELECT token_hash FROM sessions WHERE user_id=? ORDER BY created_at DESC,rowid DESC LIMIT -1 OFFSET 5)").run(u.id);

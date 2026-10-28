@@ -23,7 +23,7 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 | Customer workspace | ✅ Web preview | My Software, device list, subscription placeholder, support, status |
 | Admin workspace | ✅ Synthetic preview | Users, products, releases, system readiness |
 | Configuration Studio | ✅ Local functionality | Edit settings, live preview, JSON import/export, browser storage |
-| API | 🧪 Local alpha | Account registration, login/logout, tenant-scoped versioned profiles |
+| API | 🧪 Local alpha | Account sessions, versioned profiles, tracked SQLite migrations, verified manual backup/recovery |
 | Cloud profiles | 🧪 Local API | Create, load, update, delete, optimistic version checks |
 | Desktop companion | 🧪 Windows scaffold | Tauri shell source, NSIS build CI, launcher and diagnostics previews; no hardware APIs |
 | Device adapters | 🧪 Read-only native serial discovery | Explicit Windows COM-port metadata scan; no port data access or device writes |
@@ -53,7 +53,7 @@ flowchart LR
   API --> Profiles["User-scoped Profiles"]
   CI["GitHub Actions CI"] --> Pages["GitHub Pages: static preview"]
   CI --> Releases["GitHub Releases: alpha web bundle"]
-  Future["Future Tauri Windows Client"] -. "not built" .-> API
+  Desktop["Tauri Windows Alpha"] -. "future trusted API connection" .-> API
 ```
 
 **Important:** GitHub Pages is static hosting, not an API host. Don't publish the local API's SQLite database or environment files to Pages.
@@ -62,7 +62,7 @@ flowchart LR
 
 - React 19, TypeScript, Vite 6, Tailwind CSS 4, lucide-react
 - npm workspaces with `apps/web`, `apps/api`, `packages/ui`
-- Local API: Node.js 22+, `node:http`, `node:sqlite`, scrypt password hashing and hashed opaque session tokens
+- Local API: Node.js 22.16+, `node:http`, `node:sqlite`, transactional schema migrations, SQLite backup verification, scrypt password hashing, hashed opaque session tokens
 - Continuous integration: GitHub Actions for build, source tests, API tests and type checking
 - Hosting: static site via GitHub Pages, planned separate backend hosting
 - Planned desktop: Tauri with Rust native device adapter layer
@@ -92,7 +92,7 @@ dma_hub/
 
 ## Quick start
 
-**Prerequisites:** Node.js 22 or later (Node 22.13+ for the built-in `node:sqlite` API), npm, Git.
+**Prerequisites:** Node.js 22.16 or later (required for built-in SQLite backup support), npm, Git.
 
 ```bash
 git clone https://github.com/migtam628/dma_hub.git
@@ -170,6 +170,19 @@ Versioned releases are triggered by changes to `release/version.json` on `main` 
 
 To create the next alpha, update `release/version.json` to a unique version and edit `release/notes.md`, then commit and push. The release workflow builds/tests the React project, packages the static site, creates the tag/release, then compiles Windows NSIS on a Windows runner.
 
+### SQLite migration and recovery tools (local API)
+
+The API now applies tracked, transactional database migrations (schema v2) on startup. Existing data is retained; future or incompatible schemas fail closed.
+
+```bash
+# Use your actual DB_PATH and pre-create a private backups/ directory.
+mkdir -m 700 -p backups
+node apps/api/src/maintenance.mjs backup ./apps/api/data/dma-hub.sqlite ./backups/dma-hub-example.sqlite
+node apps/api/src/maintenance.mjs verify ./backups/dma-hub-example.sqlite
+```
+
+The SQLite online backup command refuses overwriting an existing snapshot, checks database integrity, and writes a private file. See the [recovery runbook](docs/database-recovery.md) for restore drills and limitations. Off-host encrypted scheduling, operational monitoring, email verification and production safety testing remain **not implemented**.
+
 ### Docker API preview
 
 A separate [Docker Compose guide](docs/deployment.md) describes a **loopback-only** Node/SQLite API container with a named persistent volume, non-root service account, dropped capabilities and health checks.
@@ -207,7 +220,7 @@ CI runs on pushes to `main` and pull requests. Verify the **Web and API CI** wor
 - [Concept 3 — Batch 2](docs/concept-3-batch-2.md): admin, launcher and Studio
 - [Concept 3 — Batch 3](docs/concept-3-batch-3.md): secondary screens and states
 - [High-fidelity review v1](docs/design/concept-3-hifi-review-v1.md) and [v2](docs/design/concept-3-hifi-review-v2.md)
-- [Roadmap](docs/project-roadmap.md), [API reference](docs/api.md), [Windows desktop build](docs/desktop.md), [Native serial discovery](docs/native-device-discovery.md), [Implementation milestone 1](README_IMPLEMENTATION.md)
+- [Roadmap](docs/project-roadmap.md), [API reference](docs/api.md), [Database recovery](docs/database-recovery.md), [Windows desktop build](docs/desktop.md), [Native serial discovery](docs/native-device-discovery.md), [Implementation milestone 1](README_IMPLEMENTATION.md)
 
 ## Tracking remaining milestones
 
