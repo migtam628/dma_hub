@@ -46,7 +46,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
     if(!checkLimit(registerLimits,req.socket.remoteAddress||"unknown",5,15*60*1000)){response(res,429,{error:"rate_limited"});return}
     const v=await jsonBody(req);const email=typeof v.email==="string"?v.email.trim().toLowerCase():"";
     if(!validEmail(email)||!validPassword(v.password)){response(res,422,{error:"invalid_registration",message:"Use a valid email and a password of 12–128 characters."});return}
-    const id=randomUUID();try{db.prepare("INSERT INTO users VALUES(?,?,?,?,?)").run(id,email,passwordHash(v.password),"customer",clock())}catch(e){if(String(e).includes("UNIQUE")){response(res,409,{error:"email_unavailable"});return}throw e}
+    const id=randomUUID();try{db.prepare("INSERT INTO users(id,email,password_hash,role,created_at) VALUES(?,?,?,?,?)").run(id,email,passwordHash(v.password),"customer",clock())}catch(e){if(String(e).includes("UNIQUE")){response(res,409,{error:"email_unavailable"});return}throw e}
     audit(id,"user.register",id);response(res,201,{user:{id,email,role:"customer"}});return
    }
    if(pathname==="/v1/auth/login"&&req.method==="POST"){
