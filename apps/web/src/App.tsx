@@ -1,6 +1,6 @@
 import {useEffect,useMemo,useRef,useState} from "react";
 import type {ChangeEvent,ReactNode} from "react";
-import {Activity,ArrowRight,ArrowUpRight,Bell,BookOpen,Box,BriefcaseBusiness,Check,CheckCircle2,ChevronDown,Cloud,Code2,Download,ExternalLink,FileText,Globe,HardDrive,Heart,HelpCircle,Home,Layers3,LayoutDashboard,LockKeyhole,Menu,Monitor,Package,Search,Settings,Shield,ShieldCheck,SlidersHorizontal,Terminal,Upload,Usb,Users,Wifi,X,Zap} from "lucide-react";
+import {Activity,ArrowRight,ArrowUpRight,Bell,BookOpen,Box,BriefcaseBusiness,Check,CheckCircle2,ChevronDown,Cloud,Code2,Download,ExternalLink,FileText,Globe,HardDrive,Heart,HelpCircle,Home,KeyRound,Layers3,LayoutDashboard,LockKeyhole,Menu,Monitor,Package,Search,Settings,Shield,ShieldCheck,SlidersHorizontal,Terminal,Upload,Usb,Users,Wifi,X,Zap} from "lucide-react";
 import {ArrowLink,Button,Card,Empty,Pill,SectionHeading,Stat} from "@dma-hub/ui";
 import {demoDevices,demoUsers,mockReleases,products} from "./data";
 import type {Product} from "./data";
