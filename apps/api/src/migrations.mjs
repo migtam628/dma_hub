@@ -1,6 +1,6 @@
 import {DatabaseSync} from "node:sqlite";
 
-export const SCHEMA_VERSION=4;
+export const SCHEMA_VERSION=5;
 
 const BASE_SCHEMA=`CREATE TABLE IF NOT EXISTS users(
  id TEXT PRIMARY KEY,
@@ -103,8 +103,51 @@ export function migrateDatabase(db){
    );
    CREATE INDEX IF NOT EXISTS catalog_products_status ON catalog_products(status,updated_at);`);
    db.exec("PRAGMA user_version=4; COMMIT;");
+   version=4;
   }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
  }
+ if(version===4){
+  db.exec("BEGIN IMMEDIATE");
+  try{
+   db.exec(`CREATE TABLE IF NOT EXISTS pricing_plans(
+    id TEXT PRIMARY KEY,
+    product_id TEXT NOT NULL REFERENCES catalog_products(id) ON DELETE RESTRICT,
+    code TEXT NOT NULL,
+    name TEXT NOT NULL,
+    amount_minor INTEGER NOT NULL CHECK(amount_minor>=0 AND amount_minor<=100000000),
+    currency TEXT NOT NULL CHECK(currency='USD'),
+    billing_period TEXT NOT NULL CHECK(billing_period IN ('one_time','monthly','yearly')),
+    status TEXT NOT NULL CHECK(status IN ('draft','active','archived')),
+    version INTEGER NOT NULL DEFAULT 1 CHECK(version>=1),
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    UNIQUE(product_id,code)
+   );
+   CREATE INDEX IF NOT EXISTS pricing_plans_product ON pricing_plans(product_id,status);
+   CREATE TABLE IF NOT EXISTS entitlements(
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    product_id TEXT NOT NULL REFERENCES catalog_products(id) ON DELETE RESTRICT,
+    plan_id TEXT NOT NULL REFERENCES pricing_plans(id) ON DELETE RESTRICT,
+    source TEXT NOT NULL DEFAULT 'admin_test_grant' CHECK(source='admin_test_grant'),
+    state TEXT NOT NULL DEFAULT 'active' CHECK(state IN ('active','revoked')),
+    starts_at INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL CHECK(expires_at>starts_at),
+    revoked_at INTEGER,
+    granted_by TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    revoked_by TEXT REFERENCES users(id) ON DELETE RESTRICT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+   );
+   CREATE INDEX IF NOT EXISTS entitlements_user_active ON entitlements(user_id,product_id,state,starts_at,expires_at);
+   CREATE INDEX IF NOT EXISTS entitlements_product ON entitlements(product_id);
+   `);
+   db.exec("PRAGMA user_version=5; COMMIT;");
+   version=5;
+  }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
+ }
+ requiredColumns(db,"pricing_plans",["id","product_id","code","name","amount_minor","currency","billing_period","status","version","created_at","updated_at"]);
+ requiredColumns(db,"entitlements",["id","user_id","product_id","plan_id","source","state","starts_at","expires_at","revoked_at","granted_by","revoked_by","created_at","updated_at"]);
  requiredColumns(db,"catalog_products",["id","slug","name","description","status","version","created_at","updated_at"]);
  requiredColumns(db,"users",["id","email","password_hash","role","created_at","disabled_at","email_verified_at"]);
  requiredColumns(db,"auth_tokens",["token_hash","user_id","purpose","created_at","expires_at"]);
