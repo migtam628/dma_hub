@@ -1,24 +1,26 @@
-# DMA Hub v0.2.0-alpha.9
+# DMA Hub v0.2.0-alpha.10
 
-**Development alpha only — payments and production access are not enabled.**
+**Development prerelease — not a production payment or licensing system.**
 
-## New
-- SQLite v4 `catalog_products` migration preserving legacy users, sessions and profiles.
-- Admin-only persistent product management: create draft items, list and update catalog records with version conflict protection.
-- Public `GET /v1/catalog/live` returns published records only; archived and draft products are never exposed.
-- Server-enforced role access controls and auditable product creation/updates.
-- Endpoint tests for customer authorization denial, status transitions, duplicates and stale updates.
-- README, API reference, catalog documentation and updated roadmap.
+## New in alpha.10
+- SQLite v5 migration for `pricing_plans` and `entitlements`, with constraints, foreign keys, indexes and backup verification.
+- Admin-only plan management with safe USD integer-cent amounts, one-time/monthly/yearly metadata, unique plan codes and immutable price terms.
+- Admin-only manual expiring **test** grants, audit trails, overlap prevention and idempotent revocation.
+- Signed-in customer My Software page now retrieves user-scoped test entitlements from the local API rather than claiming demo licenses are real.
+- New local-development admin Pricing & Test Access console for draft product creation, publication, plan setup, and manual test grant/revoke.
+- Public pricing API returns only active plans of published products. A price record never grants access or performs a transaction.
+- Tests verify admin authorization, user isolation, plan validation, stale version conflicts, grant expiry and revocation; existing accounts and profiles migrate forward.
 
-## Included from alpha.8
-- Optional backend email verification and password recovery using expiring purpose-bound one-time token hashes and optional Resend delivery.
-- Customer password reset / email verification flows and account session revocation.
-- Tauri Windows launcher preview, local profile editor, read-only COM metadata discovery and GitHub Pages preview.
+## Included from previous alphas
+- Concept 3 React storefront/portal previews and static GitHub Pages site.
+- Email verification/password recovery code paths, opt-in mail provider and local API sessions.
+- Tauri Windows launcher, read-only COM port discovery and signed-off CI build checks.
 
-## Distribution
-Web preview ZIP and checksum; unsigned Windows NSIS installer and checksum after Windows runner build validation.
+## Artifacts
+- Web preview ZIP with SHA-256 checksum.
+- **Unsigned** Windows NSIS preview installer and checksum, available only after Windows release build and download-back verification succeed.
 
-## Important limitations
-The customer-facing site still displays demo catalog records. The new `/v1/catalog/live` is the real persisted API, but prices, license entitlements, checkout, merchant CMS binding and real payment processing have not been implemented. An operator must provision an admin role offline; public self-promotion is prohibited.
+## Still missing
+No configured production mail sender, no live payment gateway, no purchase orders, no subscription billing, no entitlement generation based on payment, no signed license files, no native software activation, no production backend deployment or security approval. An admin must be provisioned offline; public registration cannot assign admin privileges.
 
-Windows executables are **unsigned alpha**. The Node/SQLite service is **local development only** and must not be exposed publicly without verified email delivery, distributed throttling, TLS, operational security and recovery controls.
+**Do not interpret test entitlements as commercial licenses, paid subscriptions, or promises of product availability.**
