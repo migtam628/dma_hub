@@ -4,6 +4,8 @@ export type AuthCapabilities={emailVerificationRequired:boolean;passwordRecovery
 export type ActiveSession={createdAt:number;expiresAt:number;current:boolean};
 export type ProfileSettings={profileName:string;autoSync:boolean;notifications:boolean;density:number;accent:string;startup:string};
 export type CloudProfile={id:string;name:string;data:ProfileSettings;version:number;createdAt?:number;updatedAt?:number};
+export type CatalogItem={id:string;slug:string;name:string;description:string;status:"draft"|"published"|"archived";version:number;createdAt:number;updatedAt:number};
+export type PricingPlan={id:string;productId:string;code:string;name:string;amountMinor:number;currency:"USD";billingPeriod:"one_time"|"monthly"|"yearly";status:"draft"|"active"|"archived";version:number;createdAt:number;updatedAt:number};
 export type Entitlement={id:string;userId:string;productId:string;planId:string;source:"admin_test_grant";state:"active"|"revoked";startsAt:number;expiresAt:number;revokedAt?:number|null;createdAt:number;accessStatus:"active"|"scheduled"|"expired"|"revoked"|"product_unavailable";accessAllowed:boolean};
 export class ApiError extends Error{constructor(public status:number,public code:string,message?:string){super(message||code)}}
 const API_ROOT=(import.meta.env.VITE_API_URL||((location.hostname==="localhost"||location.hostname==="127.0.0.1")?"http://localhost:8787":location.origin)).replace(/\/$/,"");
@@ -33,6 +35,15 @@ export const api={
  changePassword:(token:string,currentPassword:string,newPassword:string)=>request<{ok:boolean;sessionsRevoked:boolean}>("/v1/auth/change-password","POST",{currentPassword,newPassword},token),
  me:(token:string)=>request<{user:User}>("/v1/me","GET",undefined,token),
  entitlements:(token:string)=>request<{items:Entitlement[]}>("/v1/me/entitlements","GET",undefined,token),
+ adminProducts:(token:string)=>request<{items:CatalogItem[]}>("/v1/admin/products","GET",undefined,token),
+ createAdminProduct:(token:string,slug:string,name:string)=>request<CatalogItem>("/v1/admin/products","POST",{slug,name,description:"",status:"draft"},token),
+ updateAdminProduct:(token:string,p:CatalogItem,status:CatalogItem["status"])=>request<CatalogItem>("/v1/admin/products/"+p.id,"PATCH",{slug:p.slug,name:p.name,description:p.description,status},token,p.version),
+ adminPlans:(token:string,productId:string)=>request<{items:PricingPlan[]}>("/v1/admin/products/"+productId+"/plans","GET",undefined,token),
+ createAdminPlan:(token:string,productId:string,p:{code:string;name:string;amountMinor:number;billingPeriod:PricingPlan["billingPeriod"]})=>request<PricingPlan>("/v1/admin/products/"+productId+"/plans","POST",{...p,currency:"USD",status:"draft"},token),
+ setAdminPlanStatus:(token:string,p:PricingPlan,status:PricingPlan["status"])=>request<PricingPlan>("/v1/admin/plans/"+p.id,"PATCH",{name:p.name,status},token,p.version),
+ adminGrants:(token:string)=>request<{items:Entitlement[]}>("/v1/admin/entitlements","GET",undefined,token),
+ createTestGrant:(token:string,data:{userId:string;productId:string;planId:string;expiresAt:number})=>request<Entitlement>("/v1/admin/entitlements","POST",data,token),
+ revokeTestGrant:(token:string,id:string)=>request<{ok:boolean;alreadyRevoked:boolean}>("/v1/admin/entitlements/"+id+"/revoke","POST",{},token),
  access:(token:string,productId:string)=>request<{productId:string;allowed:boolean;reason:string;expiresAt:number|null}>("/v1/me/access/"+productId,"GET",undefined,token),
  profiles:(token:string)=>request<{items:CloudProfile[]}>("/v1/profiles","GET",undefined,token),
  create:(token:string,name:string,data:ProfileSettings)=>request<CloudProfile>("/v1/profiles","POST",{name,data},token),

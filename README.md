@@ -21,7 +21,7 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 |---|---|---|
 | Public website | ✅ Web preview | Homepage, catalog, setup guides, live GitHub Releases download center |
 | Customer workspace | 🧪 Mixed preview | Signed-in users can view API-backed manual test entitlements in My Software; other pages and logged-out previews remain sample data |
-| Admin workspace | ✅ Synthetic preview | Users, products, releases, system readiness |
+| Admin workspace | 🧪 Mixed preview | Local API admin-only Pricing & Test Access console; other admin pages remain synthetic |
 | Configuration Studio | ✅ Local functionality | Edit settings, live preview, JSON import/export, browser storage |
 | API | 🧪 Local alpha | Account sessions, schema v3, opt-in mail-backed verification/recovery, password changes, profiles, manual backup/restore tests |
 | Cloud profiles | 🧪 Local API | Create, load, update, delete, optimistic version checks |
@@ -174,6 +174,12 @@ Versioned releases are triggered by changes to `release/version.json` on `main` 
 - A GitHub prerelease is **not** a production software release. Signing, device QA, updater trust and deployment readiness are separate gates.
 
 To create the next alpha, update `release/version.json` to a unique version and edit `release/notes.md`, then commit and push. The release workflow builds/tests the React project, packages the static site, creates the tag/release, then compiles Windows NSIS on a Windows runner.
+
+### Admin Pricing & Test Access (local-development UI)
+
+The authenticated admin workspace now includes a **Pricing & Test Access** page. A backend-authorized admin can create draft catalog products, publish or archive products, create immutable USD price plans, activate plans, and issue/revoke **manual, expiring test grants**. All mutations pass through the server-enforced admin endpoints and are audited. The screen requires an admin-provisioned account and remains separate from the public storefront demo.
+
+This screen is **not a payment processor, production merchant CMS or real license generator**. Without the local API, it cannot perform operations.
 
 ### My Software — real test-access view
 
