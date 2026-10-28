@@ -68,6 +68,7 @@ export function migrateDatabase(db){
     db.exec("ALTER TABLE users ADD COLUMN disabled_at INTEGER");
    }
    db.exec("PRAGMA user_version=2; COMMIT;");
+   version=2;
   }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
  }
  if(version===2){
