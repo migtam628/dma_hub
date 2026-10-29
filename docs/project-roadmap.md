@@ -20,7 +20,7 @@
 | Releases | GitHub Actions, prerelease artifacts/checksums and automated checks | Signed Windows builds, release provenance and rollback |
 | Hardware | Read-only serial-port discovery; no port opens or writes | Documented pilot adapter and physical compatibility QA |
 | Pricing & test entitlements | Local API: immutable plan amounts, manual grants, idempotent sandbox order/fulfillment and owner-scoped access | Real hosted checkout, processor events and signed licensing |
-| Billing/licenses | Stripe TEST Checkout/webhook adapter and admin-only read-only provider session lookup, disabled without test secrets; **not production** | Verify real test deliveries, reconcile provider state, subscriptions and refunds, and signed licensing |
+| Billing/licenses | Stripe TEST Checkout, official webhook signature checks, read-only provider lookups and normalized test snapshot history | Actual provider account test, financial settlement verification, subscriptions/refunds and signed licensing |
 | Production hosting | GitHub Pages static frontend; local-only API/Docker | Dedicated secured API environment and observability |
 
 ### Repository layout (implemented)
@@ -44,7 +44,7 @@ tests/                 Repository validation
 | G0 — Completed | Concept 3 approved, design batches, web/desktop foundation and CI | Code and tests present, alpha release |
 | G1 — In progress | Backend identity and recoverability | Transactional schema upgrades, verified backups, mail-backed email verification and recovery integration tests, hardened operational abuse controls and security review |
 | G2 — In progress | Catalog, pricing and entitlement domain | Published product API, immutable plan price records and manually granted expiring test entitlements exist; licensing/activation and customer UI pending |
-| G3 — In progress | Commerce | Stripe test-only Checkout + official signature verification added; read-only provider session checks added; durable reconciliation ledger, live mode policies, invoices/refunds and paid license issuance remain unfinished |
+| G3 — In progress | Commerce | Validated Stripe TEST provider reads and durable deduplicated **test observations** now implemented; financial ledger, actual settlement reconciliation, refunds, subscriptions, and paid licensing remain unfinished |
 | G4 | Windows trust | Signed installers, signed update manifest, rollback and install/uninstall QA |
 | G5 | Authorized device integration | One supported model, consent, read-only diagnostics and device test evidence |
 | G6 — In progress | Operations | Role-restricted read-only audit explorer exists; ticketing, incident controls, centralized retention and signed reports remain open |

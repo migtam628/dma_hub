@@ -45,3 +45,8 @@ Development-mode HMAC sandbox webhook ingestion and deduplicated metadata are no
 ## Stripe test-mode adapter (schema v8)
 
 A server-only, opt-in Stripe Checkout (one-time sandbox orders) and signature-verified webhook observation inbox now exist; see [Stripe test-mode reference](stripe-test.md). Customer order price, plan status and ownership are checked in the database. Test Checkout URLs and event IDs are recorded separately, with **no entitlement issuance** from webhook acceptance. Provider reconciliation and production billing remain unimplemented.
+
+
+## Read-only Stripe TEST reconciliation history (schema v9)
+
+Verified test-session reads are now recorded as deduplicated normalized status snapshots, with admin-only history retrieval. This is an inspectable QA history, **not** a transaction ledger or evidence of real settled funds. See [reconciliation history](stripe-test-reconciliation-history.md).

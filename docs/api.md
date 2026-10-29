@@ -69,3 +69,10 @@ See [sandbox webhook documentation](sandbox-webhook.md). This is **not** a merch
 See [Stripe test-mode integration](stripe-test.md). No live charges, subscriptions, automatic entitlements, payment-to-license conversion or real provider reconciliation are implemented.
 
 - `POST /v1/admin/stripe-test-checkouts/:checkoutUuid/reconcile` — admin-only explicit read-only authoritative Stripe **TEST** Checkout Session lookup; validates amount, order, account and mode; audited; **never grants access or records settlement**. Disabled without test credentials. See [Stripe TEST guide](stripe-test.md).
+
+## Durable Stripe TEST observation history (schema v9)
+
+- `POST /v1/admin/stripe-test-checkouts/:uuid/reconcile` — admin-only Stripe test provider lookup; if validated, stores a normalized deduplicated test-state snapshot.
+- `GET /v1/admin/stripe-test-checkouts/:uuid/observations?limit=30` — admin-only snapshot history (up to 50). Excludes raw provider payloads, email addresses and credentials.
+
+**Not a financial settlement ledger.** Every response explicitly denies commercial settlement and access issuance. See [reconciliation history](stripe-test-reconciliation-history.md).

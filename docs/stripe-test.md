@@ -40,3 +40,8 @@ An authenticated admin may explicitly call `POST /v1/admin/stripe-test-checkouts
 The server verifies `cs_test_` identity, `livemode=false`, one-time payment mode, currency, exact amount, client reference, order/user metadata and valid session/payment statuses. Invalid/mismatched provider responses and provider outages fail closed (HTTP 502). Only an admin can invoke the lookup; an unconfigured gateway returns HTTP 503. A successful lookup is recorded in the local audit log, but does **not** mutate `sandbox_orders`, `stripe_test_checkouts` or `entitlements`.
 
 The response includes `testPaymentObserved`, `settlementVerified:false`, `accessGranted:false` and `testModeOnly:true`. This is a **TEST provider observation only**, not a settled payment, refund/dispute check, financial ledger, or authorization to issue licenses. There is deliberately no automatic reconciliation timer or public API deployment. The operation is provider-specific behind a minimal read-only validation boundary; future payment providers must meet the same fail-closed ownership/amount checks.
+
+
+## Persistent TEST reconciliation snapshots (schema v9)
+
+A successful administrator-triggered provider lookup now saves a normalized, deduplicated observation in the database. Only validated test-mode Checkout status fields are retained. This **does not** change orders, grant entitlements or verify commercial settlement. Access the history through `GET /v1/admin/stripe-test-checkouts/:uuid/observations`. See [test reconciliation history](stripe-test-reconciliation-history.md).

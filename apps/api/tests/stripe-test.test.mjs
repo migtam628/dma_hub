@@ -204,3 +204,77 @@ test("admin-only authoritative Stripe TEST read verifies session but never grant
   assert.equal((await call("/v1/me/access/"+productId,"GET",undefined,owner.token)).body.allowed,false);
  },{stripeTest:setupStripe(fetchImpl)});
 });
+
+test("admin Stripe TEST checks create deduplicated observation history without granting access",async()=>{
+ let state="open",payment="unpaid",invalid=false,unavailable=false;
+ const fetchImpl=async(url,opts)=>{
+  if(opts.method==="POST"){
+   const p=new URLSearchParams(opts.body);
+   return {ok:true,json:async()=>makeSession(p.get("client_reference_id"),p.get("metadata[user_id]"))};
+  }
+  if(unavailable)return {ok:false,status:503};
+  const parts=url.split("/");
+  const checkoutId=parts.at(-1);
+  return {ok:true,json:async()=>({
+   ...makeSession(orderId,ownerId),id:checkoutId,status:state,
+   payment_status:payment,amount_total:invalid?100:1250
+  })};
+ };
+ let orderId,ownerId;
+ await run(async({app,call})=>{
+  const f=await fixture(app,call);
+  orderId=f.orderId;ownerId=f.owner.user.id;
+  const prepared=await call("/v1/me/stripe-test-checkouts","POST",{orderId},f.owner.token);
+  assert.equal(prepared.status,201);
+  const id=prepared.body.id;
+  const endpoint="/v1/admin/stripe-test-checkouts/"+id+"/reconcile";
+  const history="/v1/admin/stripe-test-checkouts/"+id+"/observations";
+  assert.equal((await call(history,"GET",undefined,f.owner.token)).status,403);
+  assert.equal((await call(history)).status,401);
+  assert.equal((await call(history+"?limit=51","GET",undefined,f.admin.token)).status,422);
+  assert.equal((await call("/v1/admin/stripe-test-checkouts/00000000-0000-0000-0000-000000000000/observations","GET",undefined,f.admin.token)).status,404);
+  assert.deepEqual((await call(history,"GET",undefined,f.admin.token)).body.items,[]);
+  const first=await call(endpoint,"POST",undefined,f.admin.token);
+  assert.equal(first.status,200);
+  assert.equal(first.body.observationRecorded,true);
+  assert.equal(first.body.observationReplay,false);
+  assert.equal(first.body.testPaymentObserved,false);
+  assert.equal(first.body.settlementVerified,false);
+  assert.equal(first.body.accessGranted,false);
+  assert.ok(first.body.observationId);
+  const repeat=await call(endpoint,"POST",undefined,f.admin.token);
+  assert.equal(repeat.status,200);
+  assert.equal(repeat.body.observationReplay,true);
+  assert.equal(repeat.body.observationId,first.body.observationId);
+  assert.equal(app.db.prepare("SELECT COUNT(*) n FROM stripe_test_reconciliation_checks").get().n,1);
+  state="complete";payment="paid";
+  const next=await call(endpoint,"POST",undefined,f.admin.token);
+  assert.equal(next.status,200);
+  assert.equal(next.body.observationRecorded,true);
+  assert.equal(next.body.testPaymentObserved,true);
+  assert.equal(next.body.settlementVerified,false);
+  assert.notEqual(next.body.observationId,first.body.observationId);
+  const current=await call(history+"?limit=1","GET",undefined,f.admin.token);
+  assert.equal(current.status,200);
+  assert.equal(current.body.items.length,1);
+  assert.equal(current.body.items[0].providerPaymentStatus,"paid");
+  assert.equal(current.body.items[0].testPaymentObserved,true);
+  assert.equal(current.body.items[0].settlementVerified,false);
+  const all=await call(history,"GET",undefined,f.admin.token);
+  assert.equal(all.body.items.length,2);
+  assert.equal(new Set(all.body.items.map(i=>i.id)).size,2);
+  assert.equal(all.body.items[1].providerPaymentStatus,"unpaid");
+  assert.equal(all.body.items[0].checkedBy,f.admin.user.id);
+  assert.equal(JSON.stringify(all.body).includes(STRIPE_KEY),false);
+  assert.equal(JSON.stringify(all.body).includes("owner@stripe.test"),false);
+  invalid=true;
+  assert.equal((await call(endpoint,"POST",undefined,f.admin.token)).status,502);
+  invalid=false;unavailable=true;
+  assert.equal((await call(endpoint,"POST",undefined,f.admin.token)).status,502);
+  assert.equal(app.db.prepare("SELECT COUNT(*) n FROM stripe_test_reconciliation_checks").get().n,2);
+  assert.equal(app.db.prepare("SELECT COUNT(*) n FROM audit WHERE action='stripe_test.observation_recorded'").get().n,2);
+  assert.equal(app.db.prepare("SELECT state FROM sandbox_orders WHERE id=?").get(orderId).state,"pending");
+  assert.equal(app.db.prepare("SELECT COUNT(*) n FROM entitlements").get().n,0);
+  assert.equal((await call("/v1/me/access/"+f.productId,"GET",undefined,f.owner.token)).body.allowed,false);
+ },{stripeTest:setupStripe(fetchImpl)});
+});

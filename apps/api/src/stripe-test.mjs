@@ -1,4 +1,5 @@
 import {verifyStripeTestCheckoutRead} from "./payment-reconciliation.mjs";
+import {createStripeTestObservationStore} from "./stripe-test-observations.mjs";
 import {createHmac,createHash,randomUUID,timingSafeEqual} from "node:crypto";
 
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -50,6 +51,7 @@ export function createStripeTestGateway({db,clock,audit,secretKey,webhookSecret,
   }
  }
  const active=configured;
+ const observations=createStripeTestObservationStore({db,clock,audit});
  function sessionOut(x,includeUrl=false){
   return {id:x.id,orderId:x.order_id,state:x.state,amountMinor:x.amount_minor,
    providerSessionId:x.provider_session_id,createdAt:x.created_at,updatedAt:x.updated_at,
@@ -156,9 +158,23 @@ export function createStripeTestGateway({db,clock,audit,secretKey,webhookSecret,
    }catch{return ok(502,{error:"stripe_test_reconciliation_unavailable"})}
    const observation=verifyStripeTestCheckoutRead(provider,checkout);
    if(!observation)return ok(502,{error:"stripe_test_reconciliation_mismatch"});
+   const saved=observations.record(checkout,observation,user.id);
    audit(user.id,"stripe_test.reconciliation_checked",checkout.order_id);
    return ok(200,{checkoutId:checkout.id,orderId:checkout.order_id,
-    providerSessionId:checkout.provider_session_id,...observation});
+    providerSessionId:checkout.provider_session_id,...observation,
+    observationId:saved.id,observationRecorded:!saved.replayed,
+    observationReplay:saved.replayed,observationFirstSeenAt:saved.checkedAt});
+  }
+  const history=path.match(/^\/v1\/admin\/stripe-test-checkouts\/([0-9a-f-]{36})\/observations$/i);
+  if(history&&req.method==="GET"){
+   if(user.role!=="admin")return ok(403,{error:"forbidden"});
+   const params=new URL(req.url||"/","http://localhost").searchParams;
+   const count=params.get("limit")||"30";
+   if(!/^[1-9][0-9]?$/.test(count)||Number(count)>50)return ok(422,{error:"invalid_pagination"});
+   const checkout=db.prepare("SELECT id FROM stripe_test_checkouts WHERE id=?").get(history[1]);
+   if(!checkout)return ok(404,{error:"not_found"});
+   return ok(200,{items:observations.list(checkout.id,Number(count)),
+    checkoutId:checkout.id,settlementVerified:false,accessGranted:false,testModeOnly:true});
   }
   if(path==="/v1/admin/stripe-test-checkouts"&&req.method==="GET"){
    if(user.role!=="admin")return ok(403,{error:"forbidden"});

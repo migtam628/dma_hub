@@ -197,9 +197,15 @@ An **opt-in Stripe TEST-mode Checkout foundation** now exists behind four server
 
 No Stripe keys are configured here; without operator-supplied test credentials the route is disabled. Live keys are rejected. When the local API is configured, signed-in customers can prepare and open a Stripe test Checkout from **Billing → Sandbox Orders**, while authorized staff can inspect read-only Stripe test metadata in **Admin → Sandbox Orders**. No subscription or commercial license is issued. See [Stripe test-mode integration](docs/stripe-test.md).
 
+### Stripe TEST reconciliation history (local API only)
+
+Administrators can now preserve **deduplicated read-only Stripe test-session observations** in SQLite schema v9. An authenticated, provider-backed lookup writes only normalized payment/session statuses after identity and amount checks succeed. Repeated identical statuses reuse the same history entry, while any provider error or mismatch records nothing. Admins can inspect the history for each test Checkout in the local dashboard.
+
+**Observations are not financial settlement or paid licenses.** They never change an order or grant software access. See [test reconciliation history](docs/stripe-test-reconciliation-history.md).
+
 ### Admin Stripe TEST reconciliation preview (local API only)
 
-Authorized administrators can explicitly request a **read-only provider lookup** for an existing test Checkout using `POST /v1/admin/stripe-test-checkouts/:id/reconcile`. The server retrieves the Checkout Session from Stripe using a server-only `sk_test_` credential, rejects mismatched session, owner, order, amount, currency or live-mode data, and returns sanitized test payment observations. The action is audited. It does **not** update orders, grant entitlements, prove settlement, or enable live payments. Unconfigured credentials leave the route disabled. See [Stripe TEST integration](docs/stripe-test.md).
+Authorized administrators can explicitly request a **read-only provider lookup** for an existing test Checkout using `POST /v1/admin/stripe-test-checkouts/:id/reconcile`. The server retrieves the Checkout Session from Stripe using a server-only `sk_test_` credential, rejects mismatched session, owner, order, amount, currency or live-mode data, and returns sanitized test payment observations. The action is audited, and normalized test-state observations are stored with replay protection. It does **not** update orders, grant entitlements, prove settlement, or enable live payments. Unconfigured credentials leave the route disabled. See [Stripe TEST integration](docs/stripe-test.md).
 
 ### HMAC-signed sandbox event inbox (backend only)
 
@@ -245,7 +251,7 @@ See [Email authentication integration](docs/email-auth.md) for setup, test cover
 
 ### SQLite migration and recovery tools (local API)
 
-The API now applies tracked, transactional database migrations (schema v8) on startup. Existing data is retained; future or incompatible schemas fail closed.
+The API now applies tracked, transactional database migrations (schema v9) on startup. Existing data is retained; future or incompatible schemas fail closed.
 
 ```bash
 # Use your actual DB_PATH and pre-create a private backups/ directory.

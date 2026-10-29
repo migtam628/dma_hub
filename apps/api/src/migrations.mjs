@@ -1,6 +1,6 @@
 import {DatabaseSync} from "node:sqlite";
 
-export const SCHEMA_VERSION=8;
+export const SCHEMA_VERSION=9;
 
 const BASE_SCHEMA=`CREATE TABLE IF NOT EXISTS users(
  id TEXT PRIMARY KEY,
@@ -238,6 +238,29 @@ export function migrateDatabase(db){
    version=8;
   }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
  }
+ if(version===8){
+  db.exec("BEGIN IMMEDIATE");
+  try{
+   db.exec(`CREATE TABLE stripe_test_reconciliation_checks(
+    id TEXT PRIMARY KEY,
+    checkout_id TEXT NOT NULL REFERENCES stripe_test_checkouts(id) ON DELETE RESTRICT,
+    fingerprint TEXT NOT NULL,
+    provider_session_status TEXT NOT NULL CHECK(provider_session_status IN ('open','complete','expired')),
+    provider_payment_status TEXT NOT NULL CHECK(provider_payment_status IN ('paid','unpaid','no_payment_required')),
+    test_payment_observed INTEGER NOT NULL CHECK(test_payment_observed IN (0,1)),
+    checked_by TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    checked_at INTEGER NOT NULL,
+    UNIQUE(checkout_id,fingerprint)
+   );
+   CREATE INDEX stripe_test_reconciliation_history
+    ON stripe_test_reconciliation_checks(checkout_id,checked_at DESC);`);
+   db.exec("PRAGMA user_version=9; COMMIT;");
+   version=9;
+  }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
+ }
+ requiredColumns(db,"stripe_test_reconciliation_checks",
+  ["id","checkout_id","fingerprint","provider_session_status","provider_payment_status",
+   "test_payment_observed","checked_by","checked_at"]);
  requiredColumns(db,"stripe_test_checkouts",["id","order_id","provider_session_id","checkout_url","state","amount_minor","created_at","updated_at"]);
  requiredColumns(db,"stripe_test_events",["event_id","checkout_id","event_type","body_sha256","received_at"]);
  requiredColumns(db,"sandbox_webhook_events",["event_id","order_id","event_type","content_sha256","sent_at","received_at"]);
