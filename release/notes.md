@@ -1,30 +1,28 @@
-# DMA Hub v0.2.0-alpha.14
+# DMA Hub v0.2.0-alpha.15
 
-**Experimental development alpha only. Live payments and commercial licenses remain disabled.**
+**Experimental alpha / TEST-mode observations only. No live commerce, payment settlements or commercial licenses.**
 
-## New in alpha.14
+## New in alpha.15
 
-- Stripe TEST-mode Checkout Sessions: opt-in provider test adapter accepts only `sk_test_` credentials, verified endpoint secret and trusted server-side return URLs.
-- Authenticated users may prepare test Checkout for their own **pending, one-time sandbox orders**; price, currency and product metadata come from the API database, not the browser.
-- Provider calls use one idempotency key per sandbox order and strictly validate the returned test session, amount, metadata and Stripe-hosted URL.
-- Official Stripe `Stripe-Signature` v1 HMAC verification with raw request bytes and a five-minute timestamp window. Test-only webhook event IDs and content hashes deduplicate deliveries in SQLite schema v8.
-- Recorded `test_paid_observed` is an **observation only**: no sandbox order fulfillment or entitlement issuance is permitted by the webhook path.
-- Customer Billing test-order interface can create or show Stripe test Checkout links when a local API operator enables it. The admin Sandbox Orders interface exposes sanitized Stripe test-session/event metadata.
-- Tests for access isolation, unsupported recurring plans, live-key refusal, provider response mismatches, signature tampering, expired/replayed event delivery and non-fulfillment.
-- README, database migrations, backup checks, API reference, Stripe integration guide and roadmap updated.
+- Schema v9 stores normalized status snapshots from administrator-initiated Stripe TEST Checkout Session lookups.
+- Snapshots persist only after server-side provider response validation (matching session, owner, test mode, USD amount and related order).
+- Unique checkout/state fingerprints ensure repeat checks are idempotent; changed status combinations create another inspectable history item.
+- New authenticated admin-only endpoint: `GET /v1/admin/stripe-test-checkouts/:id/observations`, bounded to 50 items.
+- Existing `POST .../:id/reconcile` returns test observation ID, replay status and first-seen timestamp. Provider errors and mismatches create no observation records.
+- Admin → Sandbox Orders now offers **History** and **Check Stripe TEST** controls, plus a clear read-only observation list.
+- Tests cover migration from v8, duplicate reads, state transitions, authorization, provider mismatches, outages, and zero unauthorized entitlement issuance.
+- README, API documentation, Stripe reference, roadmap, and commerce issue updated.
 
-## Included from previous alphas
+## Included foundation
 
-Concept 3 frontend, demo storefront, local user/profile APIs, optional email verification, admin product pricing, sandbox manual grants, auditable test orders, read-only audit log and Tauri Windows preview.
+React/Tailwind storefront and administration previews, local user/profile API, product/plan data, test-only sandbox orders, manual grants, test Stripe Checkout/webhooks, and unsigned Windows Tauri launcher.
 
-## Artifacts
+## Distribution
 
-Web ZIP with SHA-256 manifest; unsigned Windows NSIS installer and Windows SHA-256 manifest if the Windows release job passes.
+Web preview ZIP and SHA-256 checksum. Windows unsigned NSIS installer and matching checksum only after the release workflow builds and verifies the Windows artifact.
 
-## Limitations / approval gates
+## Remaining
 
-This release does not ship Stripe credentials, make real Stripe API requests on its own, support recurring billing, reconcile authoritative payment status or issue a license based on test payment observations. **Actual Stripe test-mode transactions have not been performed.**
+No actual Stripe account credentials are connected. Tests currently use mocked provider responses; real Stripe TEST-mode sandbox sessions and webhook delivery remain unverified. No financial ledger, payment settlement reconciliation, subscriptions, refunds/disputes, approved payment-based license issuance, production deployment, certificate-signed Windows installers, or secure updater is live.
 
-Production public API security, payment ledger, subscriptions, refunds/taxes, Stripe account verification, independent reconciliation, Windows publisher signing, secure updater, device QA and production authorization are still outstanding.
-
-**The Windows build is unsigned and is intended for controlled testing only.**
+**A Stripe TEST 'paid' state is not proof of settlement and does not grant access.**
