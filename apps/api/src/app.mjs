@@ -7,6 +7,7 @@ import {migrateDatabase} from "./migrations.mjs";
 import {createCommerce} from "./commerce.mjs";
 import {createSandboxWebhook} from "./sandbox-webhook.mjs";
 import {createStripeTestGateway} from "./stripe-test.mjs";
+import {createRateLimiter} from "./rate-limiter.mjs";
 const MAX_BODY=64*1024,SESSION_MS=12*60*60*1000,VERIFY_MS=24*60*60*1000,RESET_MS=60*60*1000;
 const hashToken=t=>createHash("sha256").update(t).digest("hex");
 function response(res,status,payload,headers={}){res.writeHead(status,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff","Referrer-Policy":"no-referrer",...headers});res.end(JSON.stringify(payload))}
@@ -39,8 +40,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
  // Allow brief write contention when multiple local API processes share one SQLite file.
  db.exec("PRAGMA busy_timeout=3000");
  try{migrateDatabase(db)}catch(error){db.close();throw error}
- const loginLimits=new Map(),registerLimits=new Map(),passwordChangeLimits=new Map(),verificationLimits=new Map(),recoveryLimits=new Map();
- function checkLimit(buckets,key,limit,windowMs){const now=clock();const prior=(buckets.get(key)||[]).filter(t=>now-t<windowMs);if(prior.length>=limit){buckets.set(key,prior);return false}prior.push(now);buckets.set(key,prior);if(buckets.size>1000){for(const [k,list] of buckets){const alive=list.filter(t=>now-t<windowMs);if(alive.length)buckets.set(k,alive);else buckets.delete(k)}}return true}
+ const checkLimit=createRateLimiter({db,clock}).allow;
  const audit=(actor,action,target)=>db.prepare("INSERT INTO audit VALUES(?,?,?,?,?)").run(randomUUID(),actor,action,target,clock());
  const commerce=createCommerce({db,clock,audit,readBody:jsonBody});
  const testWebhook=createSandboxWebhook({db,clock,audit,secret:sandboxWebhookSecret});
@@ -113,7 +113,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
      const v=await jsonBody(req),email=typeof v.email==="string"?v.email.trim().toLowerCase():"";
      if(!validEmail(email)){response(res,422,{error:"invalid_email"});return}
      const key=req.socket.remoteAddress||"unknown";
-     if(!checkLimit(verificationLimits,"ip:"+key,5,15*60*1000)||!checkLimit(verificationLimits,"email:"+hashToken(email),3,60*60*1000)){
+     if(!checkLimit("verify_ip",key,5,15*60*1000)||!checkLimit("verify_email",email,3,60*60*1000)){
        response(res,429,{error:"rate_limited"});return
      }
      const account=db.prepare("SELECT id,email FROM users WHERE email=? AND disabled_at IS NULL AND email_verified_at IS NULL").get(email);
@@ -125,7 +125,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
      const v=await jsonBody(req),email=typeof v.email==="string"?v.email.trim().toLowerCase():"";
      if(!validEmail(email)){response(res,422,{error:"invalid_email"});return}
      const key=req.socket.remoteAddress||"unknown";
-     if(!checkLimit(recoveryLimits,"ip:"+key,5,15*60*1000)||!checkLimit(recoveryLimits,"email:"+hashToken(email),3,60*60*1000)){
+     if(!checkLimit("recover_ip",key,5,15*60*1000)||!checkLimit("recover_email",email,3,60*60*1000)){
        response(res,429,{error:"rate_limited"});return
      }
      const account=db.prepare("SELECT id,email FROM users WHERE email=? AND disabled_at IS NULL AND email_verified_at IS NOT NULL").get(email);
@@ -148,7 +148,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
      response(res,200,{ok:true,sessionsRevoked:true});return
    }
    if(pathname==="/v1/auth/register"&&req.method==="POST"){
-    if(!checkLimit(registerLimits,req.socket.remoteAddress||"unknown",5,15*60*1000)){response(res,429,{error:"rate_limited"});return}
+    if(!checkLimit("register_ip",req.socket.remoteAddress||"unknown",5,15*60*1000)){response(res,429,{error:"rate_limited"});return}
     const v=await jsonBody(req);const email=typeof v.email==="string"?v.email.trim().toLowerCase():"";
     if(!validEmail(email)||!validPassword(v.password)){response(res,422,{error:"invalid_registration",message:"Use a valid email and a password of 12–128 characters."});return}
     const id=randomUUID();try{db.prepare("INSERT INTO users(id,email,password_hash,role,created_at) VALUES(?,?,?,?,?)").run(id,email,passwordHash(v.password),"customer",clock())}catch(e){if(String(e).includes("UNIQUE")){response(res,409,{error:"email_unavailable"});return}throw e}
@@ -159,7 +159,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
    }
    if(pathname==="/v1/auth/login"&&req.method==="POST"){
     const client=req.socket.remoteAddress||"unknown",now=clock();
-    if(!checkLimit(loginLimits,client,10,60*1000)){response(res,429,{error:"rate_limited"});return}
+    if(!checkLimit("login_ip",client,10,60*1000)){response(res,429,{error:"rate_limited"});return}
     const v=await jsonBody(req),email=typeof v.email==="string"?v.email.trim().toLowerCase():"";
     if(!validEmail(email)||typeof v.password!=="string"||v.password.length>128){response(res,401,{error:"invalid_credentials"});return}
     if(!checkLimit("login_email",email,20,15*60*1000)){response(res,429,{error:"rate_limited"});return}
@@ -186,7 +186,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
       response(res,200,{ok:true});return
     }
     if(pathname==="/v1/auth/change-password"&&req.method==="POST"){
-      if(!checkLimit(passwordChangeLimits,u.id,5,15*60*1000)){response(res,429,{error:"rate_limited"});return}
+      if(!checkLimit("password_change_user",u.id,5,15*60*1000)){response(res,429,{error:"rate_limited"});return}
       const v=await jsonBody(req);
       if(!validPassword(v.newPassword)||v.currentPassword===v.newPassword){
         response(res,422,{error:"invalid_new_password",message:"Use a different password containing 12–128 characters."});return

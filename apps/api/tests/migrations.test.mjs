@@ -41,7 +41,7 @@ test("unknown future schema fails closed without changing version",()=>withTempD
  const path=join(folder,"future.sqlite");
  const db=new DatabaseSync(path);db.exec("PRAGMA user_version=99");db.close();
  assert.throws(()=>createApp({dbPath:path}),/Unsupported database schema version 99/);
- const check=new DatabaseSync(path);assert.equal(check.prepare("PRAGMA user_version").get().user_version,109);check.close();
+ const check=new DatabaseSync(path);assert.equal(check.prepare("PRAGMA user_version").get().user_version,99);check.close();
 }));
 test("SQLite backup is verified, non-overwriting, and restore preserves user data",()=>withTempDir(async(folder)=>{
  const original=join(folder,"app.sqlite"),snapshot=join(folder,"backups.sqlite"),restored=join(folder,"restored.sqlite");
