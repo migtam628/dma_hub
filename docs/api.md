@@ -67,3 +67,5 @@ See [sandbox webhook documentation](sandbox-webhook.md). This is **not** a merch
 - `GET /v1/admin/stripe-test-checkouts` and `GET /v1/admin/stripe-test-events` — sanitized read-only internal queue.
 
 See [Stripe test-mode integration](stripe-test.md). No live charges, subscriptions, automatic entitlements, payment-to-license conversion or real provider reconciliation are implemented.
+
+- `POST /v1/admin/stripe-test-checkouts/:checkoutUuid/reconcile` — admin-only explicit read-only authoritative Stripe **TEST** Checkout Session lookup; validates amount, order, account and mode; audited; **never grants access or records settlement**. Disabled without test credentials. See [Stripe TEST guide](stripe-test.md).

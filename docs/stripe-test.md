@@ -32,3 +32,11 @@ No network call or test charge is performed until an operator provides valid tes
 **These are test observations, not commercial payment confirmations.** Do not turn this API on with live keys, and do not place customer-facing purchase claims on the Pages preview.
 
 Stripe API references: https://docs.stripe.com/api/checkout/sessions/create and https://docs.stripe.com/events/manage-webhook-endpoints#signature-errors
+
+## Admin read-only authoritative TEST session lookup (October 29, 2026)
+
+An authenticated admin may explicitly call `POST /v1/admin/stripe-test-checkouts/:checkoutUuid/reconcile` after a test Checkout Session exists. This makes **one read-only** server-side `GET /v1/checkout/sessions/:id` request to the Stripe API using the configured `sk_test_` key. It never submits a payment or writes a transaction.
+
+The server verifies `cs_test_` identity, `livemode=false`, one-time payment mode, currency, exact amount, client reference, order/user metadata and valid session/payment statuses. Invalid/mismatched provider responses and provider outages fail closed (HTTP 502). Only an admin can invoke the lookup; an unconfigured gateway returns HTTP 503. A successful lookup is recorded in the local audit log, but does **not** mutate `sandbox_orders`, `stripe_test_checkouts` or `entitlements`.
+
+The response includes `testPaymentObserved`, `settlementVerified:false`, `accessGranted:false` and `testModeOnly:true`. This is a **TEST provider observation only**, not a settled payment, refund/dispute check, financial ledger, or authorization to issue licenses. There is deliberately no automatic reconciliation timer or public API deployment. The operation is provider-specific behind a minimal read-only validation boundary; future payment providers must meet the same fail-closed ownership/amount checks.
