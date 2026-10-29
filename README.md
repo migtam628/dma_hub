@@ -194,7 +194,7 @@ This does **not** install software, connect licenses, charge customers, or synch
 
 An **opt-in Stripe TEST-mode Checkout foundation** now exists behind four server-only configuration variables. It supports only eligible **one-time sandbox orders**, uses order-owned server-side amounts and Stripe idempotency keys, and verifies Stripe's official timestamped `Stripe-Signature` HMAC format on webhook requests. Test Checkout sessions and deduplicated event observations are stored in SQLite schema v8. **No webhook automatically grants access** or marks a sandbox order fulfilled.
 
-No Stripe keys are configured here; without operator-supplied test credentials the route is disabled. Live keys are rejected. This is not an approved public checkout, subscription service or commercial license engine. See [Stripe test-mode integration](docs/stripe-test.md).
+No Stripe keys are configured here; without operator-supplied test credentials the route is disabled. Live keys are rejected. When the local API is configured, signed-in customers can prepare and open a Stripe test Checkout from **Billing → Sandbox Orders**, while authorized staff can inspect read-only Stripe test metadata in **Admin → Sandbox Orders**. No subscription or commercial license is issued. See [Stripe test-mode integration](docs/stripe-test.md).
 
 ### HMAC-signed sandbox event inbox (backend only)
 
@@ -240,7 +240,7 @@ See [Email authentication integration](docs/email-auth.md) for setup, test cover
 
 ### SQLite migration and recovery tools (local API)
 
-The API now applies tracked, transactional database migrations (schema v2) on startup. Existing data is retained; future or incompatible schemas fail closed.
+The API now applies tracked, transactional database migrations (schema v8) on startup. Existing data is retained; future or incompatible schemas fail closed.
 
 ```bash
 # Use your actual DB_PATH and pre-create a private backups/ directory.

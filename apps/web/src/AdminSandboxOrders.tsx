@@ -2,11 +2,13 @@ import {useEffect,useState} from "react";
 import {FlaskConical,RefreshCcw,ShieldCheck} from "lucide-react";
 import {Button,Card,Empty,Pill} from "@dma-hub/ui";
 import {api} from "./api";
-import type {SandboxOrder,SandboxWebhookEvent,Session} from "./api";
+import type {SandboxOrder,SandboxWebhookEvent,StripeTestCheckout,StripeTestEvent,Session} from "./api";
 
 export function AdminSandboxOrders({session}:{session:Session|null}){
  const [orders,setOrders]=useState<SandboxOrder[]>([]);
  const [webhooks,setWebhooks]=useState<SandboxWebhookEvent[]>([]);
+ const [stripeSessions,setStripeSessions]=useState<StripeTestCheckout[]>([]);
+ const [stripeEvents,setStripeEvents]=useState<StripeTestEvent[]>([]);
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState("");
  const [notice,setNotice]=useState("");
@@ -15,15 +17,15 @@ export function AdminSandboxOrders({session}:{session:Session|null}){
  async function load(){
   if(!admin)return;
   setBusy(true);setError("");
-  try{const [orders,events]=await Promise.all([api.adminTestOrders(token),api.sandboxWebhookEvents(token)]);setOrders(orders.items);setWebhooks(events.items)}
+  try{const [orders,events,checkouts,stripeEvents]=await Promise.all([api.adminTestOrders(token),api.sandboxWebhookEvents(token),api.adminStripeTestCheckouts(token),api.adminStripeTestEvents(token)]);setOrders(orders.items);setWebhooks(events.items);setStripeSessions(checkouts.items);setStripeEvents(stripeEvents.items)}
   catch(e){setError(e instanceof Error?e.message:"Cannot retrieve test orders")}
   finally{setBusy(false)}
  }
  useEffect(()=>{
-  if(!admin){setOrders([]);setWebhooks([]);return}
+  if(!admin){setOrders([]);setWebhooks([]);setStripeSessions([]);setStripeEvents([]);return}
   let active=true;
   setBusy(true);setError("");
-  Promise.all([api.adminTestOrders(token),api.sandboxWebhookEvents(token)]).then(([r,w])=>{if(active){setOrders(r.items);setWebhooks(w.items)}})
+  Promise.all([api.adminTestOrders(token),api.sandboxWebhookEvents(token),api.adminStripeTestCheckouts(token),api.adminStripeTestEvents(token)]).then(([r,w,c,e])=>{if(active){setOrders(r.items);setWebhooks(w.items);setStripeSessions(c.items);setStripeEvents(e.items)}})
    .catch(e=>{if(active)setError(e instanceof Error?e.message:"Cannot retrieve sandbox orders")})
    .finally(()=>{if(active)setBusy(false)});
   return()=>{active=false};
@@ -37,7 +39,7 @@ export function AdminSandboxOrders({session}:{session:Session|null}){
   try{
    const r=action==="fulfill"?await api.fulfillTestOrder(token,order.id):await api.cancelTestOrder(token,order.id);
    setNotice(r.replayed?"Order was already in that state; no duplicate action occurred.":action==="fulfill"?"Sandbox test entitlement created, audited and linked to the order.":"Pending sandbox order cancelled.");
-   const [orders,events]=await Promise.all([api.adminTestOrders(token),api.sandboxWebhookEvents(token)]);setOrders(orders.items);setWebhooks(events.items);
+   const [orders,events,checkouts,stripeEvents]=await Promise.all([api.adminTestOrders(token),api.sandboxWebhookEvents(token),api.adminStripeTestCheckouts(token),api.adminStripeTestEvents(token)]);setOrders(orders.items);setWebhooks(events.items);setStripeSessions(checkouts.items);setStripeEvents(stripeEvents.items);
   }catch(e){setError(e instanceof Error?e.message:"Operation failed")}
   finally{setBusy(false)}
  }
@@ -68,6 +70,17 @@ export function AdminSandboxOrders({session}:{session:Session|null}){
          <small>Test order {event.orderId.slice(0,8)} · Received {new Date(event.receivedAt).toLocaleString()}</small></div>
         <Pill tone="neutral">Recorded only</Pill>
        </div>)}</div>}
+    </Card>
+    <Card title="Stripe test-mode Checkout records">
+     <p className="muted">Read-only provider session metadata. A Stripe test-paid observation does not issue licenses, settle accounts or fulfill sandbox orders.</p>
+     {stripeSessions.length===0?<Empty title="No Stripe test sessions" description="These only appear if Stripe test keys were configured and a user opened a test Checkout."/>:
+      <div className="rows">{stripeSessions.map(s=><div key={s.id} className="item-row">
+       <div className="row-grow"><strong>Test order {s.orderId.slice(0,8)} · USD {(s.amountMinor/100).toFixed(2)}</strong>
+        <small>Customer {s.userId?.slice(0,8)||"unknown"} · {new Date(s.updatedAt).toLocaleString()}</small></div>
+       <Pill tone="neutral">{s.state}</Pill></div>)}</div>}
+     {stripeEvents.length>0&&<div className="rows">{stripeEvents.map(e=><div key={e.eventId} className="item-row">
+       <div className="row-grow"><strong>{e.eventType}</strong><small>Stripe TEST event · {new Date(e.receivedAt).toLocaleString()}</small></div>
+       <Pill tone="neutral">Observed only</Pill></div>)}</div>}
     </Card>
    </>
   }
