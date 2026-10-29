@@ -1,6 +1,6 @@
 # DMA Hub — Engineering Roadmap and Reality Check
 
-**Updated:** October 28, 2026  
+**Updated:** October 29, 2026  
 **Project:** [migtam628/dma_hub](https://github.com/migtam628/dma_hub)  
 **Approved UI:** Concept 3 — Professional Hybrid  
 **Status:** Functional alpha with a public static preview and unsigned Windows installer. **Not production ready.**
@@ -20,7 +20,7 @@
 | Releases | GitHub Actions, prerelease artifacts/checksums and automated checks | Signed Windows builds, release provenance and rollback |
 | Hardware | Read-only serial-port discovery; no port opens or writes | Documented pilot adapter and physical compatibility QA |
 | Pricing & test entitlements | Local API: immutable plan amounts, manual grants, idempotent sandbox order/fulfillment and owner-scoped access | Real hosted checkout, processor events and signed licensing |
-| Billing/licenses | Not connected | Provider selection, checkout, webhooks, reconciled payments |
+| Billing/licenses | No real provider; signed sandbox test-event inbox implemented | Select provider, verify official webhooks, reconcile payments and licenses |
 | Production hosting | GitHub Pages static frontend; local-only API/Docker | Dedicated secured API environment and observability |
 
 ### Repository layout (implemented)

@@ -1,6 +1,6 @@
 import {DatabaseSync} from "node:sqlite";
 
-export const SCHEMA_VERSION=6;
+export const SCHEMA_VERSION=7;
 
 const BASE_SCHEMA=`CREATE TABLE IF NOT EXISTS users(
  id TEXT PRIMARY KEY,
@@ -196,6 +196,23 @@ export function migrateDatabase(db){
    version=6;
   }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
  }
+ if(version===6){
+  db.exec("BEGIN IMMEDIATE");
+  try{
+   db.exec(`CREATE TABLE sandbox_webhook_events(
+    event_id TEXT PRIMARY KEY,
+    order_id TEXT NOT NULL REFERENCES sandbox_orders(id) ON DELETE RESTRICT,
+    event_type TEXT NOT NULL CHECK(event_type IN ('sandbox.payment_observed','sandbox.payment_failed')),
+    content_sha256 TEXT NOT NULL,
+    sent_at INTEGER NOT NULL,
+    received_at INTEGER NOT NULL
+   );
+   CREATE INDEX sandbox_webhook_order ON sandbox_webhook_events(order_id,received_at);`);
+   db.exec("PRAGMA user_version=7; COMMIT;");
+   version=7;
+  }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
+ }
+ requiredColumns(db,"sandbox_webhook_events",["event_id","order_id","event_type","content_sha256","sent_at","received_at"]);
  requiredColumns(db,"sandbox_orders",["id","user_id","product_id","plan_id","idempotency_key","amount_minor","currency","billing_period","state","entitlement_id","fulfilled_by","created_at","updated_at","fulfilled_at"]);
  requiredColumns(db,"pricing_plans",["id","product_id","code","name","amount_minor","currency","billing_period","status","version","created_at","updated_at"]);
  requiredColumns(db,"entitlements",["id","user_id","product_id","plan_id","source","state","starts_at","expires_at","revoked_at","granted_by","revoked_by","created_at","updated_at"]);

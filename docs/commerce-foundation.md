@@ -36,3 +36,8 @@ Production pricing version history, checkout intent, tax/currency handling, frau
 ## Sandbox checkout QA (schema v6)
 
 The next backend milestone adds idempotent, authenticated customer test orders and explicit admin-only sandbox fulfillment/cancellation. Fulfillment creates a **30-day** entitlement with source `sandbox_order`; it is not evidence of payment. Review [Sandbox order lifecycle](sandbox-orders.md). Real payment intents, signed webhooks, subscription reconciliation and production licensing remain out of scope.
+
+
+## Test-only signed event ingestion (schema v7)
+
+Development-mode HMAC sandbox webhook ingestion and deduplicated metadata are now available without a real processor. See [signed sandbox webhook inbox](sandbox-webhook.md). Receipt of a signed test event does **not** mean the order is paid and cannot issue an entitlement.

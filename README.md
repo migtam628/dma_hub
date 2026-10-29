@@ -28,7 +28,7 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 | Desktop companion | 🧪 Windows scaffold | Tauri shell source, NSIS build CI, launcher and diagnostics previews; no hardware APIs |
 | Device adapters | 🧪 Read-only native serial discovery | Explicit Windows COM-port metadata scan; no port data access or device writes |
 | Persistent catalog | 🧪 API alpha | Admin-gated product records, public published-only listings, versions and audit records; storefront still uses demo catalog |
-| Pricing & entitlements | 🧪 API alpha | USD plans, expiring test grants and a server-side QA order workflow with explicit admin fulfillment; no real payments |
+| Pricing & entitlements | 🧪 API alpha | USD plans, manually fulfilled sandbox orders, expiring grants and signed/deduplicated **test** event inbox; no real payments |
 | Payments/licensing | ⏳ Not connected | No actual checkout, subscription charges, license activation or payment webhook |
 | Public hosting | ✅ Live | `https://dma.moobee.lol` via GitHub Pages; static preview **only** |
 
@@ -188,6 +188,12 @@ This screen is **not a payment processor, production merchant CMS or real licens
 When signed in through the **local API**, My Software fetches only the authenticated user's entitlements from `GET /v1/me/entitlements` and clearly labels each as a **manual test grant** (active, scheduled, expired, revoked or unavailable). Loading and network failure states never imply access. Logged-out views remain a labeled design preview.
 
 This does **not** install software, connect licenses, charge customers, or synchronize production accounts. The public GitHub Pages demo cannot access a server-side account API.
+
+### HMAC-signed sandbox event inbox (backend only)
+
+The API now accepts **test-only, HMAC-signed sandbox event observations** when `DMA_SANDBOX_WEBHOOK_SECRET` is configured server-side. It validates the exact request bytes, enforces a five-minute timestamp window, rejects oversized/malformed messages, stores deduplicated event metadata, and exposes an **admin-only read-only** event inbox. It does **not** mark orders paid, fulfill orders, issue licenses or contact a real payment provider.
+
+See the [sandbox webhook reference](docs/sandbox-webhook.md) for signing, replay rules and production limitations. Without a secret the route is disabled and returns 503.
 
 ### Admin Audit Log (local API only)
 

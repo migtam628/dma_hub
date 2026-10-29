@@ -5,6 +5,7 @@ import {dirname} from "node:path";
 import {DatabaseSync} from "node:sqlite";
 import {migrateDatabase} from "./migrations.mjs";
 import {createCommerce} from "./commerce.mjs";
+import {createSandboxWebhook} from "./sandbox-webhook.mjs";
 const MAX_BODY=64*1024,SESSION_MS=12*60*60*1000,VERIFY_MS=24*60*60*1000,RESET_MS=60*60*1000;
 const hashToken=t=>createHash("sha256").update(t).digest("hex");
 function response(res,status,payload,headers={}){res.writeHead(status,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff","Referrer-Policy":"no-referrer",...headers});res.end(JSON.stringify(payload))}
@@ -30,7 +31,7 @@ function normalizedProduct(v){
  return {slug,name,description,status};
 }
 function normalizedProfile(v){if(!v||typeof v!=="object"||Array.isArray(v))return null;const name=typeof v.name==="string"?v.name.trim():"";if(name.length<1||name.length>80)return null;const data=v.data;if(!data||typeof data!=="object"||Array.isArray(data))return null;const serialized=JSON.stringify(data);if(serialized.length>16000)return null;return {name,data:serialized}}
-export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:5173",clock=()=>Date.now(),sendEmail=null,requireEmailVerification=false}={}){
+export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:5173",clock=()=>Date.now(),sendEmail=null,requireEmailVerification=false,sandboxWebhookSecret=null}={}){
  if(requireEmailVerification&&typeof sendEmail!=="function")throw new Error("Email verification requires a configured mail transport");
  if(dbPath!==":memory:")mkdirSync(dirname(dbPath),{recursive:true});
  const db=new DatabaseSync(dbPath);
@@ -39,6 +40,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
  function checkLimit(buckets,key,limit,windowMs){const now=clock();const prior=(buckets.get(key)||[]).filter(t=>now-t<windowMs);if(prior.length>=limit){buckets.set(key,prior);return false}prior.push(now);buckets.set(key,prior);if(buckets.size>1000){for(const [k,list] of buckets){const alive=list.filter(t=>now-t<windowMs);if(alive.length)buckets.set(k,alive);else buckets.delete(k)}}return true}
  const audit=(actor,action,target)=>db.prepare("INSERT INTO audit VALUES(?,?,?,?,?)").run(randomUUID(),actor,action,target,clock());
  const commerce=createCommerce({db,clock,audit,readBody:jsonBody});
+ const testWebhook=createSandboxWebhook({db,clock,audit,secret:sandboxWebhookSecret});
  function issueToken(userId,purpose,ttl){
   const token=randomBytes(32).toString("base64url");
   db.prepare("DELETE FROM auth_tokens WHERE user_id=? AND purpose=?").run(userId,purpose);
@@ -73,6 +75,10 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
   if(req.method==="OPTIONS"){res.writeHead(204);res.end();return}
   const pathname=new URL(req.url||"/","http://localhost").pathname;
   try{
+   if(pathname==="/v1/test-webhooks/payments"&&req.method==="POST"){
+     const event=await testWebhook.receive(req);
+     response(res,event.status,event.payload);return
+   }
    if(pathname==="/healthz"&&req.method==="GET"){response(res,200,{status:"ok",service:"dma-hub-api",database:"ready"});return}
    if(pathname==="/v1/catalog"&&req.method==="GET"){response(res,200,{items:[{id:"device-studio",name:"Device Studio",status:"preview"},{id:"profile-cloud",name:"Profile Cloud",status:"preview"},{id:"release-center",name:"Release Center",status:"preview"}]});return}
    if(pathname==="/v1/catalog/live"&&req.method==="GET"){
@@ -213,6 +219,11 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
     }
     const commerceResult=await commerce.authenticatedRoute(pathname,req,u);
     if(commerceResult){response(res,commerceResult.status,commerceResult.payload);return}
+    if(pathname==="/v1/admin/test-webhooks"&&req.method==="GET"){
+      if(u.role!=="admin"){response(res,403,{error:"forbidden"});return}
+      const items=db.prepare("SELECT event_id,order_id,event_type,sent_at,received_at FROM sandbox_webhook_events ORDER BY received_at DESC,rowid DESC LIMIT 100").all();
+      response(res,200,{items:items.map(x=>({eventId:x.event_id,orderId:x.order_id,kind:x.event_type,sentAt:x.sent_at,receivedAt:x.received_at})),sandboxOnly:true});return
+    }
     if(pathname==="/v1/admin/audit"&&req.method==="GET"){
       if(u.role!=="admin"){response(res,403,{error:"forbidden"});return}
       const params=new URL(req.url||"/","http://localhost").searchParams;

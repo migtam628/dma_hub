@@ -50,3 +50,10 @@ Before internet exposure: enforce TLS + secure proxy, add email verification and
 **Commerce foundation:** schema v5 adds plan amounts (USD cents) and time-limited test grants. The admin must grant access manually. Payment, purchases, license enforcement, signed activation and billing webhooks remain unimplemented. See [commerce foundation](commerce-foundation.md).
 
 **Sandbox orders (v6):** Test-only checkout intent snapshots a plan amount, with an owner-scoped idempotency key; explicit admin fulfillment issues one 30-day sandbox entitlement and audit records. Payment acceptance, subscription charges and commercial licensing remain **unimplemented**. See [Sandbox order lifecycle](sandbox-orders.md).
+
+## Signed sandbox event inbox (v7)
+
+- `POST /v1/test-webhooks/payments` — **test only**; requires server-configured HMAC secret, fresh timestamp and valid raw-body signature. Never changes payment/entitlement status.
+- `GET /v1/admin/test-webhooks` — authenticated admin-only sanitized event metadata, last 100 items.
+
+See [sandbox webhook documentation](sandbox-webhook.md). This is **not** a merchant payment provider or verified settlement flow.
