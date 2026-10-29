@@ -31,3 +31,8 @@ An existing grant remains valid if its plan is later archived, **but access is d
 ## Remaining commercial/security requirements
 
 Production pricing version history, checkout intent, tax/currency handling, fraud controls, payment processor, signed/idempotent webhooks, refunds, revocable signed licenses, device activation policy, customer support, admin UI, independent security review, and reliable hosted API. No public revenue or entitlement claims should be made based on these test records.
+
+
+## Sandbox checkout QA (schema v6)
+
+The next backend milestone adds idempotent, authenticated customer test orders and explicit admin-only sandbox fulfillment/cancellation. Fulfillment creates a **30-day** entitlement with source `sandbox_order`; it is not evidence of payment. Review [Sandbox order lifecycle](sandbox-orders.md). Real payment intents, signed webhooks, subscription reconciliation and production licensing remain out of scope.

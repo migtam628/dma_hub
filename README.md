@@ -28,7 +28,7 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 | Desktop companion | 🧪 Windows scaffold | Tauri shell source, NSIS build CI, launcher and diagnostics previews; no hardware APIs |
 | Device adapters | 🧪 Read-only native serial discovery | Explicit Windows COM-port metadata scan; no port data access or device writes |
 | Persistent catalog | 🧪 API alpha | Admin-gated product records, public published-only listings, versions and audit records; storefront still uses demo catalog |
-| Pricing & entitlements | 🧪 API alpha | Versioned USD plans and manually issued, expiring test grants; customer-only access checks and audit logs |
+| Pricing & entitlements | 🧪 API alpha | USD plans, expiring test grants and a server-side QA order workflow with explicit admin fulfillment; no real payments |
 | Payments/licensing | ⏳ Not connected | No actual checkout, subscription charges, license activation or payment webhook |
 | Public hosting | ✅ Live | `https://dma.moobee.lol` via GitHub Pages; static preview **only** |
 
@@ -186,6 +186,12 @@ This screen is **not a payment processor, production merchant CMS or real licens
 When signed in through the **local API**, My Software fetches only the authenticated user's entitlements from `GET /v1/me/entitlements` and clearly labels each as a **manual test grant** (active, scheduled, expired, revoked or unavailable). Loading and network failure states never imply access. Logged-out views remain a labeled design preview.
 
 This does **not** install software, connect licenses, charge customers, or synchronize production accounts. The public GitHub Pages demo cannot access a server-side account API.
+
+### Sandbox order-to-entitlement QA workflow (local API only)
+
+The API now supports a **test-only** order lifecycle. An authenticated customer can create an idempotent sandbox order for an active plan; this **does not** pay for or activate anything. Authorized admins can inspect, explicitly fulfill, or cancel pending sandbox orders. Fulfillment produces one auditable, expiring **30-day test entitlement** and is safe to retry without duplicate grants. Source `sandbox_order` is distinguished from a manually granted test entitlement.
+
+No payment gateway, actual checkout, subscription renewal, real license activation or card processing is connected. GitHub Pages remains a static demo. See [Sandbox order flow](docs/sandbox-orders.md) for test endpoints and safety boundaries.
 
 ### Plan pricing and test entitlements (backend only)
 

@@ -9,6 +9,10 @@ Endpoints:
 - `GET /v1/catalog` — preview catalog
 - `GET /v1/catalog/live` — published persisted catalog products only
 - `GET /v1/catalog/pricing` — active USD plan prices for published products; no payment flow
+- `GET/POST /v1/me/test-orders` — authenticated, owner-scoped **sandbox** order list/create; idempotent retries
+- `GET /v1/admin/test-orders` — admin-only QA order queue
+- `POST /v1/admin/test-orders/:uuid/fulfill` — explicit admin-only, idempotent **test** fulfillment, not a payment
+- `POST /v1/admin/test-orders/:uuid/cancel` — cancel a pending QA order; never revoke fulfilled access
 - `GET/POST /v1/admin/products/:uuid/plans` — admin-only plan list/create
 - `GET/PATCH /v1/admin/plans/:uuid` — admin-only plan metadata; price/currency/period immutable, update needs `If-Match`
 - `GET/POST /v1/admin/entitlements` — admin-only listing/explicit test grants, not purchases
@@ -43,3 +47,5 @@ Before internet exposure: enforce TLS + secure proxy, add email verification and
 **Current limitations:** The rate limits are process-local and are not sufficient against distributed abuse; registration has no email verification; the API remains suitable only for local development. Do not publish it on a public interface.
 
 **Commerce foundation:** schema v5 adds plan amounts (USD cents) and time-limited test grants. The admin must grant access manually. Payment, purchases, license enforcement, signed activation and billing webhooks remain unimplemented. See [commerce foundation](commerce-foundation.md).
+
+**Sandbox orders (v6):** Test-only checkout intent snapshots a plan amount, with an owner-scoped idempotency key; explicit admin fulfillment issues one 30-day sandbox entitlement and audit records. Payment acceptance, subscription charges and commercial licensing remain **unimplemented**. See [Sandbox order lifecycle](sandbox-orders.md).

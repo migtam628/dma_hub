@@ -1,6 +1,6 @@
 import {DatabaseSync} from "node:sqlite";
 
-export const SCHEMA_VERSION=5;
+export const SCHEMA_VERSION=6;
 
 const BASE_SCHEMA=`CREATE TABLE IF NOT EXISTS users(
  id TEXT PRIMARY KEY,
@@ -146,6 +146,57 @@ export function migrateDatabase(db){
    version=5;
   }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
  }
+
+ if(version===5){
+  db.exec("BEGIN IMMEDIATE");
+  try{
+   // Rebuild existing entitlement constraint to distinguish test-order fulfillment.
+   db.exec(`CREATE TABLE entitlements_v6(
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    product_id TEXT NOT NULL REFERENCES catalog_products(id) ON DELETE RESTRICT,
+    plan_id TEXT NOT NULL REFERENCES pricing_plans(id) ON DELETE RESTRICT,
+    source TEXT NOT NULL CHECK(source IN ('admin_test_grant','sandbox_order')),
+    state TEXT NOT NULL DEFAULT 'active' CHECK(state IN ('active','revoked')),
+    starts_at INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL CHECK(expires_at>starts_at),
+    revoked_at INTEGER,
+    granted_by TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    revoked_by TEXT REFERENCES users(id) ON DELETE RESTRICT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+   );
+   INSERT INTO entitlements_v6 SELECT * FROM entitlements;
+   DROP TABLE entitlements;
+   ALTER TABLE entitlements_v6 RENAME TO entitlements;
+   CREATE INDEX entitlements_user_active ON entitlements(user_id,product_id,state,starts_at,expires_at);
+   CREATE INDEX entitlements_product ON entitlements(product_id);
+   CREATE TABLE sandbox_orders(
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    product_id TEXT NOT NULL REFERENCES catalog_products(id) ON DELETE RESTRICT,
+    plan_id TEXT NOT NULL REFERENCES pricing_plans(id) ON DELETE RESTRICT,
+    idempotency_key TEXT NOT NULL,
+    amount_minor INTEGER NOT NULL CHECK(amount_minor>=0),
+    currency TEXT NOT NULL CHECK(currency='USD'),
+    billing_period TEXT NOT NULL CHECK(billing_period IN ('one_time','monthly','yearly')),
+    state TEXT NOT NULL DEFAULT 'pending' CHECK(state IN ('pending','test_fulfilled','cancelled')),
+    entitlement_id TEXT REFERENCES entitlements(id) ON DELETE RESTRICT,
+    fulfilled_by TEXT REFERENCES users(id) ON DELETE RESTRICT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    fulfilled_at INTEGER,
+    UNIQUE(user_id,idempotency_key),
+    CHECK((state='test_fulfilled' AND entitlement_id IS NOT NULL AND fulfilled_by IS NOT NULL AND fulfilled_at IS NOT NULL) OR
+          (state!='test_fulfilled' AND entitlement_id IS NULL AND fulfilled_at IS NULL))
+   );
+   CREATE INDEX sandbox_orders_user ON sandbox_orders(user_id,created_at);
+   CREATE INDEX sandbox_orders_pending ON sandbox_orders(state,created_at);`);
+   db.exec("PRAGMA user_version=6; COMMIT;");
+   version=6;
+  }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
+ }
+ requiredColumns(db,"sandbox_orders",["id","user_id","product_id","plan_id","idempotency_key","amount_minor","currency","billing_period","state","entitlement_id","fulfilled_by","created_at","updated_at","fulfilled_at"]);
  requiredColumns(db,"pricing_plans",["id","product_id","code","name","amount_minor","currency","billing_period","status","version","created_at","updated_at"]);
  requiredColumns(db,"entitlements",["id","user_id","product_id","plan_id","source","state","starts_at","expires_at","revoked_at","granted_by","revoked_by","created_at","updated_at"]);
  requiredColumns(db,"catalog_products",["id","slug","name","description","status","version","created_at","updated_at"]);

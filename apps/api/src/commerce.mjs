@@ -1,4 +1,5 @@
 import {randomUUID} from "node:crypto";
+import {createSandboxOrderRoutes} from "./sandbox-orders.mjs";
 
 const ID=/^[0-9a-f-]{36}$/i;
 const CODE=/^[a-z0-9][a-z0-9-]{1,39}$/;
@@ -45,6 +46,7 @@ function transact(db,fn){
 const result=(status,payload)=>({status,payload});
 
 export function createCommerce({db,clock,audit,readBody}){
+ const sandbox=createSandboxOrderRoutes({db,clock,audit,readBody});
  function publicRoute(path,method){
   if(path!=="/v1/catalog/pricing"||method!=="GET")return null;
   const items=db.prepare(`SELECT pl.*,p.slug AS product_slug,p.name AS product_name
@@ -70,6 +72,8 @@ export function createCommerce({db,clock,audit,readBody}){
     .get(u.id,access[1],now,now);
    return result(200,{productId:access[1],allowed:!!grant,reason:grant?"active":"not_entitled",expiresAt:grant?.expires_at??null});
   }
+  const orderResult=await sandbox.authenticatedRoute(path,req,u);
+  if(orderResult)return orderResult;
   if(!path.startsWith("/v1/admin/"))return null;
   if(u.role!=="admin")return result(403,{error:"forbidden"});
 

@@ -13,7 +13,7 @@ async function withTempDir(fn){
 }
 test("fresh database receives tracked schema migrations",()=>withTempDir(async(folder)=>{
  const app=createApp({dbPath:join(folder,"new.sqlite")});
- assert.equal(app.db.prepare("PRAGMA user_version").get().user_version,5);
+ assert.equal(app.db.prepare("PRAGMA user_version").get().user_version,6);
  assert.ok(app.db.prepare("PRAGMA table_info(users)").all().some(row=>row.name==="disabled_at"));
  app.db.close();
 }));
@@ -28,12 +28,12 @@ test("legacy pre-migration database retains users and profiles",()=>withTempDir(
  INSERT INTO profiles VALUES ('p1','u1','Existing settings','{"density":41}',3,1,2);`);
  legacy.close();
  const upgraded=createApp({dbPath:path});
- assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,5);
+ assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,6);
  assert.equal(upgraded.db.prepare("SELECT email FROM users WHERE id='u1'").get().email,"legacy@example.test");
  assert.equal(upgraded.db.prepare("SELECT version FROM profiles WHERE id='p1'").get().version,3);
  upgraded.db.close();
  const reopened=createApp({dbPath:path});
- assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,5);
+ assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,6);
  assert.equal(reopened.db.prepare("SELECT count(*) AS n FROM profiles").get().n,1);
  reopened.db.close();
 }));
@@ -51,7 +51,7 @@ test("SQLite backup is verified, non-overwriting, and restore preserves user dat
  app.db.close();
  const created=await backupDatabase(original,snapshot);
  assert.equal(created.verified,true);
- assert.equal(verifyBackup(snapshot).schemaVersion,5);
+ assert.equal(verifyBackup(snapshot).schemaVersion,6);
  if(process.platform!=="win32")assert.equal((await stat(snapshot)).mode&0o777,0o600);
  await assert.rejects(backupDatabase(original,snapshot),/already exists/);
  await copyFile(snapshot,restored); // isolated restore drill; production restore must stop the service
@@ -90,7 +90,7 @@ test("schema v2 upgrades to v3 without losing existing user sessions or profiles
  PRAGMA user_version=2;`);
  db.close();
  const app=createApp({dbPath:path});
- assert.equal(app.db.prepare("PRAGMA user_version").get().user_version,5);
+ assert.equal(app.db.prepare("PRAGMA user_version").get().user_version,6);
  assert.equal(app.db.prepare("SELECT email FROM users WHERE id='existing'").get().email,"kept@example.test");
  assert.equal(app.db.prepare("SELECT count(*) n FROM sessions").get().n,1);
  assert.equal(app.db.prepare("SELECT count(*) n FROM profiles").get().n,1);
@@ -109,9 +109,29 @@ test("schema v4 upgrades to v5 without modifying existing product records",()=>w
  first.db.exec("DROP TABLE entitlements; DROP TABLE pricing_plans; PRAGMA user_version=4;");
  first.db.close();
  const restored=createApp({dbPath:path});
- assert.equal(restored.db.prepare("PRAGMA user_version").get().user_version,5);
+ assert.equal(restored.db.prepare("PRAGMA user_version").get().user_version,6);
  assert.equal(restored.db.prepare("SELECT name FROM catalog_products WHERE id='old-product'").get().name,"Legacy Catalog Entry");
  assert.ok(restored.db.prepare("SELECT name FROM sqlite_master WHERE name='entitlements'").get());
  assert.ok(restored.db.prepare("SELECT name FROM sqlite_master WHERE name='pricing_plans'").get());
+ restored.db.close();
+}));
+
+test("schema v5 upgrades to v6 without losing manual entitlements",()=>withTempDir(async(folder)=>{
+ const file=join(folder,"legacy-pricing.sqlite");
+ const app=createApp({dbPath:file});
+ app.db.prepare("INSERT INTO users(id,email,password_hash,role,created_at) VALUES(?,?,?,?,?)").run("user-1","legacy-entitlement@test.invalid","hash","admin",1);
+ app.db.prepare("INSERT INTO catalog_products(id,slug,name,description,status,version,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)")
+  .run("item-1","item-existing","Existing product","","published",1,1,1);
+ app.db.prepare("INSERT INTO pricing_plans(id,product_id,code,name,amount_minor,currency,billing_period,status,version,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)")
+  .run("plan-1","item-1","plan","Existing plan",1234,"USD","monthly","active",1,1,1);
+ app.db.prepare("INSERT INTO entitlements(id,user_id,product_id,plan_id,source,state,starts_at,expires_at,granted_by,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)")
+  .run("grant-1","user-1","item-1","plan-1","admin_test_grant","active",1,999999999999,"user-1",1,1);
+ app.db.exec("DROP TABLE sandbox_orders; PRAGMA user_version=5;");
+ app.db.close();
+ const restored=createApp({dbPath:file});
+ assert.equal(restored.db.prepare("PRAGMA user_version").get().user_version,6);
+ assert.equal(restored.db.prepare("SELECT source FROM entitlements WHERE id='grant-1'").get().source,"admin_test_grant");
+ assert.equal(restored.db.prepare("SELECT count(*) AS n FROM sandbox_orders").get().n,0);
+ assert.equal(restored.db.prepare("PRAGMA foreign_key_check").all().length,0);
  restored.db.close();
 }));
