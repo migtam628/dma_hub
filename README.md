@@ -20,8 +20,8 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 | Area | Current status | What's included |
 |---|---|---|
 | Public website | ✅ Web preview | Homepage, catalog, setup guides, live GitHub Releases download center |
-| Customer workspace | 🧪 Mixed preview | Signed-in users can view API-backed manual test entitlements in My Software; other pages and logged-out previews remain sample data |
-| Admin workspace | 🧪 Mixed preview | Local API admin-only Pricing & Test Access console; other admin pages remain synthetic |
+| Customer workspace | 🧪 Mixed preview | Signed-in users can view API-backed entitlements and create/review **sandbox** orders; other pages remain sample data |
+| Admin workspace | 🧪 Mixed preview | Admin-only Pricing & Test Access and Sandbox Orders consoles connected to the local API; other pages remain synthetic |
 | Configuration Studio | ✅ Local functionality | Edit settings, live preview, JSON import/export, browser storage |
 | API | 🧪 Local alpha | Account sessions, schema v3, opt-in mail-backed verification/recovery, password changes, profiles, manual backup/restore tests |
 | Cloud profiles | 🧪 Local API | Create, load, update, delete, optimistic version checks |
@@ -186,6 +186,12 @@ This screen is **not a payment processor, production merchant CMS or real licens
 When signed in through the **local API**, My Software fetches only the authenticated user's entitlements from `GET /v1/me/entitlements` and clearly labels each as a **manual test grant** (active, scheduled, expired, revoked or unavailable). Loading and network failure states never imply access. Logged-out views remain a labeled design preview.
 
 This does **not** install software, connect licenses, charge customers, or synchronize production accounts. The public GitHub Pages demo cannot access a server-side account API.
+
+### Sandbox order screens (local API only)
+
+**Signed-in customer Billing:** lists active configured plans and the current account's sandbox order history. “Create test order” is an explicitly confirmed QA operation, not an actual checkout, payment or recurring subscription. Retried requests use a stable idempotency key. The server never grants access on order creation.
+
+**Admin → Sandbox Orders:** an authenticated, server-authorized admin can review pending orders and explicitly choose **Fulfill test** or **Cancel**. Fulfillment produces a distinct 30-day `sandbox_order` entitlement with audit trail; the screen never accepts or reports real payments. These screens require the local-development API and do not create a live checkout on GitHub Pages.
 
 ### Sandbox order-to-entitlement QA workflow (local API only)
 

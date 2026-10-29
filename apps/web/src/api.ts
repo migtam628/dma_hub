@@ -6,6 +6,8 @@ export type ProfileSettings={profileName:string;autoSync:boolean;notifications:b
 export type CloudProfile={id:string;name:string;data:ProfileSettings;version:number;createdAt?:number;updatedAt?:number};
 export type CatalogItem={id:string;slug:string;name:string;description:string;status:"draft"|"published"|"archived";version:number;createdAt:number;updatedAt:number};
 export type PricingPlan={id:string;productId:string;code:string;name:string;amountMinor:number;currency:"USD";billingPeriod:"one_time"|"monthly"|"yearly";status:"draft"|"active"|"archived";version:number;createdAt:number;updatedAt:number};
+export type PublicPlan=PricingPlan&{productName:string;productSlug:string};
+export type SandboxOrder={id:string;productId:string;planId:string;amountMinor:number;currency:"USD";billingPeriod:string;state:"pending"|"test_fulfilled"|"cancelled";createdAt:number;updatedAt:number;entitlementId:string|null;fulfilledAt:number|null;userId?:string};
 export type Entitlement={id:string;userId:string;productId:string;planId:string;source:"admin_test_grant";state:"active"|"revoked";startsAt:number;expiresAt:number;revokedAt?:number|null;createdAt:number;accessStatus:"active"|"scheduled"|"expired"|"revoked"|"product_unavailable";accessAllowed:boolean};
 export class ApiError extends Error{constructor(public status:number,public code:string,message?:string){super(message||code)}}
 const API_ROOT=(import.meta.env.VITE_API_URL||((location.hostname==="localhost"||location.hostname==="127.0.0.1")?"http://localhost:8787":location.origin)).replace(/\/$/,"");
@@ -35,6 +37,12 @@ export const api={
  changePassword:(token:string,currentPassword:string,newPassword:string)=>request<{ok:boolean;sessionsRevoked:boolean}>("/v1/auth/change-password","POST",{currentPassword,newPassword},token),
  me:(token:string)=>request<{user:User}>("/v1/me","GET",undefined,token),
  entitlements:(token:string)=>request<{items:Entitlement[]}>("/v1/me/entitlements","GET",undefined,token),
+ publicPricing:()=>request<{items:PublicPlan[]}>("/v1/catalog/pricing"),
+ testOrders:(token:string)=>request<{items:SandboxOrder[];sandboxOnly:true}>("/v1/me/test-orders","GET",undefined,token),
+ createTestOrder:(token:string,planId:string,idempotencyKey:string)=>request<SandboxOrder&{sandboxOnly:true;replayed:boolean}>("/v1/me/test-orders","POST",{planId,idempotencyKey},token),
+ adminTestOrders:(token:string)=>request<{items:SandboxOrder[];sandboxOnly:true}>("/v1/admin/test-orders","GET",undefined,token),
+ fulfillTestOrder:(token:string,id:string)=>request<SandboxOrder&{sandboxOnly:true;replayed:boolean}>("/v1/admin/test-orders/"+id+"/fulfill","POST",{},token),
+ cancelTestOrder:(token:string,id:string)=>request<SandboxOrder&{sandboxOnly:true;replayed:boolean}>("/v1/admin/test-orders/"+id+"/cancel","POST",{},token),
  adminProducts:(token:string)=>request<{items:CatalogItem[]}>("/v1/admin/products","GET",undefined,token),
  createAdminProduct:(token:string,slug:string,name:string)=>request<CatalogItem>("/v1/admin/products","POST",{slug,name,description:"",status:"draft"},token),
  updateAdminProduct:(token:string,p:CatalogItem,status:CatalogItem["status"])=>request<CatalogItem>("/v1/admin/products/"+p.id,"PATCH",{slug:p.slug,name:p.name,description:p.description,status},token,p.version),
