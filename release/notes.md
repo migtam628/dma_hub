@@ -1,20 +1,27 @@
-# DMA Hub v0.2.0-alpha.12
+# DMA Hub v0.2.0-alpha.13
 
-**Experimental alpha: local API features and unsigned Windows preview only.**
+**Development prerelease: no live checkout, payment settlement or commercial licensing.**
 
-## Changes since alpha.11
-- My Software customer library now correctly distinguishes `admin_test_grant` from `sandbox_order` entitlements, including human-readable product and plan names.
-- Added an admin-only read-only Audit Log with bounded pagination and explicit forbidden/error states.
-- Audit API exposes action metadata, actor/target IDs and timestamps; it excludes user passwords and session credentials.
-- Added API tests for role restrictions, pagination validation and event disclosure protections.
-- Preserved the previous alpha's sandbox order creation, price snapshots, safe retries, admin fulfillment/cancellation, 30-day test grants and entitlement expiry.
-- README, backend API reference, operational audit documentation and roadmap updated.
+## Added
+- Schema v7 `sandbox_webhook_events` with authenticated event metadata, SHA-256 body digests and per-event uniqueness.
+- Opt-in HMAC-SHA256 sandbox endpoint (`POST /v1/test-webhooks/payments`) that checks a server-only secret, the exact raw body and a five-minute timestamp window.
+- Deduplicated successful replay handling and conflict rejection for reused event IDs with different payloads.
+- Bounded 16 KiB payloads, strict event shapes and valid sandbox-order reference checks; no secret, signatures or raw payloads persisted.
+- Admin-only read-only `GET /v1/admin/test-webhooks` and received-event list in Admin → Sandbox Orders.
+- Tests cover tampering, replay, expiry, misconfiguration, oversized events, cross-role access and confirmation that a signed event **does not** alter order status or grant access.
+- Updated README, API reference, documentation and roadmap.
 
-## Distribution
-- Static web preview and SHA-256 checksum, published on GitHub Releases and GitHub Pages.
-- Unsigned Windows NSIS installer and checksum, attached only if the Windows release job and asset verification complete.
+## Existing alpha features
+- Concept 3 web preview and customer/admin demo interfaces.
+- Local API accounts, optional email verification and recovery, profile storage and transactional SQLite migrations.
+- Admin-managed product and price records, manually granted test entitlements, customer sandbox orders and explicit admin test fulfillment.
+- Tauri Windows unsigned installer, read-only local serial port metadata, release checksums and GitHub Pages deployment.
 
-## Still not available
-No public backend deployment, verified commercial identity provider, real merchant checkout, credit-card processing, payment/webhook validation, subscriptions, receipts, signed software licenses, secure auto-updates or production hardware control.
+## Release artifacts
+- Static web ZIP and SHA256SUMS.txt.
+- Unsigned Windows NSIS installer and SHA256SUMS-windows.txt, uploaded only if the Windows job and checksum verification pass.
 
-**All orders and entitlements in these workflows are sandbox development records.** Never construe them as evidence of payment or product purchase.
+## Important limitations
+`DMA_SANDBOX_WEBHOOK_SECRET` is not a payment-provider credential. No real Stripe, PayPal, or other merchant integration is enabled. Webhook observations are inert: they cannot settle purchases, issue entitlements, renew subscriptions or activate Windows software. The local API is not approved for internet exposure.
+
+Signed Windows releases, official payment-provider webhooks, idempotent transaction reconciliation, device activation, production monitoring and encryption policies remain outstanding.
