@@ -10,7 +10,7 @@
 | Area | Evidence / current state | Next gate |
 |---|---|---|
 | Monorepo | `apps/web`, `apps/api`, `apps/desktop`, `packages/ui` and CI | Consistent contracts and integration testing |
-| Storefront | React preview deployed to `https://dma.moobee.lol` | Real catalog, plans and checkout |
+| Storefront | React preview on `https://dma.moobee.lol`; local frontend can show API-published records separately from demo fixtures | Hosted catalog API, real product details, plans and checkout |
 | Customer portal | Software/devices/account UI; synthetic state | Real authenticated account/entitlement data |
 | Admin portal | Synthetic users, products, releases | Server-enforced roles and operational workflows |
 | Configuration Studio | Local editor, JSON import/export, local API profile revisions | Validation, sync trust, applied-state receipts |
