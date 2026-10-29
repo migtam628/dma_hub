@@ -1,31 +1,26 @@
-# DMA Hub v0.2.0-alpha.16
+# DMA Hub v0.2.0-alpha.17
 
-**Development prerelease — API is not production-hosted, payments are test-only, and Windows packages are unsigned.**
+**Security-operations development alpha. API remains local-only, Stripe remains test-only, and Windows remains unsigned.**
 
-## Authentication and API hardening
+## New in alpha.17
 
-- Migrated from in-process authentication rate-limit maps to atomic SQLite fixed-window counters (schema v10).
-- Added scoped SHA-256 key hashing; rate-limit storage does not contain plaintext IPs, email addresses, passwords, or session tokens.
-- Limits now survive API restarts and can be shared across processes using one SQLite database file.
-- Applied controls to registration, login, email verification requests, password recovery requests and password-change attempts.
-- Added an additional 20-attempt/15-minute account-email login limit alongside existing IP limits.
-- Configured bounded SQLite busy timeout for brief concurrent write contention and periodic expired-bucket cleanup.
-- Tested rate-limit persistence, expiration, key isolation, backward migration and unchanged account/session behavior.
-- Updated README, rate-limit documentation, email-auth docs, API reference, deployment guide and security issue.
+- Admin-only `GET /v1/admin/security` returns aggregate authentication throttle activity from the local SQLite database, never individual account, email, IP address, or hashed bucket identifiers.
+- New **Admin → Security Monitoring** React dashboard shows active rate windows, rejected requests, blocked buckets, policy thresholds, and previous-24-hour successful authentication audit counts.
+- Rate-limit enforcement and security reporting use one shared `RATE_LIMIT_POLICIES` definition, avoiding threshold drift.
+- Privacy, RBAC, expiry, bucket-count, and threshold-consistency regression tests.
+- Clear API signals `distributedAcrossHosts:false`, `productionSecurityApproved:false`; the dashboard makes no claim of attack attribution or public-internet readiness.
+- README, API reference, rate-limiting guide, operations documentation, roadmap, and issue #2 updated.
 
-## Existing alpha foundation
+## Existing foundation
 
-- Concept 3 storefront/admin UI previews, local accounts and profile API
-- Test-only catalog pricing, manual entitlements, sandbox order fulfillment
-- Optional Stripe TEST Checkout and read-only provider state observations
-- Auditable SQLite schema migrations and manually verified backups
-- Windows Tauri launcher and GitHub Pages release display
+React/Tailwind storefront/admin preview, Node/SQLite v10 accounts, verification/recovery support with optional mail provider, persisted local throttling, product catalog and test pricing, sandbox orders and manual test entitlements, optional Stripe TEST Checkout/reconciliation observations, Tauri Windows preview and static GitHub Pages site.
 
-## Limitations
+## Distribution
 
-SQLite limits are **NOT** distributed across independent database copies or hosts, and cannot replace edge/WAF abuse mitigation or production monitoring. Email identity verification still requires a configured provider. Real Stripe test-account trials, independently verified settlement, commercial licenses, production security, encrypted off-host recovery, signed Windows updates and actual physical-device QA remain outstanding.
+Web preview ZIP and SHA-256 manifest. An unsigned Windows NSIS preview and corresponding SHA-256 manifest are attached only after Windows build and asset verification complete.
 
-## Artifacts
+## Incomplete production gates
 
-- Web ZIP and SHA-256 checksum.
-- Unsigned Windows NSIS installer and SHA-256 checksum after verified Windows build.
+No shared cross-host rate limiting, incident alerting/SIEM, tested live transactional email provider, security assessment, commercial billing, financial settlement reconciliation, paid license enforcement, publisher-signed installer, secure updater, or physical-device certification.
+
+**Do not expose the local API to the public internet or interpret this monitoring dashboard as a production security control.**

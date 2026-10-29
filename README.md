@@ -161,6 +161,7 @@ The landing page, public **Downloads** route (`#/releases`), customer Downloads,
 Versioned releases are triggered by changes to `release/version.json` on `main` or by manual workflow dispatch.
 
 - **v0.2.0-alpha.1** — initial tested static React preview ZIP, checksum and source archive.
+- **v0.2.0-alpha.17** — admin-only, privacy-preserving Security Monitoring dashboard with aggregate SQLite rate-limit and auth-audit metrics. No distributed threat monitoring or production security certification.
 - **v0.2.0-alpha.16** — schema v10 restart-resistant, hashed-key SQLite authentication throttling for login/registration/recovery, tests and documentation. Not cross-host distributed protection.
 - **v0.2.0-alpha.15** — schema v9 deduplicated Stripe TEST reconciliation observations, admin history and explicit read-only provider checks. No commercial settlement, real licenses or live payments.
 - **v0.2.0-alpha.14** — opt-in Stripe TEST Checkout for eligible one-time sandbox orders, verified Stripe webhook observations, SQLite v8, and customer/admin test-mode interfaces. No live charges or commercial license issuance.
