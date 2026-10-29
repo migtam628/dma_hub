@@ -8,7 +8,7 @@ export type CatalogItem={id:string;slug:string;name:string;description:string;st
 export type PricingPlan={id:string;productId:string;code:string;name:string;amountMinor:number;currency:"USD";billingPeriod:"one_time"|"monthly"|"yearly";status:"draft"|"active"|"archived";version:number;createdAt:number;updatedAt:number};
 export type PublicPlan=PricingPlan&{productName:string;productSlug:string};
 export type SandboxOrder={id:string;productId:string;planId:string;amountMinor:number;currency:"USD";billingPeriod:string;state:"pending"|"test_fulfilled"|"cancelled";createdAt:number;updatedAt:number;entitlementId:string|null;fulfilledAt:number|null;userId?:string};
-export type Entitlement={id:string;userId:string;productId:string;planId:string;source:"admin_test_grant";state:"active"|"revoked";startsAt:number;expiresAt:number;revokedAt?:number|null;createdAt:number;accessStatus:"active"|"scheduled"|"expired"|"revoked"|"product_unavailable";accessAllowed:boolean};
+export type Entitlement={id:string;userId:string;productId:string;planId:string;source:"admin_test_grant"|"sandbox_order";productName:string|null;planName:string|null;state:"active"|"revoked";startsAt:number;expiresAt:number;revokedAt?:number|null;createdAt:number;accessStatus:"active"|"scheduled"|"expired"|"revoked"|"product_unavailable";accessAllowed:boolean};
 export class ApiError extends Error{constructor(public status:number,public code:string,message?:string){super(message||code)}}
 const API_ROOT=(import.meta.env.VITE_API_URL||((location.hostname==="localhost"||location.hostname==="127.0.0.1")?"http://localhost:8787":location.origin)).replace(/\/$/,"");
 async function request<T>(path:string,method="GET",body?:unknown,token?:string,version?:number):Promise<T>{

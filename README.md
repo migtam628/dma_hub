@@ -196,7 +196,7 @@ This does **not** install software, connect licenses, charge customers, or synch
 
 ### Sandbox order-to-entitlement QA workflow (local API only)
 
-The API now supports a **test-only** order lifecycle. An authenticated customer can create an idempotent sandbox order for an active plan; this **does not** pay for or activate anything. Authorized admins can inspect, explicitly fulfill, or cancel pending sandbox orders. Fulfillment produces one auditable, expiring **30-day test entitlement** and is safe to retry without duplicate grants. Source `sandbox_order` is distinguished from a manually granted test entitlement.
+The API now supports a **test-only** order lifecycle. An authenticated customer can create an idempotent sandbox order for an active plan; this **does not** pay for or activate anything. Authorized admins can inspect, explicitly fulfill, or cancel pending sandbox orders. Fulfillment produces one auditable, expiring **30-day test entitlement** and is safe to retry without duplicate grants. Source `sandbox_order` is distinguished from a manually granted test entitlement. The My Software library shows that source and human-readable product/plan names for each test entitlement.
 
 No payment gateway, actual checkout, subscription renewal, real license activation or card processing is connected. GitHub Pages remains a static demo. See [Sandbox order flow](docs/sandbox-orders.md) for test endpoints and safety boundaries.
 

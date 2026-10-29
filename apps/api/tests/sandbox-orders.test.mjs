@@ -74,6 +74,10 @@ test("only admin may explicitly fulfill pending order, with idempotent entitleme
  assert.ok(entitlementId);
  const record=app.db.prepare("SELECT source,starts_at,expires_at FROM entitlements WHERE id=?").get(entitlementId);
  assert.equal(record.source,"sandbox_order");
+ const customerGrants=await call("/v1/me/entitlements","GET",undefined,alice.token);
+ assert.equal(customerGrants.body.items[0].source,"sandbox_order");
+ assert.equal(customerGrants.body.items[0].productName,"Test orders");
+ assert.equal(customerGrants.body.items[0].planName,"Standard");
  assert.equal(record.starts_at,now());
  assert.equal(record.expires_at,now()+30*86400000);
  assert.equal((await call("/v1/me/access/"+product.id,"GET",undefined,alice.token)).body.allowed,true);

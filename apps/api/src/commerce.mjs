@@ -13,6 +13,7 @@ function grantOutput(e,now,productStatus){
  const accessStatus=e.state==="revoked"?"revoked":e.starts_at>now?"scheduled":e.expires_at<=now?"expired":productStatus!=="published"?"product_unavailable":"active";
  return {id:e.id,userId:e.user_id,productId:e.product_id,planId:e.plan_id,source:e.source,
   state:e.state,startsAt:e.starts_at,expiresAt:e.expires_at,revokedAt:e.revoked_at,createdAt:e.created_at,
+  productName:e.product_name||null,planName:e.plan_name||null,
   accessStatus,accessAllowed:accessStatus==="active"};
 }
 function validPlan(v){
@@ -58,8 +59,8 @@ export function createCommerce({db,clock,audit,readBody}){
  async function authenticatedRoute(path,req,u){
   const method=req.method,now=clock();
   if(path==="/v1/me/entitlements"&&method==="GET"){
-   const items=db.prepare(`SELECT e.*,p.status AS product_status
-    FROM entitlements e JOIN catalog_products p ON p.id=e.product_id
+   const items=db.prepare(`SELECT e.*,p.status AS product_status,p.name AS product_name,pl.name AS plan_name
+    FROM entitlements e JOIN catalog_products p ON p.id=e.product_id JOIN pricing_plans pl ON pl.id=e.plan_id
     WHERE e.user_id=? ORDER BY e.created_at DESC LIMIT 200`).all(u.id);
    return result(200,{items:items.map(e=>grantOutput(e,now,e.product_status))});
   }
@@ -119,8 +120,9 @@ export function createCommerce({db,clock,audit,readBody}){
   }
   if(path==="/v1/admin/entitlements"&&(method==="GET"||method==="POST")){
    if(method==="GET"){
-    const items=db.prepare(`SELECT e.*,p.status AS product_status FROM entitlements e
-     JOIN catalog_products p ON p.id=e.product_id ORDER BY e.created_at DESC LIMIT 200`).all();
+    const items=db.prepare(`SELECT e.*,p.status AS product_status,p.name AS product_name,pl.name AS plan_name FROM entitlements e
+     JOIN catalog_products p ON p.id=e.product_id JOIN pricing_plans pl ON pl.id=e.plan_id
+     ORDER BY e.created_at DESC LIMIT 200`).all();
     return result(200,{items:items.map(e=>grantOutput(e,now,e.product_status))});
    }
    const v=await readBody(req);
