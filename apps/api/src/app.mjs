@@ -6,6 +6,7 @@ import {DatabaseSync} from "node:sqlite";
 import {migrateDatabase} from "./migrations.mjs";
 import {createCommerce} from "./commerce.mjs";
 import {createSandboxWebhook} from "./sandbox-webhook.mjs";
+import {createStripeTestGateway} from "./stripe-test.mjs";
 const MAX_BODY=64*1024,SESSION_MS=12*60*60*1000,VERIFY_MS=24*60*60*1000,RESET_MS=60*60*1000;
 const hashToken=t=>createHash("sha256").update(t).digest("hex");
 function response(res,status,payload,headers={}){res.writeHead(status,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff","Referrer-Policy":"no-referrer",...headers});res.end(JSON.stringify(payload))}
@@ -31,7 +32,7 @@ function normalizedProduct(v){
  return {slug,name,description,status};
 }
 function normalizedProfile(v){if(!v||typeof v!=="object"||Array.isArray(v))return null;const name=typeof v.name==="string"?v.name.trim():"";if(name.length<1||name.length>80)return null;const data=v.data;if(!data||typeof data!=="object"||Array.isArray(data))return null;const serialized=JSON.stringify(data);if(serialized.length>16000)return null;return {name,data:serialized}}
-export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:5173",clock=()=>Date.now(),sendEmail=null,requireEmailVerification=false,sandboxWebhookSecret=null}={}){
+export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:5173",clock=()=>Date.now(),sendEmail=null,requireEmailVerification=false,sandboxWebhookSecret=null,stripeTest=null}={}){
  if(requireEmailVerification&&typeof sendEmail!=="function")throw new Error("Email verification requires a configured mail transport");
  if(dbPath!==":memory:")mkdirSync(dirname(dbPath),{recursive:true});
  const db=new DatabaseSync(dbPath);
@@ -41,6 +42,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
  const audit=(actor,action,target)=>db.prepare("INSERT INTO audit VALUES(?,?,?,?,?)").run(randomUUID(),actor,action,target,clock());
  const commerce=createCommerce({db,clock,audit,readBody:jsonBody});
  const testWebhook=createSandboxWebhook({db,clock,audit,secret:sandboxWebhookSecret});
+ const stripeGateway=createStripeTestGateway({db,clock,audit,...(stripeTest||{})});
  function issueToken(userId,purpose,ttl){
   const token=randomBytes(32).toString("base64url");
   db.prepare("DELETE FROM auth_tokens WHERE user_id=? AND purpose=?").run(userId,purpose);
@@ -75,6 +77,8 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
   if(req.method==="OPTIONS"){res.writeHead(204);res.end();return}
   const pathname=new URL(req.url||"/","http://localhost").pathname;
   try{
+   const stripePublic=await stripeGateway.publicRoute(pathname,req);
+   if(stripePublic){response(res,stripePublic.status,stripePublic.payload);return}
    if(pathname==="/v1/test-webhooks/payments"&&req.method==="POST"){
      const event=await testWebhook.receive(req);
      response(res,event.status,event.payload);return
@@ -217,6 +221,8 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
       }
       if(req.method==="DELETE"){const version=Number(req.headers["if-match"]);if(!Number.isInteger(version)||version<1){response(res,428,{error:"version_required"});return}const run=db.prepare("DELETE FROM profiles WHERE id=? AND user_id=? AND version=?").run(id,u.id,version);if(!run.changes){response(res,409,{error:"version_conflict"});return}audit(u.id,"profile.delete",id);response(res,200,{ok:true});return}
     }
+    const stripePrivate=await stripeGateway.authenticatedRoute(pathname,req,u);
+    if(stripePrivate){response(res,stripePrivate.status,stripePrivate.payload);return}
     const commerceResult=await commerce.authenticatedRoute(pathname,req,u);
     if(commerceResult){response(res,commerceResult.status,commerceResult.payload);return}
     if(pathname==="/v1/admin/test-webhooks"&&req.method==="GET"){

@@ -28,7 +28,7 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 | Desktop companion | 🧪 Windows scaffold | Tauri shell source, NSIS build CI, launcher and diagnostics previews; no hardware APIs |
 | Device adapters | 🧪 Read-only native serial discovery | Explicit Windows COM-port metadata scan; no port data access or device writes |
 | Persistent catalog | 🧪 API alpha | Admin-gated product records, public published-only listings, versions and audit records; storefront still uses demo catalog |
-| Pricing & entitlements | 🧪 API alpha | USD plans, manually fulfilled sandbox orders, expiring grants and signed/deduplicated **test** event inbox; no real payments |
+| Pricing & entitlements | 🧪 API alpha | USD plans, sandbox orders, expiring test grants, HMAC test events and opt-in Stripe **test-mode** Checkout for one-time orders; no live payments |
 | Payments/licensing | ⏳ Not connected | No actual checkout, subscription charges, license activation or payment webhook |
 | Public hosting | ✅ Live | `https://dma.moobee.lol` via GitHub Pages; static preview **only** |
 
@@ -189,6 +189,12 @@ This screen is **not a payment processor, production merchant CMS or real licens
 When signed in through the **local API**, My Software fetches only the authenticated user's entitlements from `GET /v1/me/entitlements` and clearly labels each as a **manual test grant** (active, scheduled, expired, revoked or unavailable). Loading and network failure states never imply access. Logged-out views remain a labeled design preview.
 
 This does **not** install software, connect licenses, charge customers, or synchronize production accounts. The public GitHub Pages demo cannot access a server-side account API.
+
+### Stripe Checkout (test mode; backend only)
+
+An **opt-in Stripe TEST-mode Checkout foundation** now exists behind four server-only configuration variables. It supports only eligible **one-time sandbox orders**, uses order-owned server-side amounts and Stripe idempotency keys, and verifies Stripe's official timestamped `Stripe-Signature` HMAC format on webhook requests. Test Checkout sessions and deduplicated event observations are stored in SQLite schema v8. **No webhook automatically grants access** or marks a sandbox order fulfilled.
+
+No Stripe keys are configured here; without operator-supplied test credentials the route is disabled. Live keys are rejected. This is not an approved public checkout, subscription service or commercial license engine. See [Stripe test-mode integration](docs/stripe-test.md).
 
 ### HMAC-signed sandbox event inbox (backend only)
 

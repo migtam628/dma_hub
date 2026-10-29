@@ -57,3 +57,13 @@ Before internet exposure: enforce TLS + secure proxy, add email verification and
 - `GET /v1/admin/test-webhooks` — authenticated admin-only sanitized event metadata, last 100 items.
 
 See [sandbox webhook documentation](sandbox-webhook.md). This is **not** a merchant payment provider or verified settlement flow.
+
+## Stripe Checkout test-mode API (schema v8)
+
+- `GET /v1/stripe-test/capabilities` — indicates whether all four server-only Stripe test settings are configured.
+- `POST /v1/me/stripe-test-checkouts` — authenticated owner may open a Stripe **test** Checkout Session for an eligible one-time sandbox order (`{orderId}`); creates server-side price lines and an idempotent Stripe request.
+- `GET /v1/me/stripe-test-checkouts` — current user's test Checkout history.
+- `POST /v1/stripe-test/webhook` — Stripe `Stripe-Signature` v1 verified over the raw request body; stores test observations only.
+- `GET /v1/admin/stripe-test-checkouts` and `GET /v1/admin/stripe-test-events` — sanitized read-only internal queue.
+
+See [Stripe test-mode integration](stripe-test.md). No live charges, subscriptions, automatic entitlements, payment-to-license conversion or real provider reconciliation are implemented.

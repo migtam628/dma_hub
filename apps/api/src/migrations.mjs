@@ -1,6 +1,6 @@
 import {DatabaseSync} from "node:sqlite";
 
-export const SCHEMA_VERSION=7;
+export const SCHEMA_VERSION=8;
 
 const BASE_SCHEMA=`CREATE TABLE IF NOT EXISTS users(
  id TEXT PRIMARY KEY,
@@ -212,6 +212,34 @@ export function migrateDatabase(db){
    version=7;
   }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
  }
+ if(version===7){
+  db.exec("BEGIN IMMEDIATE");
+  try{
+   db.exec(`CREATE TABLE stripe_test_checkouts(
+    id TEXT PRIMARY KEY,
+    order_id TEXT NOT NULL UNIQUE REFERENCES sandbox_orders(id) ON DELETE RESTRICT,
+    provider_session_id TEXT UNIQUE,
+    checkout_url TEXT,
+    state TEXT NOT NULL CHECK(state IN ('creating','open','test_paid_observed','expired')),
+    amount_minor INTEGER NOT NULL CHECK(amount_minor>0),
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+   );
+   CREATE INDEX stripe_test_checkouts_state ON stripe_test_checkouts(state,updated_at);
+   CREATE TABLE stripe_test_events(
+    event_id TEXT PRIMARY KEY,
+    checkout_id TEXT NOT NULL REFERENCES stripe_test_checkouts(id) ON DELETE RESTRICT,
+    event_type TEXT NOT NULL,
+    body_sha256 TEXT NOT NULL,
+    received_at INTEGER NOT NULL
+   );
+   CREATE INDEX stripe_test_events_checkout ON stripe_test_events(checkout_id,received_at);`);
+   db.exec("PRAGMA user_version=8; COMMIT;");
+   version=8;
+  }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
+ }
+ requiredColumns(db,"stripe_test_checkouts",["id","order_id","provider_session_id","checkout_url","state","amount_minor","created_at","updated_at"]);
+ requiredColumns(db,"stripe_test_events",["event_id","checkout_id","event_type","body_sha256","received_at"]);
  requiredColumns(db,"sandbox_webhook_events",["event_id","order_id","event_type","content_sha256","sent_at","received_at"]);
  requiredColumns(db,"sandbox_orders",["id","user_id","product_id","plan_id","idempotency_key","amount_minor","currency","billing_period","state","entitlement_id","fulfilled_by","created_at","updated_at","fulfilled_at"]);
  requiredColumns(db,"pricing_plans",["id","product_id","code","name","amount_minor","currency","billing_period","status","version","created_at","updated_at"]);

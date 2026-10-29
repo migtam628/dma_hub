@@ -41,3 +41,7 @@ The next backend milestone adds idempotent, authenticated customer test orders a
 ## Test-only signed event ingestion (schema v7)
 
 Development-mode HMAC sandbox webhook ingestion and deduplicated metadata are now available without a real processor. See [signed sandbox webhook inbox](sandbox-webhook.md). Receipt of a signed test event does **not** mean the order is paid and cannot issue an entitlement.
+
+## Stripe test-mode adapter (schema v8)
+
+A server-only, opt-in Stripe Checkout (one-time sandbox orders) and signature-verified webhook observation inbox now exist; see [Stripe test-mode reference](stripe-test.md). Customer order price, plan status and ownership are checked in the database. Test Checkout URLs and event IDs are recorded separately, with **no entitlement issuance** from webhook acceptance. Provider reconciliation and production billing remain unimplemented.
