@@ -1,26 +1,30 @@
-# DMA Hub v0.2.0-alpha.10
+# DMA Hub v0.2.0-alpha.11
 
-**Development prerelease — not a production payment or licensing system.**
+**Test-only commerce prerelease — NOT a live payment or licensing service.**
 
-## New in alpha.10
-- SQLite v5 migration for `pricing_plans` and `entitlements`, with constraints, foreign keys, indexes and backup verification.
-- Admin-only plan management with safe USD integer-cent amounts, one-time/monthly/yearly metadata, unique plan codes and immutable price terms.
-- Admin-only manual expiring **test** grants, audit trails, overlap prevention and idempotent revocation.
-- Signed-in customer My Software page now retrieves user-scoped test entitlements from the local API rather than claiming demo licenses are real.
-- New local-development admin Pricing & Test Access console for draft product creation, publication, plan setup, and manual test grant/revoke.
-- Public pricing API returns only active plans of published products. A price record never grants access or performs a transaction.
-- Tests verify admin authorization, user isolation, plan validation, stale version conflicts, grant expiry and revocation; existing accounts and profiles migrate forward.
+## New in this release
 
-## Included from previous alphas
-- Concept 3 React storefront/portal previews and static GitHub Pages site.
-- Email verification/password recovery code paths, opt-in mail provider and local API sessions.
-- Tauri Windows launcher, read-only COM port discovery and signed-off CI build checks.
+- SQLite schema v6 adds owner-scoped sandbox order records, price snapshots, immutable idempotency keys and an explicit test-order state machine.
+- Existing manual entitlements are preserved; sandbox-fulfilled grants now have distinct `source: sandbox_order` for auditing.
+- Authenticated customer API: create an idempotent sandbox order and list only the signed-in customer's test orders.
+- Admin-only API: inspect test order queue, explicitly fulfill or cancel pending orders with transactional state checks.
+- Fulfillment grants **30-day test access**, only when product/account/plan are valid and no overlapping active grant exists. Replay is safe; no duplicate grants.
+- Customer Billing screen exposes a clearly labeled sandbox order interface when signed into the local API.
+- Admin Sandbox Orders screen has explicitly confirmed sandbox fulfill and cancel controls. Server role checks are mandatory.
+- Test suite validates tenant isolation, idempotency, cancellation, access expiration, fulfillment replay, archived products, and legacy schema migration.
+- README, roadmap, catalog API reference and sandbox order runbook updated.
+
+## Existing foundation
+
+Concept 3 web storefront preview, authenticated local API sessions, email verification/password recovery integration (optional provider), versioned profiles, USD plan definitions, test entitlements, Tauri Windows preview and read-only serial device discovery.
 
 ## Artifacts
-- Web preview ZIP with SHA-256 checksum.
-- **Unsigned** Windows NSIS preview installer and checksum, available only after Windows release build and download-back verification succeed.
 
-## Still missing
-No configured production mail sender, no live payment gateway, no purchase orders, no subscription billing, no entitlement generation based on payment, no signed license files, no native software activation, no production backend deployment or security approval. An admin must be provisioned offline; public registration cannot assign admin privileges.
+- `dma-hub-web-v0.2.0-alpha.11.zip` and `SHA256SUMS.txt`.
+- Unsigned Windows NSIS preview and `SHA256SUMS-windows.txt` ONLY after the Windows release build and download-back checksum verification pass.
 
-**Do not interpret test entitlements as commercial licenses, paid subscriptions, or promises of product availability.**
+## Critical limitations
+
+**No money is collected.** Sandbox orders are not purchases or payment confirmations. There are no card inputs, provider checkout sessions, payment webhooks, real subscriptions, invoices, refund processing, cryptographic customer licenses, or commercial device activations.
+
+The local API is not publicly deployed or production-secured. The GitHub Pages site remains a static preview; signed-in test workflows require the developer-controlled API. Windows installer remains **UNSIGNED**, intended for controlled testing.

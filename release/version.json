@@ -1,5 +1,5 @@
 {
-  "version": "v0.2.0-alpha.10",
+  "version": "v0.2.0-alpha.11",
   "channel": "alpha",
   "artifact": "web-preview-and-unsigned-windows-installer",
   "desktopExecutable": true,
