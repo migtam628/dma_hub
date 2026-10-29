@@ -4,3 +4,10 @@
 
 /* Connected cloud/account views */
 .account-identity{display:flex;gap:17px;align-items:center;margin:12px 0 22px}.account-identity strong{font-size:14px}.account-identity p{font-size:12px;color:var(--muted);margin:6px 0}.inline-message{padding:13px 15px;border:1px solid #345c70;background:#102c40;color:#c7f0ff;border-radius:8px;font-size:13px;margin:15px 0}.profile-row{background:transparent;border:0;border-bottom:1px solid #253b4e;display:flex;width:100%;align-items:center;gap:13px;padding:14px 3px;text-align:left;color:inherit}.profile-row:hover,.profile-row.chosen{background:#153348;border-radius:8px;padding-left:9px;padding-right:9px}.conflict-box{display:flex;align-items:flex-start;gap:13px;margin-top:25px;padding:16px;border:1px solid #8b6033;border-radius:9px;background:#3c2c1d;color:#ffe6b7}.conflict-box>svg{flex:none;color:#fbbf65}.conflict-box strong{font-size:13px}.conflict-box p{font-size:12px;line-height:1.65;margin:7px 0 12px}.conflict-box .btn{margin:4px 8px 4px 0}
+
+/* API-backed published catalog is intentionally distinct from sample products. */
+.live-catalog-section { margin: 2rem 0; padding: 1.5rem; border: 1px solid var(--line, rgba(125,149,178,.25)); border-radius: 18px; background: rgba(37,194,215,.035); }
+.live-catalog-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.live-catalog-heading h2 { margin: .35rem 0 .5rem; }
+.live-catalog-section .product-copy { min-height: 180px; }
+.live-catalog-section .callout { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
