@@ -12,6 +12,8 @@ export type StripeTestEvent={eventId:string;checkoutId:string;eventType:string;r
 export type StripeTestObservation={id:string;checkoutId:string;providerSessionStatus:"open"|"complete"|"expired";providerPaymentStatus:"paid"|"unpaid"|"no_payment_required";testPaymentObserved:boolean;checkedAt:number;checkedBy:string;settlementVerified:false;accessGranted:false;testModeOnly:true};
 export type StripeTestReconcileResult={checkoutId:string;orderId:string;providerSessionId:string;providerSessionStatus:string;providerPaymentStatus:string;testPaymentObserved:boolean;settlementVerified:false;accessGranted:false;testModeOnly:true;observationId:string;observationRecorded:boolean;observationReplay:boolean;observationFirstSeenAt:number};
 export type StripeTestCapabilities={available:boolean;testModeOnly:true;automatedFulfillment:false};
+export type SecurityRateScope={scope:string;windowMs:number;limit:number;activeKeys:number;attemptsInActiveWindows:number;blockedKeys:number;rejectedAttemptsInActiveWindows:number};
+export type SecurityOverview={generatedAt:number;scope:"local_sqlite_database";activeWindowsOnly:true;distributedAcrossHosts:false;productionSecurityApproved:false;totalRejectedAttempts:number;totalBlockedKeys:number;scopes:SecurityRateScope[];authAuditLast24Hours:{action:string;count:number}[]};
 export type AuditEvent={id:string;actorId:string|null;action:string;targetId:string|null;createdAt:number};
 export type PublicPlan=PricingPlan&{productName:string;productSlug:string};
 export type SandboxOrder={id:string;productId:string;planId:string;amountMinor:number;currency:"USD";billingPeriod:string;state:"pending"|"test_fulfilled"|"cancelled";createdAt:number;updatedAt:number;entitlementId:string|null;fulfilledAt:number|null;userId?:string};
@@ -57,6 +59,7 @@ export const api={
  adminTestOrders:(token:string)=>request<{items:SandboxOrder[];sandboxOnly:true}>("/v1/admin/test-orders","GET",undefined,token),
  sandboxWebhookEvents:(token:string)=>request<{items:SandboxWebhookEvent[];sandboxOnly:true}>("/v1/admin/test-webhooks","GET",undefined,token),
  auditLog:(token:string,offset=0,limit=50)=>request<{items:AuditEvent[];nextOffset:number|null}>("/v1/admin/audit?offset="+offset+"&limit="+limit,"GET",undefined,token),
+ securityOverview:(token:string)=>request<SecurityOverview>("/v1/admin/security","GET",undefined,token),
  fulfillTestOrder:(token:string,id:string)=>request<SandboxOrder&{sandboxOnly:true;replayed:boolean}>("/v1/admin/test-orders/"+id+"/fulfill","POST",{},token),
  cancelTestOrder:(token:string,id:string)=>request<SandboxOrder&{sandboxOnly:true;replayed:boolean}>("/v1/admin/test-orders/"+id+"/cancel","POST",{},token),
  adminProducts:(token:string)=>request<{items:CatalogItem[]}>("/v1/admin/products","GET",undefined,token),

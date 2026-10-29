@@ -23,3 +23,7 @@ Exceeding a limit returns HTTP 429. Rate limits apply to attempts; even a succes
 This protects **only processes sharing one SQLite database**; multiple replicas with separate database files do not share counters. It is not a distributed Redis/service-edge limiter, bot-defense system, IP reputation system, MFA, account abuse response, WAF, or a solution for denial-of-service attacks. Email-keyed rate limiting can create temporary targeted account lockouts; final settings require monitored production testing and operational recovery procedures.
 
 Production reverse-proxy TLS, trusted origin configuration, cross-host abuse controls, email delivery monitoring, encrypted backups and independent security review remain required.
+
+## Aggregate admin monitoring
+
+The active scope/limit/window policies are defined once in `RATE_LIMIT_POLICIES` and used both for request enforcement and the read-only [admin security monitoring](security-monitoring.md). It reports only aggregate per-scope counts and recent successful authentication-action totals. Bucket hashes, IPs, emails and secrets are not returned.

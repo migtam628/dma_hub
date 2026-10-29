@@ -14,7 +14,7 @@
 | Customer portal | Software/devices/account UI; synthetic state | Real authenticated account/entitlement data |
 | Admin portal | Synthetic users, products, releases | Server-enforced roles and operational workflows |
 | Configuration Studio | Local editor, JSON import/export, local API profile revisions | Validation, sync trust, applied-state receipts |
-| API | Node.js/SQLite alpha with sessions, tenant-scoped profiles and restart-resistant per-database rate limiting | Mail-provider verification, cross-host abuse protection, TLS and independent security review |
+| API | Node.js/SQLite alpha with persisted auth limits, tenant-scoped profiles and read-only aggregate security monitoring | Mail-provider verification, cross-host abuse protection, TLS and independent security review |
 | Data recovery | Versioned SQLite migrations and tested manual backup/restore tools | Encrypted off-host backups, restore drills and SLOs |
 | Windows | Tauri NSIS unsigned preview, on-demand read-only COM metadata scan | Code signing, trusted updater, physical hardware tests |
 | Releases | GitHub Actions, prerelease artifacts/checksums and automated checks | Signed Windows builds, release provenance and rollback |
@@ -42,7 +42,7 @@ tests/                 Repository validation
 | Gate | Deliverable | Acceptance criteria |
 |---|---|---|
 | G0 — Completed | Concept 3 approved, design batches, web/desktop foundation and CI | Code and tests present, alpha release |
-| G1 — In progress | Backend identity and recoverability | Transactional upgrades, verified backups, optional email recovery and SQLite v10 persisted authentication throttling; distributed abuse controls and security review outstanding |
+| G1 — In progress | Backend identity and recoverability | SQLite v10 auth throttling and role-protected aggregate monitoring, plus migrations/backups and optional email recovery; distributed controls and security review outstanding |
 | G2 — In progress | Catalog, pricing and entitlement domain | Published product API, immutable plan price records and manually granted expiring test entitlements exist; licensing/activation and customer UI pending |
 | G3 — In progress | Commerce | Validated Stripe TEST provider reads and durable deduplicated **test observations** now implemented; financial ledger, actual settlement reconciliation, refunds, subscriptions, and paid licensing remain unfinished |
 | G4 | Windows trust | Signed installers, signed update manifest, rollback and install/uninstall QA |

@@ -8,6 +8,7 @@ import {createCommerce} from "./commerce.mjs";
 import {createSandboxWebhook} from "./sandbox-webhook.mjs";
 import {createStripeTestGateway} from "./stripe-test.mjs";
 import {createRateLimiter} from "./rate-limiter.mjs";
+import {createSecurityMonitor} from "./security-monitor.mjs";
 const MAX_BODY=64*1024,SESSION_MS=12*60*60*1000,VERIFY_MS=24*60*60*1000,RESET_MS=60*60*1000;
 const hashToken=t=>createHash("sha256").update(t).digest("hex");
 function response(res,status,payload,headers={}){res.writeHead(status,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff","Referrer-Policy":"no-referrer",...headers});res.end(JSON.stringify(payload))}
@@ -40,7 +41,8 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
  // Allow brief write contention when multiple local API processes share one SQLite file.
  db.exec("PRAGMA busy_timeout=3000");
  try{migrateDatabase(db)}catch(error){db.close();throw error}
- const checkLimit=createRateLimiter({db,clock}).allow;
+ const checkLimit=createRateLimiter({db,clock}).check;
+ const securityMonitor=createSecurityMonitor({db,clock});
  const audit=(actor,action,target)=>db.prepare("INSERT INTO audit VALUES(?,?,?,?,?)").run(randomUUID(),actor,action,target,clock());
  const commerce=createCommerce({db,clock,audit,readBody:jsonBody});
  const testWebhook=createSandboxWebhook({db,clock,audit,secret:sandboxWebhookSecret});
@@ -113,7 +115,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
      const v=await jsonBody(req),email=typeof v.email==="string"?v.email.trim().toLowerCase():"";
      if(!validEmail(email)){response(res,422,{error:"invalid_email"});return}
      const key=req.socket.remoteAddress||"unknown";
-     if(!checkLimit("verify_ip",key,5,15*60*1000)||!checkLimit("verify_email",email,3,60*60*1000)){
+     if(!checkLimit("verify_ip",key)||!checkLimit("verify_email",email)){
        response(res,429,{error:"rate_limited"});return
      }
      const account=db.prepare("SELECT id,email FROM users WHERE email=? AND disabled_at IS NULL AND email_verified_at IS NULL").get(email);
@@ -125,7 +127,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
      const v=await jsonBody(req),email=typeof v.email==="string"?v.email.trim().toLowerCase():"";
      if(!validEmail(email)){response(res,422,{error:"invalid_email"});return}
      const key=req.socket.remoteAddress||"unknown";
-     if(!checkLimit("recover_ip",key,5,15*60*1000)||!checkLimit("recover_email",email,3,60*60*1000)){
+     if(!checkLimit("recover_ip",key)||!checkLimit("recover_email",email)){
        response(res,429,{error:"rate_limited"});return
      }
      const account=db.prepare("SELECT id,email FROM users WHERE email=? AND disabled_at IS NULL AND email_verified_at IS NOT NULL").get(email);
@@ -148,7 +150,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
      response(res,200,{ok:true,sessionsRevoked:true});return
    }
    if(pathname==="/v1/auth/register"&&req.method==="POST"){
-    if(!checkLimit("register_ip",req.socket.remoteAddress||"unknown",5,15*60*1000)){response(res,429,{error:"rate_limited"});return}
+    if(!checkLimit("register_ip",req.socket.remoteAddress||"unknown")){response(res,429,{error:"rate_limited"});return}
     const v=await jsonBody(req);const email=typeof v.email==="string"?v.email.trim().toLowerCase():"";
     if(!validEmail(email)||!validPassword(v.password)){response(res,422,{error:"invalid_registration",message:"Use a valid email and a password of 12–128 characters."});return}
     const id=randomUUID();try{db.prepare("INSERT INTO users(id,email,password_hash,role,created_at) VALUES(?,?,?,?,?)").run(id,email,passwordHash(v.password),"customer",clock())}catch(e){if(String(e).includes("UNIQUE")){response(res,409,{error:"email_unavailable"});return}throw e}
@@ -159,10 +161,10 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
    }
    if(pathname==="/v1/auth/login"&&req.method==="POST"){
     const client=req.socket.remoteAddress||"unknown",now=clock();
-    if(!checkLimit("login_ip",client,10,60*1000)){response(res,429,{error:"rate_limited"});return}
+    if(!checkLimit("login_ip",client)){response(res,429,{error:"rate_limited"});return}
     const v=await jsonBody(req),email=typeof v.email==="string"?v.email.trim().toLowerCase():"";
     if(!validEmail(email)||typeof v.password!=="string"||v.password.length>128){response(res,401,{error:"invalid_credentials"});return}
-    if(!checkLimit("login_email",email,20,15*60*1000)){response(res,429,{error:"rate_limited"});return}
+    if(!checkLimit("login_email",email)){response(res,429,{error:"rate_limited"});return}
     const u=db.prepare("SELECT * FROM users WHERE email=?").get(email);
     if(!u||u.disabled_at!==null||!verifyPassword(v.password,u.password_hash)){response(res,401,{error:"invalid_credentials"});return}
     if(requireEmailVerification&&u.email_verified_at==null){response(res,403,{error:"email_verification_required"});return}
@@ -186,7 +188,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
       response(res,200,{ok:true});return
     }
     if(pathname==="/v1/auth/change-password"&&req.method==="POST"){
-      if(!checkLimit("password_change_user",u.id,5,15*60*1000)){response(res,429,{error:"rate_limited"});return}
+      if(!checkLimit("password_change_user",u.id)){response(res,429,{error:"rate_limited"});return}
       const v=await jsonBody(req);
       if(!validPassword(v.newPassword)||v.currentPassword===v.newPassword){
         response(res,422,{error:"invalid_new_password",message:"Use a different password containing 12–128 characters."});return
@@ -232,6 +234,10 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
       if(u.role!=="admin"){response(res,403,{error:"forbidden"});return}
       const items=db.prepare("SELECT event_id,order_id,event_type,sent_at,received_at FROM sandbox_webhook_events ORDER BY received_at DESC,rowid DESC LIMIT 100").all();
       response(res,200,{items:items.map(x=>({eventId:x.event_id,orderId:x.order_id,kind:x.event_type,sentAt:x.sent_at,receivedAt:x.received_at})),sandboxOnly:true});return
+    }
+    if(pathname==="/v1/admin/security"&&req.method==="GET"){
+      if(u.role!=="admin"){response(res,403,{error:"forbidden"});return}
+      response(res,200,securityMonitor.overview());return
     }
     if(pathname==="/v1/admin/audit"&&req.method==="GET"){
       if(u.role!=="admin"){response(res,403,{error:"forbidden"});return}

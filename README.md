@@ -21,7 +21,7 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 |---|---|---|
 | Public website | ✅ Web preview | Homepage, catalog, setup guides, live GitHub Releases download center |
 | Customer workspace | 🧪 Mixed preview | Signed-in users can view API-backed entitlements and create/review **sandbox** orders; other pages remain sample data |
-| Admin workspace | 🧪 Mixed preview | Local API admin-only Pricing & Test Access, Sandbox Orders, signed test-event inbox and read-only Audit Log; other admin pages remain synthetic |
+| Admin workspace | 🧪 Mixed preview | Local API admin-only Pricing & Test Access, Sandbox Orders, Audit Log and aggregate Security Monitoring; other admin pages remain synthetic |
 | Configuration Studio | ✅ Local functionality | Edit settings, live preview, JSON import/export, browser storage |
 | API | 🧪 Local alpha | Account sessions, SQLite schema v10, durable throttling, optional email verification/recovery, profiles and backup/restore tests |
 | Cloud profiles | 🧪 Local API | Create, load, update, delete, optimistic version checks |
@@ -242,6 +242,12 @@ See [Pricing and test entitlements](docs/commerce-foundation.md) for endpoints a
 The new `/v1/catalog/live` endpoint returns **only published products** stored in SQLite. Separate authenticated admin-only endpoints create and update draft/published/archived product records with optimistic version checks and audit records. The old `/v1/catalog` route and the website remain clearly labeled demo data until a server-backed storefront is connected.
 
 Read [Catalog API](docs/catalog.md) for endpoints, permissions and limitations. Admin roles cannot be obtained via public signup. Prices, entitlements, checkout and production merchandising are not yet built.
+
+### Administrator security monitoring (local API only)
+
+A new **Admin → Security Monitoring** page displays scoped, aggregate activity from the persisted authentication limiter and successful auth audit actions over the previous 24 hours. The server's `GET /v1/admin/security` endpoint enforces the admin role and returns no raw or hashed IP/email identifiers, passwords or tokens. Limiter policies now share one definition with the monitoring backend so reported thresholds match enforcement.
+
+This dashboard is **read-only**, uses counters from **active fixed windows** in one SQLite database, and is not intrusion detection, a financial compliance control, or independent approval for public hosting. See [security monitoring](docs/security-monitoring.md).
 
 ### Restart-resistant local API authentication limits (schema v10)
 

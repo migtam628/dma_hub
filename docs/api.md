@@ -80,3 +80,9 @@ See [Stripe test-mode integration](stripe-test.md). No live charges, subscriptio
 ## SQLite-backed rate limiting (schema v10)
 
 Registration, login (IP and normalized email), verification, password recovery, and password-change attempts use atomic persisted SQLite buckets that survive API restarts. Exceeded limits return 429. Keys are SHA-256 hashes; plaintext IP/email strings do not enter the limiter table. This is **not distributed protection across independent databases**. See [rate-limit documentation](rate-limiting.md).
+
+## Administrator security monitoring
+
+- `GET /v1/admin/security` — authenticated admin-only aggregate rate-limit scope counts and preceding-24-hour successful authentication audit counts, with no bucket hashes or raw IP/email identifiers. Fields `distributedAcrossHosts:false` and `productionSecurityApproved:false` are explicit.
+
+See [security monitoring](security-monitoring.md) for limitations. This is not a distributed threat-monitoring system.

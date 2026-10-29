@@ -6,6 +6,17 @@ import {createHash} from "node:crypto";
  * This survives API restarts and works with multiple processes sharing the same SQLite file.
  * It does not synchronize between different database copies, hosts, or regions.
  */
+export const RATE_LIMIT_POLICIES=Object.freeze({
+ register_ip:Object.freeze({limit:5,windowMs:15*60_000}),
+ login_ip:Object.freeze({limit:10,windowMs:60_000}),
+ login_email:Object.freeze({limit:20,windowMs:15*60_000}),
+ verify_ip:Object.freeze({limit:5,windowMs:15*60_000}),
+ verify_email:Object.freeze({limit:3,windowMs:60*60_000}),
+ recover_ip:Object.freeze({limit:5,windowMs:15*60_000}),
+ recover_email:Object.freeze({limit:3,windowMs:60*60_000}),
+ password_change_user:Object.freeze({limit:5,windowMs:15*60_000})
+});
+
 export function createRateLimiter({db,clock=()=>Date.now()}){
  const statement=db.prepare(`INSERT INTO auth_rate_limits(scope,key_hash,window_start,attempt_count,expires_at)
    VALUES(?,?,?,1,?)
@@ -35,5 +46,10 @@ export function createRateLimiter({db,clock=()=>Date.now()}){
   if(checks%64===0)db.prepare("DELETE FROM auth_rate_limits WHERE expires_at<=?").run(now);
   return row.attempt_count<=limit;
  }
- return {allow};
+ function check(scope,identifier){
+  const policy=RATE_LIMIT_POLICIES[scope];
+  if(!policy)throw new Error("Unknown authentication rate-limit scope");
+  return allow(scope,identifier,policy.limit,policy.windowMs);
+ }
+ return {allow,check};
 }
