@@ -36,6 +36,8 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
  if(requireEmailVerification&&typeof sendEmail!=="function")throw new Error("Email verification requires a configured mail transport");
  if(dbPath!==":memory:")mkdirSync(dirname(dbPath),{recursive:true});
  const db=new DatabaseSync(dbPath);
+ // Allow brief write contention when multiple local API processes share one SQLite file.
+ db.exec("PRAGMA busy_timeout=3000");
  try{migrateDatabase(db)}catch(error){db.close();throw error}
  const loginLimits=new Map(),registerLimits=new Map(),passwordChangeLimits=new Map(),verificationLimits=new Map(),recoveryLimits=new Map();
  function checkLimit(buckets,key,limit,windowMs){const now=clock();const prior=(buckets.get(key)||[]).filter(t=>now-t<windowMs);if(prior.length>=limit){buckets.set(key,prior);return false}prior.push(now);buckets.set(key,prior);if(buckets.size>1000){for(const [k,list] of buckets){const alive=list.filter(t=>now-t<windowMs);if(alive.length)buckets.set(k,alive);else buckets.delete(k)}}return true}
@@ -160,6 +162,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
     if(!checkLimit(loginLimits,client,10,60*1000)){response(res,429,{error:"rate_limited"});return}
     const v=await jsonBody(req),email=typeof v.email==="string"?v.email.trim().toLowerCase():"";
     if(!validEmail(email)||typeof v.password!=="string"||v.password.length>128){response(res,401,{error:"invalid_credentials"});return}
+    if(!checkLimit("login_email",email,20,15*60*1000)){response(res,429,{error:"rate_limited"});return}
     const u=db.prepare("SELECT * FROM users WHERE email=?").get(email);
     if(!u||u.disabled_at!==null||!verifyPassword(v.password,u.password_hash)){response(res,401,{error:"invalid_credentials"});return}
     if(requireEmailVerification&&u.email_verified_at==null){response(res,403,{error:"email_verification_required"});return}

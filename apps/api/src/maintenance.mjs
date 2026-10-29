@@ -14,7 +14,7 @@ export function verifyBackup(path){
   if(check?.quick_check!=="ok")throw new Error("SQLite integrity check failed");
   const version=db.prepare("PRAGMA user_version").get().user_version;
   if(version!==SCHEMA_VERSION)throw new Error(`Unsupported backup schema version ${version}`);
-  for(const table of ["users","sessions","profiles","audit","auth_tokens","catalog_products","pricing_plans","entitlements","sandbox_orders","sandbox_webhook_events","stripe_test_checkouts","stripe_test_events","stripe_test_reconciliation_checks"]){
+  for(const table of ["users","sessions","profiles","audit","auth_tokens","catalog_products","pricing_plans","entitlements","sandbox_orders","sandbox_webhook_events","stripe_test_checkouts","stripe_test_events","stripe_test_reconciliation_checks","auth_rate_limits"]){
    const found=db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?").get(table);
    if(!found)throw new Error(`Required table missing in backup: ${table}`);
   }

@@ -41,11 +41,11 @@ Endpoints:
 - `GET /v1/admin/metrics` — restricted to admin role; no role assignment publicly exposed.
 - `GET /v1/admin/audit?offset=0&limit=50` — admin-only read-only audit list with bounded pagination; no credentials returned
 
-Security implemented: scrypt salted passwords, hashed opaque tokens, 12-hour sessions, CORS origin allowlist, max JSON body, tenant-scoped SQL, profile optimistic concurrency, no-store headers, no remote admin self-promotion, audit records, simple in-memory registration/login throttling, a maximum of five active sessions per user, expired-session cleanup, session inventory/revoke-all, and oversized-body handling with HTTP 413.
+Security implemented: scrypt salted passwords, hashed opaque tokens, 12-hour sessions, CORS origin allowlist, max JSON body, tenant-scoped SQL, profile optimistic concurrency, no-store headers, no remote admin self-promotion, audit records, SQLite-backed fixed-window throttling for registration/login/recovery/verification/password changes, a maximum of five active sessions per user, expired-session cleanup, session inventory/revoke-all, and oversized-body handling with HTTP 413.
 
 Before internet exposure: enforce TLS + secure proxy, add email verification and recovery, stronger distributed rate limiting, structured logs and alerts, account abuse monitoring, encrypted off-host backups, secrets management, integration tests through reverse proxy, threat model, security review and dependency audit. Manual database migrations and backup verification are described in [database recovery](database-recovery.md).
 
-**Current limitations:** The rate limits are process-local and are not sufficient against distributed abuse; registration has no email verification; the API remains suitable only for local development. Do not publish it on a public interface.
+**Current limitations:** Throttling is persisted in one SQLite database and shared only by processes using that same file, not across independent hosts or database replicas. Registration verification is opt-in and depends on a configured transactional-mail provider. The API remains local-development only; do not publish it on a public interface. See [persistent rate limiter](rate-limiting.md).
 
 **Commerce foundation:** schema v5 adds plan amounts (USD cents) and time-limited test grants. The admin must grant access manually. Payment, purchases, license enforcement, signed activation and billing webhooks remain unimplemented. See [commerce foundation](commerce-foundation.md).
 
@@ -76,3 +76,7 @@ See [Stripe test-mode integration](stripe-test.md). No live charges, subscriptio
 - `GET /v1/admin/stripe-test-checkouts/:uuid/observations?limit=30` — admin-only snapshot history (up to 50). Excludes raw provider payloads, email addresses and credentials.
 
 **Not a financial settlement ledger.** Every response explicitly denies commercial settlement and access issuance. See [reconciliation history](stripe-test-reconciliation-history.md).
+
+## SQLite-backed rate limiting (schema v10)
+
+Registration, login (IP and normalized email), verification, password recovery, and password-change attempts use atomic persisted SQLite buckets that survive API restarts. Exceeded limits return 429. Keys are SHA-256 hashes; plaintext IP/email strings do not enter the limiter table. This is **not distributed protection across independent databases**. See [rate-limit documentation](rate-limiting.md).

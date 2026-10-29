@@ -23,7 +23,7 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 | Customer workspace | 🧪 Mixed preview | Signed-in users can view API-backed entitlements and create/review **sandbox** orders; other pages remain sample data |
 | Admin workspace | 🧪 Mixed preview | Local API admin-only Pricing & Test Access, Sandbox Orders, signed test-event inbox and read-only Audit Log; other admin pages remain synthetic |
 | Configuration Studio | ✅ Local functionality | Edit settings, live preview, JSON import/export, browser storage |
-| API | 🧪 Local alpha | Account sessions, schema v3, opt-in mail-backed verification/recovery, password changes, profiles, manual backup/restore tests |
+| API | 🧪 Local alpha | Account sessions, SQLite schema v10, durable throttling, optional email verification/recovery, profiles and backup/restore tests |
 | Cloud profiles | 🧪 Local API | Create, load, update, delete, optimistic version checks |
 | Desktop companion | 🧪 Windows scaffold | Tauri shell source, NSIS build CI, launcher and diagnostics previews; no hardware APIs |
 | Device adapters | 🧪 Read-only native serial discovery | Explicit Windows COM-port metadata scan; no port data access or device writes |
@@ -242,6 +242,12 @@ The new `/v1/catalog/live` endpoint returns **only published products** stored i
 
 Read [Catalog API](docs/catalog.md) for endpoints, permissions and limitations. Admin roles cannot be obtained via public signup. Prices, entitlements, checkout and production merchandising are not yet built.
 
+### Restart-resistant local API authentication limits (schema v10)
+
+Registration, login, password changes, verification email and password-recovery requests now use **SQLite-backed fixed-window rate limits** rather than in-memory counters. The API stores hashes of per-IP/account identifiers, uses atomic database updates, rejects excessive attempts with HTTP 429, and retains counters across process restarts. Per-email login throttling supplements per-IP protection. See [rate limiting and threat model](docs/rate-limiting.md).
+
+This is **local database protection**, not a global cross-host rate limiter, anti-bot platform or authorization for public deployment. TLS, verified reverse-proxy configuration, abuse monitoring, and production security review remain mandatory.
+
 ### Email verification and password recovery (disabled until configured)
 
 The API now supports expiring, single-use email-verification and password-recovery codes. Codes are stored as SHA-256 hashes; the browser prompts users to paste a code from their email. Password recovery revokes every active session.
@@ -252,7 +258,7 @@ See [Email authentication integration](docs/email-auth.md) for setup, test cover
 
 ### SQLite migration and recovery tools (local API)
 
-The API now applies tracked, transactional database migrations (schema v9) on startup. Existing data is retained; future or incompatible schemas fail closed.
+The API now applies tracked, transactional database migrations (schema v10) on startup. Existing data is retained; future or incompatible schemas fail closed.
 
 ```bash
 # Use your actual DB_PATH and pre-create a private backups/ directory.

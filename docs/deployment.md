@@ -36,7 +36,8 @@ If testing with Vite on the same machine, use the default web origin `http://loc
 
 - [ ] Choose supported public hosting and domain
 - [ ] TLS reverse proxy with safe origin configuration
-- [ ] Replace primitive rate limiter with proxy/distributed protection
+- [x] Replace process-local limiter with persistent, hashed-key SQLite rate-limit buckets
+- [ ] Add reverse-proxy/edge and cross-host distributed abuse protection
 - [ ] Email ownership validation and account recovery
 - [ ] Session management and MFA where required
 - [ ] Schema migration and encrypted backups with restore drills

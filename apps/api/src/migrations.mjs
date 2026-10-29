@@ -1,6 +1,6 @@
 import {DatabaseSync} from "node:sqlite";
 
-export const SCHEMA_VERSION=9;
+export const SCHEMA_VERSION=10;
 
 const BASE_SCHEMA=`CREATE TABLE IF NOT EXISTS users(
  id TEXT PRIMARY KEY,
@@ -258,6 +258,23 @@ export function migrateDatabase(db){
    version=9;
   }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
  }
+ if(version===9){
+  db.exec("BEGIN IMMEDIATE");
+  try{
+   db.exec(`CREATE TABLE auth_rate_limits(
+    scope TEXT NOT NULL,
+    key_hash TEXT NOT NULL CHECK(length(key_hash)=64),
+    window_start INTEGER NOT NULL,
+    attempt_count INTEGER NOT NULL CHECK(attempt_count>=1),
+    expires_at INTEGER NOT NULL CHECK(expires_at>window_start),
+    PRIMARY KEY(scope,key_hash)
+   );
+   CREATE INDEX auth_rate_limits_expiry ON auth_rate_limits(expires_at);`);
+   db.exec("PRAGMA user_version=10; COMMIT;");
+   version=10;
+  }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
+ }
+ requiredColumns(db,"auth_rate_limits",["scope","key_hash","window_start","attempt_count","expires_at"]);
  requiredColumns(db,"stripe_test_reconciliation_checks",
   ["id","checkout_id","fingerprint","provider_session_status","provider_payment_status",
    "test_payment_observed","checked_by","checked_at"]);
