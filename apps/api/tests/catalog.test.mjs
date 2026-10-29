@@ -33,7 +33,12 @@ test("admin catalog is versioned and audit-tracked, public listing excludes draf
   const published=await call("/v1/admin/products/"+draft.body.id,"PATCH",{slug:"first-product",name:"First product",description:"Public",status:"published"},admin,1);
   assert.equal(published.status,200);
   assert.equal(published.body.version,2);
-  assert.equal((await call("/v1/catalog/live")).body.items.length,1);
+  const publicListing=await call("/v1/catalog/live");
+  assert.equal(publicListing.status,200);
+  assert.deepEqual(publicListing.body.items.map(({slug,name,description})=>({slug,name,description})),[
+   {slug:"first-product",name:"First product",description:"Public"}
+  ]);
+  assert.equal("status" in publicListing.body.items[0],false,"public listing omits internal product status");
   assert.equal((await call("/v1/admin/products/"+draft.body.id,"PATCH",{slug:"first-product",name:"Old"},admin,1)).status,409);
   const archived=await call("/v1/admin/products/"+draft.body.id,"PATCH",{slug:"first-product",name:"First product",description:"",status:"archived"},admin,2);
   assert.equal(archived.status,200);
