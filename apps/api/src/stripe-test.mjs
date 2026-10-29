@@ -138,7 +138,7 @@ export function createStripeTestGateway({db,clock,audit,secretKey,webhookSecret,
    const result=db.prepare("SELECT * FROM stripe_test_checkouts WHERE order_id=?").get(order.id);
    return ok(201,{...sessionOut(result,true),testModeOnly:true,replayed:false});
   }
-  const reconcile=path.match(/^\\/v1\\/admin\\/stripe-test-checkouts\\/([0-9a-f-]{36})\\/reconcile$/i);
+  const reconcile=path.match(/^\/v1\/admin\/stripe-test-checkouts\/([0-9a-f-]{36})\/reconcile$/i);
   if(reconcile&&req.method==="POST"){
    if(user.role!=="admin")return ok(403,{error:"forbidden"});
    if(!active)return ok(503,{error:"stripe_test_not_configured"});
