@@ -86,8 +86,9 @@ test("only admin may explicitly fulfill pending order, with idempotent entitleme
  assert.equal(app.db.prepare("SELECT count(*) AS n FROM audit WHERE action='sandbox_order.fulfilled'").get().n,1);
  assert.equal((await call("/v1/admin/test-orders/"+id+"/cancel","POST",{},admin.token)).status,409);
  advance(30*86400000);
- assert.equal((await call("/v1/me/access/"+product.id,"GET",undefined,alice.token)).body.allowed,false);
- assert.equal((await call("/v1/me/entitlements","GET",undefined,alice.token)).body.items[0].accessStatus,"expired");
+ const renewed=(await call("/v1/auth/login","POST",{email:"alice@fixture.test",password:"secure-testing-password"})).body.token;
+ assert.equal((await call("/v1/me/access/"+product.id,"GET",undefined,renewed)).body.allowed,false);
+ assert.equal((await call("/v1/me/entitlements","GET",undefined,renewed)).body.items[0].accessStatus,"expired");
 }));
 test("sandbox cancellation blocks fulfillment; archive and overlapping grants prevent unsafe issuance",()=>scenario(async({app,call,now})=>{
  const {admin,alice,product,plan}=await fixture(call,app);

@@ -106,7 +106,7 @@ test("schema v4 upgrades to v5 without modifying existing product records",()=>w
  const first=createApp({dbPath:path});
  first.db.prepare("INSERT INTO catalog_products(id,slug,name,description,status,version,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)")
   .run("old-product","test-legacy","Legacy Catalog Entry","Original description","published",2,1,2);
- first.db.exec("DROP TABLE entitlements; DROP TABLE pricing_plans; PRAGMA user_version=4;");
+ first.db.exec("DROP TABLE sandbox_orders; DROP TABLE entitlements; DROP TABLE pricing_plans; PRAGMA user_version=4;");
  first.db.close();
  const restored=createApp({dbPath:path});
  assert.equal(restored.db.prepare("PRAGMA user_version").get().user_version,6);
