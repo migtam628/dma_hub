@@ -21,7 +21,7 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 |---|---|---|
 | Public website | ✅ Web preview | Homepage, catalog, setup guides, live GitHub Releases download center |
 | Customer workspace | 🧪 Mixed preview | Signed-in users can view API-backed entitlements and create/review **sandbox** orders; other pages remain sample data |
-| Admin workspace | 🧪 Mixed preview | Local API admin-only Pricing & Test Access, Sandbox Orders and read-only Audit Log; other admin pages remain synthetic |
+| Admin workspace | 🧪 Mixed preview | Local API admin-only Pricing & Test Access, Sandbox Orders, signed test-event inbox and read-only Audit Log; other admin pages remain synthetic |
 | Configuration Studio | ✅ Local functionality | Edit settings, live preview, JSON import/export, browser storage |
 | API | 🧪 Local alpha | Account sessions, schema v3, opt-in mail-backed verification/recovery, password changes, profiles, manual backup/restore tests |
 | Cloud profiles | 🧪 Local API | Create, load, update, delete, optimistic version checks |
@@ -191,7 +191,7 @@ This does **not** install software, connect licenses, charge customers, or synch
 
 ### HMAC-signed sandbox event inbox (backend only)
 
-The API now accepts **test-only, HMAC-signed sandbox event observations** when `DMA_SANDBOX_WEBHOOK_SECRET` is configured server-side. It validates the exact request bytes, enforces a five-minute timestamp window, rejects oversized/malformed messages, stores deduplicated event metadata, and exposes an **admin-only read-only** event inbox. It does **not** mark orders paid, fulfill orders, issue licenses or contact a real payment provider.
+The API now accepts **test-only, HMAC-signed sandbox event observations** when `DMA_SANDBOX_WEBHOOK_SECRET` is configured server-side. It validates the exact request bytes, enforces a five-minute timestamp window, rejects oversized/malformed messages, stores deduplicated event metadata, and exposes an **admin-only read-only** event inbox in **Admin → Sandbox Orders**. It does **not** mark orders paid, fulfill orders, issue licenses or contact a real payment provider.
 
 See the [sandbox webhook reference](docs/sandbox-webhook.md) for signing, replay rules and production limitations. Without a secret the route is disabled and returns 503.
 

@@ -2,10 +2,11 @@ import {useEffect,useState} from "react";
 import {FlaskConical,RefreshCcw,ShieldCheck} from "lucide-react";
 import {Button,Card,Empty,Pill} from "@dma-hub/ui";
 import {api} from "./api";
-import type {SandboxOrder,Session} from "./api";
+import type {SandboxOrder,SandboxWebhookEvent,Session} from "./api";
 
 export function AdminSandboxOrders({session}:{session:Session|null}){
  const [orders,setOrders]=useState<SandboxOrder[]>([]);
+ const [webhooks,setWebhooks]=useState<SandboxWebhookEvent[]>([]);
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState("");
  const [notice,setNotice]=useState("");
@@ -14,15 +15,15 @@ export function AdminSandboxOrders({session}:{session:Session|null}){
  async function load(){
   if(!admin)return;
   setBusy(true);setError("");
-  try{setOrders((await api.adminTestOrders(token)).items)}
+  try{const [orders,events]=await Promise.all([api.adminTestOrders(token),api.sandboxWebhookEvents(token)]);setOrders(orders.items);setWebhooks(events.items)}
   catch(e){setError(e instanceof Error?e.message:"Cannot retrieve test orders")}
   finally{setBusy(false)}
  }
  useEffect(()=>{
-  if(!admin){setOrders([]);return}
+  if(!admin){setOrders([]);setWebhooks([]);return}
   let active=true;
   setBusy(true);setError("");
-  api.adminTestOrders(token).then(r=>{if(active)setOrders(r.items)})
+  Promise.all([api.adminTestOrders(token),api.sandboxWebhookEvents(token)]).then(([r,w])=>{if(active){setOrders(r.items);setWebhooks(w.items)}})
    .catch(e=>{if(active)setError(e instanceof Error?e.message:"Cannot retrieve sandbox orders")})
    .finally(()=>{if(active)setBusy(false)});
   return()=>{active=false};
@@ -36,7 +37,7 @@ export function AdminSandboxOrders({session}:{session:Session|null}){
   try{
    const r=action==="fulfill"?await api.fulfillTestOrder(token,order.id):await api.cancelTestOrder(token,order.id);
    setNotice(r.replayed?"Order was already in that state; no duplicate action occurred.":action==="fulfill"?"Sandbox test entitlement created, audited and linked to the order.":"Pending sandbox order cancelled.");
-   setOrders((await api.adminTestOrders(token)).items);
+   const [orders,events]=await Promise.all([api.adminTestOrders(token),api.sandboxWebhookEvents(token)]);setOrders(orders.items);setWebhooks(events.items);
   }catch(e){setError(e instanceof Error?e.message:"Operation failed")}
   finally{setBusy(false)}
  }
@@ -58,6 +59,15 @@ export function AdminSandboxOrders({session}:{session:Session|null}){
        {o.state==="pending"&&<><Button variant="secondary" disabled={busy} onClick={()=>void act(o,"fulfill")}><ShieldCheck size={14}/>Fulfill test</Button>
         <Button variant="secondary" disabled={busy} onClick={()=>void act(o,"cancel")}>Cancel</Button></>}
       </div>)}</div>}
+    </Card>
+    <Card title="Signed sandbox event inbox">
+      <p className="muted">HMAC-authenticated test notifications only. These records do not establish payment, settle orders or issue licenses.</p>
+      {webhooks.length===0?<Empty title="No signed test events" description="Received events will appear when the local API has a configured sandbox signing secret."/>:
+       <div className="rows">{webhooks.map(event=><div key={event.eventId} className="item-row">
+        <div className="row-grow"><strong>{event.kind.replace("sandbox.","")}</strong>
+         <small>Test order {event.orderId.slice(0,8)} · Received {new Date(event.receivedAt).toLocaleString()}</small></div>
+        <Pill tone="neutral">Recorded only</Pill>
+       </div>)}</div>}
     </Card>
    </>
   }
