@@ -161,6 +161,7 @@ The landing page, public **Downloads** route (`#/releases`), customer Downloads,
 Versioned releases are triggered by changes to `release/version.json` on `main` or by manual workflow dispatch.
 
 - **v0.2.0-alpha.1** — initial tested static React preview ZIP, checksum and source archive.
+- **v0.2.0-alpha.12** — customer-visible sandbox grant origins and product/plan names, admin read-only audit log, and continued test-only checkout operations. **No live payments or commercial licenses.**
 - **v0.2.0-alpha.11** — idempotent sandbox orders, admin-only test fulfillment/cancellation and 30-day auditable test entitlements; customer and admin QA order screens. **No live checkout, payment gateway or commercial license.**
 - **v0.2.0-alpha.10** — USD plan pricing and expiring, manually granted test entitlements; real customer test-access library and admin-only plan/grant console. **No live checkout or commercial license issuance.**
 - **v0.2.0-alpha.9** — persisted admin-managed catalog records with separate published-only public API, optimistic version checks and auditable updates. Still no payment, license issuance or merchant CMS integration.

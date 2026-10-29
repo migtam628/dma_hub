@@ -1,30 +1,20 @@
-# DMA Hub v0.2.0-alpha.11
+# DMA Hub v0.2.0-alpha.12
 
-**Test-only commerce prerelease — NOT a live payment or licensing service.**
+**Experimental alpha: local API features and unsigned Windows preview only.**
 
-## New in this release
+## Changes since alpha.11
+- My Software customer library now correctly distinguishes `admin_test_grant` from `sandbox_order` entitlements, including human-readable product and plan names.
+- Added an admin-only read-only Audit Log with bounded pagination and explicit forbidden/error states.
+- Audit API exposes action metadata, actor/target IDs and timestamps; it excludes user passwords and session credentials.
+- Added API tests for role restrictions, pagination validation and event disclosure protections.
+- Preserved the previous alpha's sandbox order creation, price snapshots, safe retries, admin fulfillment/cancellation, 30-day test grants and entitlement expiry.
+- README, backend API reference, operational audit documentation and roadmap updated.
 
-- SQLite schema v6 adds owner-scoped sandbox order records, price snapshots, immutable idempotency keys and an explicit test-order state machine.
-- Existing manual entitlements are preserved; sandbox-fulfilled grants now have distinct `source: sandbox_order` for auditing.
-- Authenticated customer API: create an idempotent sandbox order and list only the signed-in customer's test orders.
-- Admin-only API: inspect test order queue, explicitly fulfill or cancel pending orders with transactional state checks.
-- Fulfillment grants **30-day test access**, only when product/account/plan are valid and no overlapping active grant exists. Replay is safe; no duplicate grants.
-- Customer Billing screen exposes a clearly labeled sandbox order interface when signed into the local API.
-- Admin Sandbox Orders screen has explicitly confirmed sandbox fulfill and cancel controls. Server role checks are mandatory.
-- Test suite validates tenant isolation, idempotency, cancellation, access expiration, fulfillment replay, archived products, and legacy schema migration.
-- README, roadmap, catalog API reference and sandbox order runbook updated.
+## Distribution
+- Static web preview and SHA-256 checksum, published on GitHub Releases and GitHub Pages.
+- Unsigned Windows NSIS installer and checksum, attached only if the Windows release job and asset verification complete.
 
-## Existing foundation
+## Still not available
+No public backend deployment, verified commercial identity provider, real merchant checkout, credit-card processing, payment/webhook validation, subscriptions, receipts, signed software licenses, secure auto-updates or production hardware control.
 
-Concept 3 web storefront preview, authenticated local API sessions, email verification/password recovery integration (optional provider), versioned profiles, USD plan definitions, test entitlements, Tauri Windows preview and read-only serial device discovery.
-
-## Artifacts
-
-- `dma-hub-web-v0.2.0-alpha.11.zip` and `SHA256SUMS.txt`.
-- Unsigned Windows NSIS preview and `SHA256SUMS-windows.txt` ONLY after the Windows release build and download-back checksum verification pass.
-
-## Critical limitations
-
-**No money is collected.** Sandbox orders are not purchases or payment confirmations. There are no card inputs, provider checkout sessions, payment webhooks, real subscriptions, invoices, refund processing, cryptographic customer licenses, or commercial device activations.
-
-The local API is not publicly deployed or production-secured. The GitHub Pages site remains a static preview; signed-in test workflows require the developer-controlled API. Windows installer remains **UNSIGNED**, intended for controlled testing.
+**All orders and entitlements in these workflows are sandbox development records.** Never construe them as evidence of payment or product purchase.
