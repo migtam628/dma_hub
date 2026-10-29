@@ -188,6 +188,14 @@ The authenticated admin workspace now includes a **Pricing & Test Access** page.
 
 This screen is **not a payment processor, production merchant CMS or real license generator**. Without the local API, it cannot perform operations.
 
+### Published product catalog (local development API)
+
+On the public Products screen, DMA Hub now attempts a **read-only** `GET /v1/catalog/live` request and displays persisted **published** catalog records separately from example Concept 3 product cards. Draft and archived records are excluded by the API. Published records show only name and description; there is no implied compatibility, purchase access, installer, or license.
+
+For local testing, run the API (`npm run dev:api`) and Vite frontend (`npm run dev`) using the configured local CORS origin. If the API cannot be reached, the Products screen explicitly reports that and keeps the design examples labeled as samples. The public GitHub Pages deployment has **no hosted API**, so it cannot display real records until a separately secured API is deployed.
+
+This is a first storefront binding, **not** commercial checkout, product-detail administration, or a production service. The hardware page and featured landing-page products remain labeled examples.
+
 ### My Software — real test-access view
 
 When signed in through the **local API**, My Software fetches only the authenticated user's entitlements from `GET /v1/me/entitlements` and clearly labels each as a **manual test grant** (active, scheduled, expired, revoked or unavailable). Loading and network failure states never imply access. Logged-out views remain a labeled design preview.
