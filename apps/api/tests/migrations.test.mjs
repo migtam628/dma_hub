@@ -126,7 +126,7 @@ test("schema v5 upgrades to v6 without losing manual entitlements",()=>withTempD
   .run("plan-1","item-1","plan","Existing plan",1234,"USD","monthly","active",1,1,1);
  app.db.prepare("INSERT INTO entitlements(id,user_id,product_id,plan_id,source,state,starts_at,expires_at,granted_by,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)")
   .run("grant-1","user-1","item-1","plan-1","admin_test_grant","active",1,999999999999,"user-1",1,1);
- app.db.exec("DROP TABLE sandbox_webhook_events; DROP TABLE sandbox_orders; PRAGMA user_version=5;");
+ app.db.exec("DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; DROP TABLE sandbox_webhook_events; DROP TABLE sandbox_orders; PRAGMA user_version=5;");
  app.db.close();
  const restored=createApp({dbPath:file});
  assert.equal(restored.db.prepare("PRAGMA user_version").get().user_version,8);
