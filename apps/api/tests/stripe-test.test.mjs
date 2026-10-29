@@ -154,3 +154,53 @@ test("Stripe test creation fails closed on suspicious provider metadata and rest
   assert.equal(app.db.prepare("SELECT count(*) n FROM stripe_test_checkouts").get().n,0);
  },{stripeTest:setupStripe(async()=>{throw Error("should never call Stripe")})});
 });
+
+test("admin-only authoritative Stripe TEST read verifies session but never grants access",async()=>{
+ let checkoutOrder,checkoutUser,providerInvalid=false,providerDown=false;
+ const calls=[];
+ const fetchImpl=async(url,opts)=>{
+  calls.push({url,method:opts.method,authorization:opts.headers.Authorization});
+  if(opts.method==="POST"){
+   const p=new URLSearchParams(opts.body);
+   checkoutOrder=p.get("client_reference_id");checkoutUser=p.get("metadata[user_id]");
+   return {ok:true,json:async()=>makeSession(checkoutOrder,checkoutUser)};
+  }
+  if(providerDown)return {ok:false,status:503};
+  const session={...makeSession(checkoutOrder,checkoutUser),status:"complete",payment_status:"paid"};
+  if(providerInvalid)session.amount_total=999;
+  return {ok:true,json:async()=>session};
+ };
+ await run(async({app,call})=>{
+  const {owner,admin,stranger,orderId,productId}=await fixture(app,call);
+  const created=await call("/v1/me/stripe-test-checkouts","POST",{orderId},owner.token);
+  assert.equal(created.status,201);
+  const path="/v1/admin/stripe-test-checkouts/"+created.body.id+"/reconcile";
+  const before=calls.length;
+  assert.equal((await call(path,"POST",undefined,owner.token)).status,403);
+  assert.equal((await call(path,"POST",undefined,stranger.token)).status,403);
+  assert.equal((await call(path,"POST")).status,401);
+  assert.equal(calls.length,before,"unauthorized users cannot query provider");
+  const good=await call(path,"POST",undefined,admin.token);
+  assert.equal(good.status,200);
+  assert.equal(good.body.providerSessionId,SESSION_ID);
+  assert.equal(good.body.providerSessionStatus,"complete");
+  assert.equal(good.body.providerPaymentStatus,"paid");
+  assert.equal(good.body.testPaymentObserved,true);
+  assert.equal(good.body.settlementVerified,false);
+  assert.equal(good.body.accessGranted,false);
+  assert.equal(good.body.testModeOnly,true);
+  assert.equal(calls.at(-1).url,"https://api.stripe.com/v1/checkout/sessions/"+SESSION_ID);
+  assert.equal(calls.at(-1).method,"GET");
+  assert.equal(calls.at(-1).authorization,"Bearer "+STRIPE_KEY);
+  assert.equal(JSON.stringify(good.body).includes(STRIPE_KEY),false);
+  providerInvalid=true;
+  assert.equal((await call(path,"POST",undefined,admin.token)).status,502);
+  providerInvalid=false;providerDown=true;
+  assert.equal((await call(path,"POST",undefined,admin.token)).status,502);
+  assert.equal((await call("/v1/admin/stripe-test-checkouts/00000000-0000-0000-0000-000000000000/reconcile","POST",undefined,admin.token)).status,404);
+  assert.equal(app.db.prepare("SELECT count(*) n FROM audit WHERE action='stripe_test.reconciliation_checked'").get().n,1);
+  assert.equal(app.db.prepare("SELECT state FROM sandbox_orders WHERE id=?").get(orderId).state,"pending");
+  assert.equal(app.db.prepare("SELECT count(*) n FROM entitlements").get().n,0);
+  assert.equal((await call("/v1/me/access/"+productId,"GET",undefined,owner.token)).body.allowed,false);
+ },{stripeTest:setupStripe(fetchImpl)});
+});

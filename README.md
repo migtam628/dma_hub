@@ -197,6 +197,10 @@ An **opt-in Stripe TEST-mode Checkout foundation** now exists behind four server
 
 No Stripe keys are configured here; without operator-supplied test credentials the route is disabled. Live keys are rejected. When the local API is configured, signed-in customers can prepare and open a Stripe test Checkout from **Billing → Sandbox Orders**, while authorized staff can inspect read-only Stripe test metadata in **Admin → Sandbox Orders**. No subscription or commercial license is issued. See [Stripe test-mode integration](docs/stripe-test.md).
 
+### Admin Stripe TEST reconciliation preview (local API only)
+
+Authorized administrators can explicitly request a **read-only provider lookup** for an existing test Checkout using `POST /v1/admin/stripe-test-checkouts/:id/reconcile`. The server retrieves the Checkout Session from Stripe using a server-only `sk_test_` credential, rejects mismatched session, owner, order, amount, currency or live-mode data, and returns sanitized test payment observations. The action is audited. It does **not** update orders, grant entitlements, prove settlement, or enable live payments. Unconfigured credentials leave the route disabled. See [Stripe TEST integration](docs/stripe-test.md).
+
 ### HMAC-signed sandbox event inbox (backend only)
 
 The API now accepts **test-only, HMAC-signed sandbox event observations** when `DMA_SANDBOX_WEBHOOK_SECRET` is configured server-side. It validates the exact request bytes, enforces a five-minute timestamp window, rejects oversized/malformed messages, stores deduplicated event metadata, and exposes an **admin-only read-only** event inbox in **Admin → Sandbox Orders**. It does **not** mark orders paid, fulfill orders, issue licenses or contact a real payment provider.

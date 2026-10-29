@@ -1,29 +1,24 @@
-# DMA Hub — implementation milestone 1
-## What is working
-- React + TypeScript + Vite / npm workspaces frontend
-- Concept 3 visual tokens and shared UI package
-- Responsive marketing homepage, product catalog, filters and product pages
-- Customer overview, software library, profile, device and billing *preview* pages
-- Admin preview with synthetic users, catalog, releases and systems views
-- Launcher and device diagnostic web previews, clearly marked non-native
-- Configuration Studio with browser-local persistence, JSON import/export and live preview
-- Local interest list stored only in this browser
-- React component, accessibility, typecheck and source-integrity checks in CI
+# DMA Hub — current implementation status (October 29, 2026)
 
-## Not yet implemented
-Account authentication, subscription payments, licensing, signed Windows apps, device adapters, production datastore, real API, deployment and production tests.
+The canonical status and gates are in [README.md](README.md) and [docs/project-roadmap.md](docs/project-roadmap.md). This file replaces the obsolete milestone-1 summary.
 
-## Local development
-Requires Node.js 22+. From repository root:
+## Implemented and tested in CI
+- React/TypeScript/Vite Concept 3 static preview, GitHub Pages, releases and unsigned Tauri Windows alpha workflow.
+- Local Node/SQLite account sessions, optional mail-backed verification/recovery, profiles, migrations, backups and restore drills.
+- Admin-gated catalog and immutable USD plan amounts, test grants and idempotent sandbox orders.
+- Stripe **TEST-only** Checkout Session creation and signed webhook observations, disabled without server credentials.
+- Admin-only **read-only Stripe TEST provider session reconciliation** with strict amount, owner, order and mode matching. It never issues entitlements.
+- Explicit Windows COM-port metadata enumeration; no device protocol writes or anti-cheat bypass.
+
+## Not production ready
+The public site is static/demo only. No live payment processing, settled-payment ledger, subscription/tax/refund workflows, signed Windows installer or commercial license activation. No API is approved for public hosting. Physical device QA, security assessment, and actual Stripe TEST account verification remain outstanding.
+
+## Developer commands
+Requires Node.js 22.16+ and npm:
 ```bash
 npm install
-npm run dev
 npm run check
+npm run dev
+npm run dev:api
 ```
-Open the URL printed by Vite (normally http://localhost:5173). Hash routes permit static-host deployment.
-
-## Security and scope
-Hardware control is limited to a future documented, user-authorized integration; no protected game-memory access, anti-cheat circumvention or covert device behavior is included. Every simulated record is labeled demo-only. No payment or account claims are made.
-
-## Next milestone
-Introduce authenticated API service and schema migrations (pending product/security scope), actual releases/storage workflow and Windows Tauri shell.
+See [Stripe TEST guide](docs/stripe-test.md), [API](docs/api.md) and [roadmap](docs/project-roadmap.md).

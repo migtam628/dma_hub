@@ -1,3 +1,4 @@
+import {verifyStripeTestCheckoutRead} from "./payment-reconciliation.mjs";
 import {createHmac,createHash,randomUUID,timingSafeEqual} from "node:crypto";
 
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -136,6 +137,28 @@ export function createStripeTestGateway({db,clock,audit,secretKey,webhookSecret,
    audit(user.id,"stripe_test.checkout_created",order.id);
    const result=db.prepare("SELECT * FROM stripe_test_checkouts WHERE order_id=?").get(order.id);
    return ok(201,{...sessionOut(result,true),testModeOnly:true,replayed:false});
+  }
+  const reconcile=path.match(/^\\/v1\\/admin\\/stripe-test-checkouts\\/([0-9a-f-]{36})\\/reconcile$/i);
+  if(reconcile&&req.method==="POST"){
+   if(user.role!=="admin")return ok(403,{error:"forbidden"});
+   if(!active)return ok(503,{error:"stripe_test_not_configured"});
+   const checkout=db.prepare(`SELECT s.*,o.user_id FROM stripe_test_checkouts s
+    JOIN sandbox_orders o ON o.id=s.order_id WHERE s.id=?`).get(reconcile[1]);
+   if(!checkout)return ok(404,{error:"not_found"});
+   if(!checkout.provider_session_id)return ok(409,{error:"stripe_test_session_not_created"});
+   let provider;
+   try{
+    const response=await fetchImpl("https://api.stripe.com/v1/checkout/sessions/"+encodeURIComponent(checkout.provider_session_id),{
+     method:"GET",headers:{"Authorization":"Bearer "+secretKey},signal:AbortSignal.timeout(10000)
+    });
+    if(!response.ok)return ok(502,{error:"stripe_test_reconciliation_unavailable"});
+    provider=await response.json();
+   }catch{return ok(502,{error:"stripe_test_reconciliation_unavailable"})}
+   const observation=verifyStripeTestCheckoutRead(provider,checkout);
+   if(!observation)return ok(502,{error:"stripe_test_reconciliation_mismatch"});
+   audit(user.id,"stripe_test.reconciliation_checked",checkout.order_id);
+   return ok(200,{checkoutId:checkout.id,orderId:checkout.order_id,
+    providerSessionId:checkout.provider_session_id,...observation});
   }
   if(path==="/v1/admin/stripe-test-checkouts"&&req.method==="GET"){
    if(user.role!=="admin")return ok(403,{error:"forbidden"});
