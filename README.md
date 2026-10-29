@@ -21,7 +21,7 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 |---|---|---|
 | Public website | ✅ Web preview | Homepage, catalog, setup guides, live GitHub Releases download center |
 | Customer workspace | 🧪 Mixed preview | Signed-in users can view API-backed entitlements and create/review **sandbox** orders; other pages remain sample data |
-| Admin workspace | 🧪 Mixed preview | Admin-only Pricing & Test Access and Sandbox Orders consoles connected to the local API; other pages remain synthetic |
+| Admin workspace | 🧪 Mixed preview | Local API admin-only Pricing & Test Access, Sandbox Orders and read-only Audit Log; other admin pages remain synthetic |
 | Configuration Studio | ✅ Local functionality | Edit settings, live preview, JSON import/export, browser storage |
 | API | 🧪 Local alpha | Account sessions, schema v3, opt-in mail-backed verification/recovery, password changes, profiles, manual backup/restore tests |
 | Cloud profiles | 🧪 Local API | Create, load, update, delete, optimistic version checks |
@@ -187,6 +187,10 @@ This screen is **not a payment processor, production merchant CMS or real licens
 When signed in through the **local API**, My Software fetches only the authenticated user's entitlements from `GET /v1/me/entitlements` and clearly labels each as a **manual test grant** (active, scheduled, expired, revoked or unavailable). Loading and network failure states never imply access. Logged-out views remain a labeled design preview.
 
 This does **not** install software, connect licenses, charge customers, or synchronize production accounts. The public GitHub Pages demo cannot access a server-side account API.
+
+### Admin Audit Log (local API only)
+
+Authorized staff can now view structured account, catalog, pricing and sandbox-order events under **Admin → Audit Log**. The API enforces admin role, bounded pagination and read-only access; responses omit credentials and session tokens. A production logging/retention service and external security review are still outstanding. See [audit log documentation](docs/admin-audit.md).
 
 ### Sandbox order screens (local API only)
 

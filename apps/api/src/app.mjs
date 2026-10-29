@@ -213,6 +213,18 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
     }
     const commerceResult=await commerce.authenticatedRoute(pathname,req,u);
     if(commerceResult){response(res,commerceResult.status,commerceResult.payload);return}
+    if(pathname==="/v1/admin/audit"&&req.method==="GET"){
+      if(u.role!=="admin"){response(res,403,{error:"forbidden"});return}
+      const params=new URL(req.url||"/","http://localhost").searchParams;
+      const limitText=params.get("limit")??"50",offsetText=params.get("offset")??"0";
+      if(!/^[1-9][0-9]*$/.test(limitText)||!/^(0|[1-9][0-9]*)$/.test(offsetText)||
+        Number(limitText)>100||Number(offsetText)>10000){
+        response(res,422,{error:"invalid_pagination"});return
+      }
+      const limit=Number(limitText),offset=Number(offsetText);
+      const events=db.prepare("SELECT id,actor,action,target,created_at FROM audit ORDER BY created_at DESC,rowid DESC LIMIT ? OFFSET ?").all(limit,offset);
+      response(res,200,{items:events.map(e=>({id:e.id,actorId:e.actor,action:e.action,targetId:e.target,createdAt:e.created_at})),nextOffset:events.length===limit?offset+limit:null});return
+    }
     if(pathname==="/v1/admin/metrics"&&req.method==="GET"){if(u.role!=="admin"){response(res,403,{error:"forbidden"});return}response(res,200,{users:db.prepare("SELECT COUNT(*) n FROM users").get().n,profiles:db.prepare("SELECT COUNT(*) n FROM profiles").get().n});return}
     if(pathname==="/v1/admin/products"&&(req.method==="GET"||req.method==="POST")){
       if(u.role!=="admin"){response(res,403,{error:"forbidden"});return}

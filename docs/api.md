@@ -39,6 +39,7 @@ Endpoints:
 - `PATCH /v1/profiles/:id` — update {name,data}, require `If-Match: 1` (numeric version)
 - `DELETE /v1/profiles/:id` — remove, require numeric `If-Match`
 - `GET /v1/admin/metrics` — restricted to admin role; no role assignment publicly exposed.
+- `GET /v1/admin/audit?offset=0&limit=50` — admin-only read-only audit list with bounded pagination; no credentials returned
 
 Security implemented: scrypt salted passwords, hashed opaque tokens, 12-hour sessions, CORS origin allowlist, max JSON body, tenant-scoped SQL, profile optimistic concurrency, no-store headers, no remote admin self-promotion, audit records, simple in-memory registration/login throttling, a maximum of five active sessions per user, expired-session cleanup, session inventory/revoke-all, and oversized-body handling with HTTP 413.
 

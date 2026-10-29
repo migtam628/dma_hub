@@ -6,6 +6,7 @@ export type ProfileSettings={profileName:string;autoSync:boolean;notifications:b
 export type CloudProfile={id:string;name:string;data:ProfileSettings;version:number;createdAt?:number;updatedAt?:number};
 export type CatalogItem={id:string;slug:string;name:string;description:string;status:"draft"|"published"|"archived";version:number;createdAt:number;updatedAt:number};
 export type PricingPlan={id:string;productId:string;code:string;name:string;amountMinor:number;currency:"USD";billingPeriod:"one_time"|"monthly"|"yearly";status:"draft"|"active"|"archived";version:number;createdAt:number;updatedAt:number};
+export type AuditEvent={id:string;actorId:string|null;action:string;targetId:string|null;createdAt:number};
 export type PublicPlan=PricingPlan&{productName:string;productSlug:string};
 export type SandboxOrder={id:string;productId:string;planId:string;amountMinor:number;currency:"USD";billingPeriod:string;state:"pending"|"test_fulfilled"|"cancelled";createdAt:number;updatedAt:number;entitlementId:string|null;fulfilledAt:number|null;userId?:string};
 export type Entitlement={id:string;userId:string;productId:string;planId:string;source:"admin_test_grant"|"sandbox_order";productName:string|null;planName:string|null;state:"active"|"revoked";startsAt:number;expiresAt:number;revokedAt?:number|null;createdAt:number;accessStatus:"active"|"scheduled"|"expired"|"revoked"|"product_unavailable";accessAllowed:boolean};
@@ -41,6 +42,7 @@ export const api={
  testOrders:(token:string)=>request<{items:SandboxOrder[];sandboxOnly:true}>("/v1/me/test-orders","GET",undefined,token),
  createTestOrder:(token:string,planId:string,idempotencyKey:string)=>request<SandboxOrder&{sandboxOnly:true;replayed:boolean}>("/v1/me/test-orders","POST",{planId,idempotencyKey},token),
  adminTestOrders:(token:string)=>request<{items:SandboxOrder[];sandboxOnly:true}>("/v1/admin/test-orders","GET",undefined,token),
+ auditLog:(token:string,offset=0,limit=50)=>request<{items:AuditEvent[];nextOffset:number|null}>("/v1/admin/audit?offset="+offset+"&limit="+limit,"GET",undefined,token),
  fulfillTestOrder:(token:string,id:string)=>request<SandboxOrder&{sandboxOnly:true;replayed:boolean}>("/v1/admin/test-orders/"+id+"/fulfill","POST",{},token),
  cancelTestOrder:(token:string,id:string)=>request<SandboxOrder&{sandboxOnly:true;replayed:boolean}>("/v1/admin/test-orders/"+id+"/cancel","POST",{},token),
  adminProducts:(token:string)=>request<{items:CatalogItem[]}>("/v1/admin/products","GET",undefined,token),

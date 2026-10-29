@@ -47,7 +47,7 @@ tests/                 Repository validation
 | G3 | Commerce | Test-only idempotent order flow implemented; real payment provider, signed webhook handling, invoices/refunds and test/live isolation remain unfinished |
 | G4 | Windows trust | Signed installers, signed update manifest, rollback and install/uninstall QA |
 | G5 | Authorized device integration | One supported model, consent, read-only diagnostics and device test evidence |
-| G6 | Operations | Admin RBAC, ticketing, incident controls, retention and audit reports |
+| G6 — In progress | Operations | Role-restricted read-only audit explorer exists; ticketing, incident controls, centralized retention and signed reports remain open |
 | G7 | Beta and launch | End-to-end tests, accessibility, load/security tests, backups and restore, runbooks and business policies |
 
 **No commercial purchase/activation claim before G2/G3 is complete.** Public site data that is still simulated must remain labeled.
