@@ -1,28 +1,31 @@
-# DMA Hub v0.2.0-alpha.15
+# DMA Hub v0.2.0-alpha.16
 
-**Experimental alpha / TEST-mode observations only. No live commerce, payment settlements or commercial licenses.**
+**Development prerelease — API is not production-hosted, payments are test-only, and Windows packages are unsigned.**
 
-## New in alpha.15
+## Authentication and API hardening
 
-- Schema v9 stores normalized status snapshots from administrator-initiated Stripe TEST Checkout Session lookups.
-- Snapshots persist only after server-side provider response validation (matching session, owner, test mode, USD amount and related order).
-- Unique checkout/state fingerprints ensure repeat checks are idempotent; changed status combinations create another inspectable history item.
-- New authenticated admin-only endpoint: `GET /v1/admin/stripe-test-checkouts/:id/observations`, bounded to 50 items.
-- Existing `POST .../:id/reconcile` returns test observation ID, replay status and first-seen timestamp. Provider errors and mismatches create no observation records.
-- Admin → Sandbox Orders now offers **History** and **Check Stripe TEST** controls, plus a clear read-only observation list.
-- Tests cover migration from v8, duplicate reads, state transitions, authorization, provider mismatches, outages, and zero unauthorized entitlement issuance.
-- README, API documentation, Stripe reference, roadmap, and commerce issue updated.
+- Migrated from in-process authentication rate-limit maps to atomic SQLite fixed-window counters (schema v10).
+- Added scoped SHA-256 key hashing; rate-limit storage does not contain plaintext IPs, email addresses, passwords, or session tokens.
+- Limits now survive API restarts and can be shared across processes using one SQLite database file.
+- Applied controls to registration, login, email verification requests, password recovery requests and password-change attempts.
+- Added an additional 20-attempt/15-minute account-email login limit alongside existing IP limits.
+- Configured bounded SQLite busy timeout for brief concurrent write contention and periodic expired-bucket cleanup.
+- Tested rate-limit persistence, expiration, key isolation, backward migration and unchanged account/session behavior.
+- Updated README, rate-limit documentation, email-auth docs, API reference, deployment guide and security issue.
 
-## Included foundation
+## Existing alpha foundation
 
-React/Tailwind storefront and administration previews, local user/profile API, product/plan data, test-only sandbox orders, manual grants, test Stripe Checkout/webhooks, and unsigned Windows Tauri launcher.
+- Concept 3 storefront/admin UI previews, local accounts and profile API
+- Test-only catalog pricing, manual entitlements, sandbox order fulfillment
+- Optional Stripe TEST Checkout and read-only provider state observations
+- Auditable SQLite schema migrations and manually verified backups
+- Windows Tauri launcher and GitHub Pages release display
 
-## Distribution
+## Limitations
 
-Web preview ZIP and SHA-256 checksum. Windows unsigned NSIS installer and matching checksum only after the release workflow builds and verifies the Windows artifact.
+SQLite limits are **NOT** distributed across independent database copies or hosts, and cannot replace edge/WAF abuse mitigation or production monitoring. Email identity verification still requires a configured provider. Real Stripe test-account trials, independently verified settlement, commercial licenses, production security, encrypted off-host recovery, signed Windows updates and actual physical-device QA remain outstanding.
 
-## Remaining
+## Artifacts
 
-No actual Stripe account credentials are connected. Tests currently use mocked provider responses; real Stripe TEST-mode sandbox sessions and webhook delivery remain unverified. No financial ledger, payment settlement reconciliation, subscriptions, refunds/disputes, approved payment-based license issuance, production deployment, certificate-signed Windows installers, or secure updater is live.
-
-**A Stripe TEST 'paid' state is not proof of settlement and does not grant access.**
+- Web ZIP and SHA-256 checksum.
+- Unsigned Windows NSIS installer and SHA-256 checksum after verified Windows build.
