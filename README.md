@@ -199,7 +199,7 @@ No Stripe keys are configured here; without operator-supplied test credentials t
 
 ### Stripe TEST reconciliation history (local API only)
 
-Administrators can now preserve **deduplicated read-only Stripe test-session observations** in SQLite schema v9. An authenticated, provider-backed lookup writes only normalized payment/session statuses after identity and amount checks succeed. Repeated identical statuses reuse the same history entry, while any provider error or mismatch records nothing. Admins can inspect the history for each test Checkout in the local dashboard.
+Administrators can now preserve **deduplicated read-only Stripe test-session observations** in SQLite schema v9. An authenticated, provider-backed lookup writes only normalized payment/session statuses after identity and amount checks succeed. Repeated identical statuses reuse the same history entry, while any provider error or mismatch records nothing. Admins can inspect the history for each test Checkout in **Admin → Sandbox Orders**, or explicitly choose **Check Stripe TEST** to record a new validated provider-state observation.
 
 **Observations are not financial settlement or paid licenses.** They never change an order or grant software access. See [test reconciliation history](docs/stripe-test-reconciliation-history.md).
 

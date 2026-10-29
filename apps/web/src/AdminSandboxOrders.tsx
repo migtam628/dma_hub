@@ -2,13 +2,15 @@ import {useEffect,useState} from "react";
 import {FlaskConical,RefreshCcw,ShieldCheck} from "lucide-react";
 import {Button,Card,Empty,Pill} from "@dma-hub/ui";
 import {api} from "./api";
-import type {SandboxOrder,SandboxWebhookEvent,StripeTestCheckout,StripeTestEvent,Session} from "./api";
+import type {SandboxOrder,SandboxWebhookEvent,StripeTestCheckout,StripeTestEvent,StripeTestObservation,Session} from "./api";
 
 export function AdminSandboxOrders({session}:{session:Session|null}){
  const [orders,setOrders]=useState<SandboxOrder[]>([]);
  const [webhooks,setWebhooks]=useState<SandboxWebhookEvent[]>([]);
  const [stripeSessions,setStripeSessions]=useState<StripeTestCheckout[]>([]);
  const [stripeEvents,setStripeEvents]=useState<StripeTestEvent[]>([]);
+ const [historyFor,setHistoryFor]=useState("");
+ const [observations,setObservations]=useState<StripeTestObservation[]>([]);
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState("");
  const [notice,setNotice]=useState("");
@@ -22,7 +24,7 @@ export function AdminSandboxOrders({session}:{session:Session|null}){
   finally{setBusy(false)}
  }
  useEffect(()=>{
-  if(!admin){setOrders([]);setWebhooks([]);setStripeSessions([]);setStripeEvents([]);return}
+  if(!admin){setOrders([]);setWebhooks([]);setStripeSessions([]);setStripeEvents([]);setHistoryFor("");setObservations([]);return}
   let active=true;
   setBusy(true);setError("");
   Promise.all([api.adminTestOrders(token),api.sandboxWebhookEvents(token),api.adminStripeTestCheckouts(token),api.adminStripeTestEvents(token)]).then(([r,w,c,e])=>{if(active){setOrders(r.items);setWebhooks(w.items);setStripeSessions(c.items);setStripeEvents(e.items)}})
@@ -41,6 +43,28 @@ export function AdminSandboxOrders({session}:{session:Session|null}){
    setNotice(r.replayed?"Order was already in that state; no duplicate action occurred.":action==="fulfill"?"Sandbox test entitlement created, audited and linked to the order.":"Pending sandbox order cancelled.");
    const [orders,events,checkouts,stripeEvents]=await Promise.all([api.adminTestOrders(token),api.sandboxWebhookEvents(token),api.adminStripeTestCheckouts(token),api.adminStripeTestEvents(token)]);setOrders(orders.items);setWebhooks(events.items);setStripeSessions(checkouts.items);setStripeEvents(stripeEvents.items);
   }catch(e){setError(e instanceof Error?e.message:"Operation failed")}
+  finally{setBusy(false)}
+ }
+ async function viewHistory(id:string){
+  if(!admin)return;
+  setBusy(true);setError("");
+  try{
+   const result=await api.adminStripeTestHistory(token,id);
+   setHistoryFor(id);setObservations(result.items);
+  }catch(e){setError(e instanceof Error?e.message:"Unable to inspect test history")}
+  finally{setBusy(false)}
+ }
+ async function reconcileTest(id:string){
+  if(!admin||!window.confirm("Read this Stripe TEST Checkout directly from the provider? Only normalized test state is recorded. This does not settle funds or grant a license."))return;
+  setBusy(true);setError("");setNotice("");
+  try{
+   const result=await api.reconcileStripeTest(token,id);
+   const history=await api.adminStripeTestHistory(token,id);
+   setHistoryFor(id);setObservations(history.items);
+   setNotice((result.observationReplay?"Existing test-state observation found. ":"A new test-state observation was recorded. ")+
+     "Provider returned "+result.providerSessionStatus+" / "+result.providerPaymentStatus+
+     ". Settlement NOT verified; no entitlement granted.");
+  }catch(e){setError(e instanceof Error?e.message:"Stripe test provider check failed. No observation was recorded.")}
   finally{setBusy(false)}
  }
  return <div>
@@ -77,10 +101,23 @@ export function AdminSandboxOrders({session}:{session:Session|null}){
       <div className="rows">{stripeSessions.map(s=><div key={s.id} className="item-row">
        <div className="row-grow"><strong>Test order {s.orderId.slice(0,8)} · USD {(s.amountMinor/100).toFixed(2)}</strong>
         <small>Customer {s.userId?.slice(0,8)||"unknown"} · {new Date(s.updatedAt).toLocaleString()}</small></div>
-       <Pill tone="neutral">{s.state}</Pill></div>)}</div>}
+       <Pill tone="neutral">{s.state}</Pill>
+       <Button variant="secondary" disabled={busy} onClick={()=>void viewHistory(s.id)}>History</Button>
+       {s.providerSessionId&&<Button variant="secondary" disabled={busy} onClick={()=>void reconcileTest(s.id)}>Check Stripe TEST</Button>}
+       </div>)}</div>}
      {stripeEvents.length>0&&<div className="rows">{stripeEvents.map(e=><div key={e.eventId} className="item-row">
        <div className="row-grow"><strong>{e.eventType}</strong><small>Stripe TEST event · {new Date(e.receivedAt).toLocaleString()}</small></div>
        <Pill tone="neutral">Observed only</Pill></div>)}</div>}
+    </Card>
+    <Card title="Provider TEST observation history">
+     <p className="muted">Read-only, deduplicated test-session snapshots. A test `paid` status is not financial settlement or commercial access.</p>
+     {!historyFor?<Empty title="Select a checkout" description="Use History or Check Stripe TEST above to view recorded provider observations."/>:
+      observations.length===0?<Empty title="No recorded observations" description="No validated Stripe test-state reads have been recorded for this Checkout."/>:
+      <div className="rows">{observations.map(o=><div className="item-row" key={o.id}>
+       <div className="row-grow"><strong>{o.providerSessionStatus} / {o.providerPaymentStatus}</strong>
+        <small>{new Date(o.checkedAt).toLocaleString()} · TEST snapshot, not a settlement record</small></div>
+       <Pill tone="neutral">No access granted</Pill>
+      </div>)}</div>}
     </Card>
    </>
   }
