@@ -92,3 +92,12 @@ Payment provider, business terms, first supported production software/hardware c
 - Strict bounded admin metadata validation, versioned edits, published-only API representation, and backward-compatible older PATCH clients.
 - Public category/search filters and documented feature/requirement sections; these are unverified claims, not compatible-device certification.
 - Next: verified product assets/release mapping, secure API hosting and operational review before any paid license flow.
+
+
+### October 30 — provider-neutral sandbox commerce review workflow (schema v12)
+
+- Added local SQLite review cases linked to sandbox orders, strict provider/reason allowlists, idempotent creation, and an administrator-only queue.
+- Added optimistic versioned review transitions with append-only, database-trigger-protected event history and atomic audit records.
+- Added sanitized, owner-scoped customer review status API; internal reasons and staff IDs are never returned to customers.
+- Added migration/backup checks and regression tests for RBAC, tenant isolation, retries, state conflicts, immutability, and **zero entitlement issuance**.
+- **Still blocked:** real provider TEST account evidence, financial settlement ledger, charge/refund/dispute handling, verified merchant terms, signing, secure hosting and independent production review. Closed test reviews are not payment confirmation.

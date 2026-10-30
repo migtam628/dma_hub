@@ -5,6 +5,7 @@ import {dirname} from "node:path";
 import {DatabaseSync} from "node:sqlite";
 import {migrateDatabase} from "./migrations.mjs";
 import {createCommerce} from "./commerce.mjs";
+import {createCommerceReviews} from "./commerce-reviews.mjs";
 import {createSandboxWebhook} from "./sandbox-webhook.mjs";
 import {createStripeTestGateway} from "./stripe-test.mjs";
 import {createRateLimiter} from "./rate-limiter.mjs";
@@ -69,6 +70,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
  const securityMonitor=createSecurityMonitor({db,clock});
  const audit=(actor,action,target)=>db.prepare("INSERT INTO audit VALUES(?,?,?,?,?)").run(randomUUID(),actor,action,target,clock());
  const commerce=createCommerce({db,clock,audit,readBody:jsonBody});
+ const commerceReviews=createCommerceReviews({db,clock,audit,readBody:jsonBody});
  const testWebhook=createSandboxWebhook({db,clock,audit,secret:sandboxWebhookSecret});
  const stripeGateway=createStripeTestGateway({db,clock,audit,...(stripeTest||{})});
  function issueToken(userId,purpose,ttl){
@@ -262,6 +264,8 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
     }
     const stripePrivate=await stripeGateway.authenticatedRoute(pathname,req,u);
     if(stripePrivate){response(res,stripePrivate.status,stripePrivate.payload);return}
+    const reviewResult=await commerceReviews.authenticatedRoute(pathname,req,u);
+    if(reviewResult){response(res,reviewResult.status,reviewResult.payload);return}
     const commerceResult=await commerce.authenticatedRoute(pathname,req,u);
     if(commerceResult){response(res,commerceResult.status,commerceResult.payload);return}
     if(pathname==="/v1/admin/test-webhooks"&&req.method==="GET"){

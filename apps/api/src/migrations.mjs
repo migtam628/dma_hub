@@ -1,6 +1,6 @@
 import {DatabaseSync} from "node:sqlite";
 
-export const SCHEMA_VERSION=11;
+export const SCHEMA_VERSION=12;
 
 const BASE_SCHEMA=`CREATE TABLE IF NOT EXISTS users(
  id TEXT PRIMARY KEY,
@@ -286,6 +286,42 @@ export function migrateDatabase(db){
    version=11;
   }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
  }
+ if(version===11){
+  db.exec("BEGIN IMMEDIATE");
+  try{
+   db.exec(`CREATE TABLE commerce_review_cases(
+    id TEXT PRIMARY KEY,
+    order_id TEXT NOT NULL UNIQUE REFERENCES sandbox_orders(id) ON DELETE RESTRICT,
+    idempotency_key TEXT NOT NULL CHECK(length(idempotency_key) BETWEEN 8 AND 80),
+    provider TEXT NOT NULL CHECK(provider IN ('sandbox','stripe_test')),
+    reason TEXT NOT NULL CHECK(reason IN ('payment_question','test_checkout_mismatch','test_event_disagreement','other')),
+    state TEXT NOT NULL CHECK(state IN ('open','investigating','closed_unverified','closed_test_only')),
+    version INTEGER NOT NULL CHECK(version>=1),
+    opened_by TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+   );
+   CREATE INDEX commerce_review_queue ON commerce_review_cases(state,updated_at DESC);
+   CREATE TABLE commerce_review_events(
+    id TEXT PRIMARY KEY,
+    case_id TEXT NOT NULL REFERENCES commerce_review_cases(id) ON DELETE RESTRICT,
+    version INTEGER NOT NULL CHECK(version>=1),
+    from_state TEXT,
+    to_state TEXT NOT NULL CHECK(to_state IN ('open','investigating','closed_unverified','closed_test_only')),
+    actor_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    created_at INTEGER NOT NULL,
+    UNIQUE(case_id,version)
+   );
+   CREATE TRIGGER commerce_review_events_no_update BEFORE UPDATE ON commerce_review_events
+    BEGIN SELECT RAISE(ABORT,'immutable review event'); END;
+   CREATE TRIGGER commerce_review_events_no_delete BEFORE DELETE ON commerce_review_events
+    BEGIN SELECT RAISE(ABORT,'immutable review event'); END;`);
+   db.exec("PRAGMA user_version=12; COMMIT;");
+   version=12;
+  }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
+ }
+ requiredColumns(db,"commerce_review_cases",["id","order_id","idempotency_key","provider","reason","state","version","opened_by","created_at","updated_at"]);
+ requiredColumns(db,"commerce_review_events",["id","case_id","version","from_state","to_state","actor_id","created_at"]);
  requiredColumns(db,"auth_rate_limits",["scope","key_hash","window_start","attempt_count","expires_at"]);
  requiredColumns(db,"stripe_test_reconciliation_checks",
   ["id","checkout_id","fingerprint","provider_session_status","provider_payment_status",
