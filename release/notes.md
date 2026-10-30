@@ -1,25 +1,26 @@
-# DMA Hub v0.2.0-alpha.18
+# DMA Hub v0.2.0-alpha.19
 
-**Catalog UI development alpha. Local API only; no live commerce or production backend. Windows installer remains unsigned.**
+**Catalog metadata development alpha. API remains local-only, payments remain non-production/test-only, and the Windows installer is unsigned.**
 
-## New in alpha.18
+## New in alpha.19
 
-- **Admin → Products** now operates on persistent catalog data for authorized local API administrators, replacing the synthetic product table.
-- Create draft products, edit names/slugs/descriptions, and publish, unpublish or archive records using optimistic version checks and explicit confirmations.
-- Published-only API details at `GET /v1/catalog/live/:slug`; draft, archived, nonexistent and invalid slugs return 404 and expose no internal product status or version.
-- Public Products screen links API-backed published records to `#/catalog/:slug` detail views with loading, unavailable and 404 states.
-- API regression coverage for published/detail agreement, draft/archive exclusion and read-only behavior; updated catalog documentation, README and engineering roadmap.
+- SQLite schema v11 additive migration for `category`, `features_json`, and `requirements_json` with safe defaults for legacy products.
+- Strict admin-side and server-side catalog metadata validation: defined category values, up to 10 unique entries per list, 1–140 characters per entry and control-character rejection.
+- Version-checked admin create/update workflows that retain metadata when older PATCH clients omit new fields.
+- Published-only catalog API returns documented features and requirements without exposing drafts, archives or admin-only fields.
+- Public product catalog supports search and category filtering; product detail pages show the declared feature and requirement lists with verification caveats.
+- Added schema migration and API regression tests, updated README, API/catalog references and roadmap.
 
 ## Existing foundation
 
-Previously released **v0.2.0-alpha.17**: privacy-preserving local admin Security Monitoring dashboard and persistent SQLite rate-limit controls. Also includes Concept 3 website, account/session API, pricing and manual test-access foundation, Stripe TEST Checkout/reconciliation observations, cloud profile API, GitHub Pages site and an unsigned Tauri Windows companion.
+The v0.2.0-alpha.18 release added database-backed Admin Products editing and read-only public product detail routes. Earlier alpha releases include Concept 3 web/desktop UI, local account sessions, profiles, manual test grants, Stripe TEST Checkout observation-only flows, admin audit/security monitoring, GitHub Pages and unsigned Windows NSIS packaging.
 
 ## Distribution
 
-GitHub Releases provides a tested static web preview ZIP and SHA-256 manifest. An **unsigned** Windows NSIS preview installer with checksum is uploaded only after Windows build and verification pass. Always verify checksums and treat these artifacts as development previews.
+Static web preview ZIP, SHA-256 manifest and verified **unsigned** Windows NSIS preview when Windows packaging finishes. Downloads are development-only and should be verified against published checksums.
 
-## Incomplete production gates
+## Production gates not completed
 
-No hosted production API, signed installer, verified paid license, actual financial settlement or subscription flow, secure updater, tested device adapter, independent security assessment, cross-host abuse detection, or commercial support guarantees.
+No public production API, signed Windows binaries, commercial payments or licenses, independently verified software or hardware compatibility, verified hosted email delivery, independent security review, cross-host rate limiting, reliable device adapters, or approved production fulfillment.
 
-**Do not expose the SQLite development API to the public internet. Publishing catalog metadata does not make software purchasable or activate any license.**
+**Do not publicly expose the local SQLite API or interpret the published catalog metadata as compatibility certification.**
