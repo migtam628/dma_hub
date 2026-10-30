@@ -24,6 +24,16 @@ This is a server-side core only, without plan prices, payments, licenses, purcha
 - A published record is **not** a paid listing: there is no verified download, device compatibility, checkout, settlement or commercial license.
 - The static GitHub Pages site does not host the local backend. Without a separately deployed authorized API, the real-catalog section shows an offline state.
 
+## Structured catalog metadata — schema v11
+
+API records now contain `category` (`unspecified`, `software`, `hardware` or `cloud`), a bounded array of documented `features`, and a bounded array of `requirements`. Each array accepts at most 10 distinct, non-empty strings of up to 140 characters, with control characters rejected. The existing `slug`, `name`, `description`, `status` and version semantics are unchanged.
+
+- Database migration 10 → 11 adds `category` (default `unspecified`) and JSON text arrays (both default `[]`) without deleting or reclassifying existing catalog records.
+- Public `GET /v1/catalog/live` and `GET /v1/catalog/live/:slug` return the metadata only for published records. Internal status, version, role and credentials are never included.
+- Authorized admin create and PATCH operations validate metadata before writing; older PATCH clients that omit the new fields retain the record's existing metadata.
+- The editor provides controlled category selection and one-entry-per-line inputs. Published cards support client-side search/category filtering, and detail pages display declared feature/requirement lists.
+- These fields are **operator-authored descriptions**, not proof of compatibility, safety, working integrations or supported hardware. Independent validation remains a production gate.
+
 ## Production gates
 Catalog review/approval, account role provisioning, field-level permissions, audit consumption, server backup, and a real customer UX must be completed before commercial use.
 
