@@ -16,7 +16,8 @@ export function LiveProductDetail({slug}:{slug:string}){
   api.liveProduct(slug).then(product=>{
    if(!active)return;
    if(product.slug!==slug||typeof product.name!=="string"||typeof product.description!=="string"||
-      typeof product.updatedAt!=="number")throw new Error("Invalid product response");
+      typeof product.updatedAt!=="number"||!["unspecified","software","hardware","cloud"].includes(product.category)||
+      !Array.isArray(product.features)||!Array.isArray(product.requirements))throw new Error("Invalid product response");
    setItem(product);setState("ready");
   }).catch(e=>{
    if(!active)return;
@@ -44,7 +45,14 @@ export function LiveProductDetail({slug}:{slug:string}){
     <div className="catalog-detail-visual" aria-hidden="true">◇</div>
     <h1>{item.name}</h1>
     <p className="catalog-detail-description">{item.description||"No description has been supplied for this product."}</p>
-    <small className="muted">Record updated {new Date(item.updatedAt).toLocaleString()}</small>
+    <p className="muted">Category: <strong>{item.category==="unspecified"?"Not yet specified":item.category}</strong></p>
+    {item.features.length>0?<section className="catalog-detail-section"><h3>Documented features</h3>
+     <ul className="catalog-detail-list">{item.features.map(text=><li key={text}>{text}</li>)}</ul>
+    </section>:null}
+    {item.requirements.length>0?<section className="catalog-detail-section"><h3>Documented requirements</h3>
+     <ul className="catalog-detail-list">{item.requirements.map(text=><li key={text}>{text}</li>)}</ul>
+    </section>:null}
+    <small className="muted">Descriptions, features and requirements are administrator-entered and have not been independently verified. Record updated {new Date(item.updatedAt).toLocaleString()}</small>
    </Card>
    <div className="purchase-panel">
     <span className="eyebrow">API-BACKED PRODUCT</span>
