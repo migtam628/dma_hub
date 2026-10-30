@@ -106,7 +106,7 @@ test("schema v4 upgrades to v5 without modifying existing product records",()=>w
  const first=createApp({dbPath:path});
  first.db.prepare("INSERT INTO catalog_products(id,slug,name,description,status,version,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)")
   .run("old-product","test-legacy","Legacy Catalog Entry","Original description","published",2,1,2);
- first.db.exec("DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; DROP TABLE sandbox_webhook_events; DROP TABLE sandbox_orders; DROP TABLE entitlements; DROP TABLE pricing_plans; PRAGMA user_version=4;");
+ first.db.exec("DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; DROP TABLE sandbox_webhook_events; DROP TABLE sandbox_orders; DROP TABLE entitlements; DROP TABLE pricing_plans; PRAGMA user_version=4;");
  first.db.close();
  const restored=createApp({dbPath:path});
  assert.equal(restored.db.prepare("PRAGMA user_version").get().user_version,12);
@@ -126,7 +126,7 @@ test("schema v5 upgrades to v6 without losing manual entitlements",()=>withTempD
   .run("plan-1","item-1","plan","Existing plan",1234,"USD","monthly","active",1,1,1);
  app.db.prepare("INSERT INTO entitlements(id,user_id,product_id,plan_id,source,state,starts_at,expires_at,granted_by,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)")
   .run("grant-1","user-1","item-1","plan-1","admin_test_grant","active",1,999999999999,"user-1",1,1);
- app.db.exec("DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; DROP TABLE sandbox_webhook_events; DROP TABLE sandbox_orders; PRAGMA user_version=5;");
+ app.db.exec("DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; DROP TABLE sandbox_webhook_events; DROP TABLE sandbox_orders; PRAGMA user_version=5;");
  app.db.close();
  const restored=createApp({dbPath:file});
  assert.equal(restored.db.prepare("PRAGMA user_version").get().user_version,12);
@@ -140,7 +140,7 @@ test("schema v6 upgrades to v7 and retains sandbox order records",()=>withTempDi
  const file=join(folder,"from-v6.sqlite");
  const a=createApp({dbPath:file});
  assert.equal(a.db.prepare("PRAGMA user_version").get().user_version,12);
- a.db.exec("DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; DROP TABLE sandbox_webhook_events; PRAGMA user_version=6;");
+ a.db.exec("DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; DROP TABLE sandbox_webhook_events; PRAGMA user_version=6;");
  a.db.close();
  const b=createApp({dbPath:file});
  assert.equal(b.db.prepare("PRAGMA user_version").get().user_version,12);
@@ -152,7 +152,7 @@ test("schema v6 upgrades to v7 and retains sandbox order records",()=>withTempDi
 test("schema v7 upgrades to v8 and retains existing sandbox event table",()=>withTempDir(async(folder)=>{
  const file=join(folder,"v7.sqlite");
  const first=createApp({dbPath:file});
- first.db.exec("DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; PRAGMA user_version=7;");
+ first.db.exec("DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; PRAGMA user_version=7;");
  first.db.close();
  const second=createApp({dbPath:file});
  assert.equal(second.db.prepare("PRAGMA user_version").get().user_version,12);
@@ -164,7 +164,7 @@ test("schema v7 upgrades to v8 and retains existing sandbox event table",()=>wit
 test("schema v8 upgrades to v9 while preserving Stripe TEST checkout and event tables",()=>withTempDir(async(folder)=>{
  const file=join(folder,"from-v8.sqlite");
  const initial=createApp({dbPath:file});
- initial.db.exec("DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; PRAGMA user_version=8;");
+ initial.db.exec("DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; PRAGMA user_version=8;");
  initial.db.close();
  const upgraded=createApp({dbPath:file});
  assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,12);
@@ -177,7 +177,7 @@ test("schema v8 upgrades to v9 while preserving Stripe TEST checkout and event t
 test("schema v9 upgrades to v10 without changing existing test observations",()=>withTempDir(async(folder)=>{
  const file=join(folder,"from-v9.sqlite");
  const first=createApp({dbPath:file});
- first.db.exec("DROP TABLE auth_rate_limits; PRAGMA user_version=9;");
+ first.db.exec("DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; PRAGMA user_version=9;");
  first.db.close();
  const second=createApp({dbPath:file});
  assert.equal(second.db.prepare("PRAGMA user_version").get().user_version,12);
@@ -193,7 +193,7 @@ test("schema v10 catalog migration preserves existing products and supplies neut
  fresh.db.prepare("INSERT INTO catalog_products(id,slug,name,description,status,version,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)")
   .run("old-product","older-product","Existing product","Previous listing","published",4,10,11);
  // Emulate the v10 catalog layout (before metadata columns existed).
- fresh.db.exec("ALTER TABLE catalog_products DROP COLUMN category; ALTER TABLE catalog_products DROP COLUMN features_json; ALTER TABLE catalog_products DROP COLUMN requirements_json; PRAGMA user_version=10;");
+ fresh.db.exec("DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; ALTER TABLE catalog_products DROP COLUMN category; ALTER TABLE catalog_products DROP COLUMN features_json; ALTER TABLE catalog_products DROP COLUMN requirements_json; PRAGMA user_version=10;");
  fresh.db.close();
  const upgraded=createApp({dbPath:file});
  assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,12);
