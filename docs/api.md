@@ -7,7 +7,8 @@ Run `npm run dev:api` from the repository root, optionally set environment varia
 Endpoints:
 - `GET /healthz` — status; unauthenticated
 - `GET /v1/catalog` — preview catalog
-- `GET /v1/catalog/live` — published persisted catalog products only
+- `GET /v1/catalog/live` — published persisted catalog products only, including documented category/features/requirements
+- `GET /v1/catalog/live/:slug` — published-only product details, 404 for draft/archived/missing records
 - `GET /v1/catalog/pricing` — active USD plan prices for published products; no payment flow
 - `GET/POST /v1/me/test-orders` — authenticated, owner-scoped **sandbox** order list/create; idempotent retries
 - `GET /v1/admin/test-orders` — admin-only QA order queue
@@ -86,3 +87,7 @@ Registration, login (IP and normalized email), verification, password recovery, 
 - `GET /v1/admin/security` — authenticated admin-only aggregate rate-limit scope counts and preceding-24-hour successful authentication audit counts, with no bucket hashes or raw IP/email identifiers. Fields `distributedAcrossHosts:false` and `productionSecurityApproved:false` are explicit.
 
 See [security monitoring](security-monitoring.md) for limitations. This is not a distributed threat-monitoring system.
+
+## Catalog metadata (local development API, schema v11)
+
+Each product record supports `category`: `unspecified | software | hardware | cloud`, `features: string[]`, and `requirements: string[]`. Each array is limited to 10 unique entries (1–140 characters; no control characters). Unsupported values produce HTTP 422. Public records include these fields only for published products, without admin-only version or status. `PATCH /v1/admin/products/:id` retains existing metadata when an older client omits the new fields. Both creation and edits remain admin-only and audited.
