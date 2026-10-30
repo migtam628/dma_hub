@@ -38,7 +38,7 @@ function validTextList(value){
  for(const item of value){
   if(typeof item!=="string")return null;
   const line=item.trim();
-  if(line.length<1||line.length>140||/[\\x00-\\x1F\\x7F]/.test(line)||items.includes(line))return null;
+  if(line.length<1||line.length>140||Array.from(line).some(char=>char.charCodeAt(0)<32||char.charCodeAt(0)===127)||items.includes(line))return null;
   items.push(line);
  }
  return items;
