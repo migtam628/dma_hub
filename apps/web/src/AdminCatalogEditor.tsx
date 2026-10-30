@@ -7,8 +7,8 @@ import type {CatalogCategory,CatalogItem,Session} from "./api";
 
 type EditorFields=Pick<CatalogItem,"slug"|"name"|"description"|"category">&{featuresText:string;requirementsText:string};
 const empty:EditorFields={slug:"",name:"",description:"",category:"unspecified",featuresText:"",requirementsText:""};
-const fields=(p:CatalogItem):EditorFields=>({slug:p.slug,name:p.name,description:p.description,category:p.category,featuresText:p.features.join("\\n"),requirementsText:p.requirements.join("\\n")});
-function entries(text:string){return text.split(/\\r?\\n/).map(x=>x.trim()).filter(Boolean)}
+const fields=(p:CatalogItem):EditorFields=>({slug:p.slug,name:p.name,description:p.description,category:p.category,featuresText:p.features.join("\n"),requirementsText:p.requirements.join("\n")});
+function entries(text:string){return text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean)}
 function validEntries(text:string){
  const items=entries(text);
  return items.length<=10&&items.every(x=>x.length<=140&&!Array.from(x).some(ch=>ch.charCodeAt(0)<32||ch.charCodeAt(0)===127))&&new Set(items).size===items.length;
