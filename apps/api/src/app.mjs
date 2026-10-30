@@ -95,6 +95,9 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
    }
    // Public details are published-only and expose no internal status or draft records.
    const publicProductPath=pathname.match(/^\/v1\/catalog\/live\/([a-z0-9][a-z0-9-]{2,59})$/);
+   if(pathname.startsWith("/v1/catalog/live/")&&req.method==="GET"&&!publicProductPath){
+     response(res,404,{error:"not_found"});return
+   }
    if(publicProductPath&&req.method==="GET"){
      const product=db.prepare("SELECT id,slug,name,description,updated_at FROM catalog_products WHERE slug=? AND status='published'").get(publicProductPath[1]);
      if(!product){response(res,404,{error:"not_found"});return}
