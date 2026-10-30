@@ -361,3 +361,8 @@ The current release is an **unsigned development preview**. On Windows CI the in
 Every meaningful implementation milestone should be tested, committed and pushed. The CI, Pages, and release workflows provide independent validation. **A successful workflow is not the same as a production-ready release**; outstanding milestones remain tracked explicitly.
 
 **Project stage:** active alpha. Code, specifications and automated checks exist; the full platform is **not complete**.
+
+
+### Provider-neutral commerce review queue (local API, schema v12)
+
+Admin operators can open idempotent, auditable **test-only** review cases for sandbox orders, transition them with optimistic version checks, and inspect immutable case-event history. Signed-in customers can see only their own sanitized case statuses. No provider secrets, live payment processing, financial settlement, order fulfillment or license issuance is involved. The review queue is a foundation for later provider-neutral reconciliation workflows, **not** a financial ledger. See [Commerce review cases](docs/commerce-reviews.md). The public Pages site has no hosted API or review console.

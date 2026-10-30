@@ -91,3 +91,13 @@ See [security monitoring](security-monitoring.md) for limitations. This is not a
 ## Catalog metadata (local development API, schema v11)
 
 Each product record supports `category`: `unspecified | software | hardware | cloud`, `features: string[]`, and `requirements: string[]`. Each array is limited to 10 unique entries (1–140 characters; no control characters). Unsupported values produce HTTP 422. Public records include these fields only for published products, without admin-only version or status. `PATCH /v1/admin/products/:id` retains existing metadata when an older client omits the new fields. Both creation and edits remain admin-only and audited.
+
+
+## Provider-neutral sandbox commerce review cases (schema v12)
+
+- `GET /v1/me/commerce-reviews` — authenticated, owner-scoped sanitized test review statuses.
+- `GET/POST /v1/admin/commerce-reviews` — admin-only bounded queue and idempotent case creation for existing sandbox orders.
+- `GET/PATCH /v1/admin/commerce-reviews/:uuid` — admin-only immutable event history and version-checked status changes; `PATCH` requires numeric `If-Match`.
+- States are only `open`, `investigating`, `closed_unverified`, `closed_test_only`; none establishes settlement or grants access.
+
+See [commerce review workflow](commerce-reviews.md). These endpoints are local-only and **do not** implement a financial ledger or real payment processing.
