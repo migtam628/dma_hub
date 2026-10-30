@@ -10,9 +10,9 @@
 | Area | Evidence / current state | Next gate |
 |---|---|---|
 | Monorepo | `apps/web`, `apps/api`, `apps/desktop`, `packages/ui` and CI | Consistent contracts and integration testing |
-| Storefront | React preview on `https://dma.moobee.lol`; local API now serves published-only product detail records with distinct product pages | Secured hosted catalog API, real capabilities/asset metadata, plans and checkout |
+| Storefront | Published-only local API catalog with category search, documented features and requirements; concept samples remain labeled | Hosted catalog API, verified compatibility/asset metadata, plans and checkout |
 | Customer portal | Software/devices/account UI; synthetic state | Real authenticated account/entitlement data |
-| Admin portal | API-backed admin product editor, Pricing & Test Access, audit/security views; other preview areas remain synthetic | Hosted admin controls, real user and release operations |
+| Admin portal | API-backed admin editor with versioned metadata and explicit status transitions, Pricing & Test Access, audit/security views; other pages remain synthetic | Hosted admin controls, verified product metadata, real user and release operations |
 | Configuration Studio | Local editor, JSON import/export, local API profile revisions | Validation, sync trust, applied-state receipts |
 | API | Node.js/SQLite alpha with persisted auth limits, tenant-scoped profiles and read-only aggregate security monitoring | Mail-provider verification, cross-host abuse protection, TLS and independent security review |
 | Data recovery | Versioned SQLite migrations and tested manual backup/restore tools | Encrypted off-host backups, restore drills and SLOs |
@@ -85,3 +85,10 @@ Payment provider, business terms, first supported production software/hardware c
 - Replaced synthetic Admin Products page with role-gated local catalog editor including version checks and explicit status transitions.
 - Connected published-product cards to real local API detail pages with unavailable/404 states, while keeping mock products clearly separate.
 - Still no production API hosting, payments, licensing, signed downloads or device integration.
+
+### October 30 — structured catalog metadata
+
+- SQLite v11 additive catalog migration preserves existing entries with neutral `unspecified` category and empty feature/requirement lists.
+- Strict bounded admin metadata validation, versioned edits, published-only API representation, and backward-compatible older PATCH clients.
+- Public category/search filters and documented feature/requirement sections; these are unverified claims, not compatible-device certification.
+- Next: verified product assets/release mapping, secure API hosting and operational review before any paid license flow.
