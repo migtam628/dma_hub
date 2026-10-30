@@ -93,6 +93,13 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
      const rows=db.prepare("SELECT id,slug,name,description,updated_at FROM catalog_products WHERE status='published' ORDER BY name ASC LIMIT 200").all();
      response(res,200,{items:rows.map(x=>({id:x.id,slug:x.slug,name:x.name,description:x.description,updatedAt:x.updated_at}))});return
    }
+   // Public details are published-only and expose no internal status or draft records.
+   const publicProductPath=pathname.match(/^\/v1\/catalog\/live\/([a-z0-9][a-z0-9-]{2,59})$/);
+   if(publicProductPath&&req.method==="GET"){
+     const product=db.prepare("SELECT id,slug,name,description,updated_at FROM catalog_products WHERE slug=? AND status='published'").get(publicProductPath[1]);
+     if(!product){response(res,404,{error:"not_found"});return}
+     response(res,200,{id:product.id,slug:product.slug,name:product.name,description:product.description,updatedAt:product.updated_at});return
+   }
    const priced=commerce.publicRoute(pathname,req.method);
    if(priced){response(res,priced.status,priced.payload);return}
    if(pathname==="/v1/auth/capabilities"&&req.method==="GET"){
