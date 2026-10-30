@@ -87,7 +87,7 @@ test("catalog metadata is validated, versioned, published-only and preserved on 
    {...baseProduct,features:Array(11).fill("ok")},
    {...baseProduct,requirements:[9]},
    {...baseProduct,requirements:"test"},
-   {...baseProduct,features:["contains\\nnewline"]}
+   {...baseProduct,features:["contains\nnewline"]}
   ]){
    assert.equal((await call("/v1/admin/products","POST",bad,admin)).status,422);
   }
