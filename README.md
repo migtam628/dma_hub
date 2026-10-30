@@ -21,13 +21,13 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 |---|---|---|
 | Public website | ✅ Web preview | Homepage, catalog, setup guides, live GitHub Releases download center |
 | Customer workspace | 🧪 Mixed preview | Signed-in users can view API-backed entitlements and create/review **sandbox** orders; other pages remain sample data |
-| Admin workspace | 🧪 Mixed preview | Local API admin-only Pricing & Test Access, Sandbox Orders, Audit Log and aggregate Security Monitoring; other admin pages remain synthetic |
+| Admin workspace | 🧪 Mixed preview | Local API admin-only Products editor, Pricing & Test Access, Sandbox Orders, Audit Log and aggregate Security Monitoring; remaining pages are synthetic |
 | Configuration Studio | ✅ Local functionality | Edit settings, live preview, JSON import/export, browser storage |
 | API | 🧪 Local alpha | Account sessions, SQLite schema v10, durable throttling, optional email verification/recovery, profiles and backup/restore tests |
 | Cloud profiles | 🧪 Local API | Create, load, update, delete, optimistic version checks |
 | Desktop companion | 🧪 Windows scaffold | Tauri shell source, NSIS build CI, launcher and diagnostics previews; no hardware APIs |
 | Device adapters | 🧪 Read-only native serial discovery | Explicit Windows COM-port metadata scan; no port data access or device writes |
-| Persistent catalog | 🧪 API alpha | Admin-gated product records, public published-only listings, versions and audit records; storefront still uses demo catalog |
+| Persistent catalog | 🧪 Local API + UI alpha | Admin-gated product editor, published-only listing and detail pages, versions and audit records; storefront also displays labeled demo concepts |
 | Pricing & entitlements | 🧪 API alpha | USD plans, sandbox orders, expiring test grants, HMAC test events and opt-in Stripe **test-mode** Checkout for one-time orders; no live payments |
 | Payments/licensing | ⏳ Not connected | No actual checkout, subscription charges, license activation or payment webhook |
 | Public hosting | ✅ Live | `https://dma.moobee.lol` via GitHub Pages; static preview **only** |
@@ -161,6 +161,7 @@ The landing page, public **Downloads** route (`#/releases`), customer Downloads,
 Versioned releases are triggered by changes to `release/version.json` on `main` or by manual workflow dispatch.
 
 - **v0.2.0-alpha.1** — initial tested static React preview ZIP, checksum and source archive.
+- **v0.2.0-alpha.18** — real local API-backed Admin Products editor, published-only public product details, versioned edits, 404/offline UX and API tests. No live purchases, licenses or hosted backend.
 - **v0.2.0-alpha.17** — admin-only, privacy-preserving Security Monitoring dashboard with aggregate SQLite rate-limit and auth-audit metrics. No distributed threat monitoring or production security certification.
 - **v0.2.0-alpha.16** — schema v10 restart-resistant, hashed-key SQLite authentication throttling for login/registration/recovery, tests and documentation. Not cross-host distributed protection.
 - **v0.2.0-alpha.15** — schema v9 deduplicated Stripe TEST reconciliation observations, admin history and explicit read-only provider checks. No commercial settlement, real licenses or live payments.
