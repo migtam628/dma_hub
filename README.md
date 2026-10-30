@@ -197,6 +197,12 @@ For local testing, run the API (`npm run dev:api`) and Vite frontend (`npm run d
 
 This is a first storefront binding, **not** commercial checkout, product-detail administration, or a production service. The hardware page and featured landing-page products remain labeled examples.
 
+### Structured catalog metadata (local API only)
+
+The catalog now supports typed product category, bounded **documented features**, and **requirements** with SQLite v11 migration and validated role-gated admin edits. Existing database records remain intact, with no inferred device compatibility. Public catalog cards can be searched/filtered by category, and public details display the operator-entered declarations. The static Pages deployment has no connected backend.
+
+See [catalog documentation](docs/catalog.md). These descriptions do **not** establish working integrations, device certification, availability, transactions or commercial licenses.
+
 ### Catalog administration and published details (local API only)
 
 Authorized operators now use **Admin → Products** to manage API-backed catalog records (slug, name, public description, draft/published/archived status) with server-enforced admin access, explicit status confirmation and optimistic `If-Match` version checks. An admin must first sign in using an account provisioned through the local API; visitors on GitHub Pages have no remote admin backend.

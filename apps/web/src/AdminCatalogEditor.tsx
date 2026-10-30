@@ -3,11 +3,17 @@ import type {FormEvent} from "react";
 import {ArrowUpRight,RefreshCcw,Plus,Save,ShieldCheck} from "lucide-react";
 import {Button,Card,Empty,Pill} from "@dma-hub/ui";
 import {api,ApiError} from "./api";
-import type {CatalogItem,Session} from "./api";
+import type {CatalogCategory,CatalogItem,Session} from "./api";
 
-type EditorFields=Pick<CatalogItem,"slug"|"name"|"description">;
-const empty:EditorFields={slug:"",name:"",description:""};
-const fields=(p:CatalogItem):EditorFields=>({slug:p.slug,name:p.name,description:p.description});
+type EditorFields=Pick<CatalogItem,"slug"|"name"|"description"|"category">&{featuresText:string;requirementsText:string};
+const empty:EditorFields={slug:"",name:"",description:"",category:"unspecified",featuresText:"",requirementsText:""};
+const fields=(p:CatalogItem):EditorFields=>({slug:p.slug,name:p.name,description:p.description,category:p.category,featuresText:p.features.join("\n"),requirementsText:p.requirements.join("\n")});
+function entries(text:string){return text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean)}
+function validEntries(text:string){
+ const items=entries(text);
+ return items.length<=10&&items.every(x=>x.length<=140&&!Array.from(x).some(ch=>ch.charCodeAt(0)<32||ch.charCodeAt(0)===127))&&new Set(items).size===items.length;
+}
+function payload(v:EditorFields){return {slug:v.slug,name:v.name.trim(),description:v.description.trim(),category:v.category,features:entries(v.featuresText),requirements:entries(v.requirementsText)}}
 function friendly(error:unknown){
  if(error instanceof ApiError){
   if(error.status===409)return "Catalog version conflict or duplicate slug. Refresh records before trying again.";
@@ -19,7 +25,9 @@ function friendly(error:unknown){
 function valid(v:EditorFields){
  return /^[a-z0-9][a-z0-9-]{2,59}$/.test(v.slug)&&
         v.name.trim().length>=2&&v.name.trim().length<=100&&
-        v.description.length<=2000;
+        v.description.length<=2000&&
+        ["unspecified","software","hardware","cloud"].includes(v.category)&&
+        validEntries(v.featuresText)&&validEntries(v.requirementsText);
 }
 export function AdminCatalogEditor({session}:{session:Session|null}){
  const token=session?.token??"";
@@ -66,9 +74,7 @@ export function AdminCatalogEditor({session}:{session:Session|null}){
   if(!authorized||!valid(creating))return;
   setBusy(true);setNotice("");
   try{
-   const created=await api.createCatalogDraft(token,{
-    slug:creating.slug,name:creating.name.trim(),description:creating.description.trim()
-   });
+   const created=await api.createCatalogDraft(token,payload(creating));
    setCreating(empty);
    await refresh(created.id);
    setNotice("Draft created. Review and publish explicitly when ready.");
@@ -85,9 +91,7 @@ export function AdminCatalogEditor({session}:{session:Session|null}){
       !window.confirm(status==="published"?"Publish this product to the local API catalog? No sales or licenses will be enabled.":status==="archived"?"Archive this product? Its public detail page will become unavailable.":"Move this product back to draft? It will not appear in the public catalog."))return;
   setBusy(true);setNotice("");
   try{
-   const saved=await api.saveAdminProduct(token,selected,{
-    slug:editing.slug,name:editing.name.trim(),description:editing.description.trim(),status
-   });
+   const saved=await api.saveAdminProduct(token,selected,{...payload(editing),status});
    await refresh(saved.id);
    setNotice("Saved as "+status+" (version "+saved.version+"). Changes are audit-recorded by the API.");
   }catch(e){setNotice(friendly(e))}
@@ -108,7 +112,7 @@ export function AdminCatalogEditor({session}:{session:Session|null}){
       {loading?<p role="status">Loading catalog…</p>:items.length===0?<Empty title="No API records" description="Create a draft to populate the local database. Sample storefront modules are separate."/>:
        <div className="catalog-record-list" aria-label="Catalog records">
         {items.map(p=><button type="button" key={p.id} onClick={()=>choose(p.id)} className={p.id===selectedId?"catalog-record active":"catalog-record"} aria-pressed={p.id===selectedId}>
-         <span><strong>{p.name}</strong><small>/{p.slug} · v{p.version} · Updated {new Date(p.updatedAt).toLocaleString()}</small></span>
+         <span><strong>{p.name}</strong><small>/{p.slug} · {p.category} · v{p.version} · Updated {new Date(p.updatedAt).toLocaleString()}</small></span>
          <Pill tone={p.status==="published"?"positive":"warning"}>{p.status}</Pill>
         </button>)}
        </div>}
@@ -118,6 +122,11 @@ export function AdminCatalogEditor({session}:{session:Session|null}){
        <label className="field">URL slug<input required pattern="[a-z0-9][a-z0-9-]{2,59}" minLength={3} maxLength={60} value={creating.slug} onChange={e=>setCreating(v=>({...v,slug:e.target.value}))} placeholder="product-slug" /></label>
        <label className="field">Name<input required minLength={2} maxLength={100} value={creating.name} onChange={e=>setCreating(v=>({...v,name:e.target.value}))} /></label>
        <label className="field">Description<textarea maxLength={2000} rows={4} value={creating.description} onChange={e=>setCreating(v=>({...v,description:e.target.value}))} /></label>
+       <label className="field">Category<select value={creating.category} onChange={e=>setCreating(v=>({...v,category:e.target.value as CatalogCategory}))}>
+         <option value="unspecified">Not specified</option><option value="software">Software</option><option value="hardware">Hardware</option><option value="cloud">Cloud</option>
+        </select></label>
+        <label className="field">Documented features (one per line, maximum 10)<textarea rows={3} value={creating.featuresText} onChange={e=>setCreating(v=>({...v,featuresText:e.target.value}))} placeholder="Feature description"/></label>
+        <label className="field">Requirements (one per line, maximum 10)<textarea rows={3} value={creating.requirementsText} onChange={e=>setCreating(v=>({...v,requirementsText:e.target.value}))} placeholder="Operating system or documented requirement"/></label>
        <Button type="submit" disabled={busy||loading||!valid(creating)}><Plus size={15}/>Create draft</Button>
       </form>
      </Card>
@@ -134,6 +143,11 @@ export function AdminCatalogEditor({session}:{session:Session|null}){
         <label className="field">Slug<input required pattern="[a-z0-9][a-z0-9-]{2,59}" minLength={3} maxLength={60} value={editing.slug} onChange={e=>setEditing(v=>({...v,slug:e.target.value}))}/></label>
         <label className="field">Product name<input required minLength={2} maxLength={100} value={editing.name} onChange={e=>setEditing(v=>({...v,name:e.target.value}))}/></label>
         <label className="field">Public description<textarea rows={6} maxLength={2000} value={editing.description} onChange={e=>setEditing(v=>({...v,description:e.target.value}))}/></label>
+        <label className="field">Category<select value={editing.category} onChange={e=>setEditing(v=>({...v,category:e.target.value as CatalogCategory}))}>
+         <option value="unspecified">Not specified</option><option value="software">Software</option><option value="hardware">Hardware</option><option value="cloud">Cloud</option>
+        </select></label>
+        <label className="field">Documented features (one per line, maximum 10)<textarea rows={3} value={editing.featuresText} onChange={e=>setEditing(v=>({...v,featuresText:e.target.value}))} placeholder="Feature description"/></label>
+        <label className="field">Requirements (one per line, maximum 10)<textarea rows={3} value={editing.requirementsText} onChange={e=>setEditing(v=>({...v,requirementsText:e.target.value}))} placeholder="Operating system or documented requirement"/></label>
         <div className="form-actions">
          <Button type="submit" disabled={busy||loading||!valid(editing)}><Save size={15}/>Save details</Button>
          {selected.status!=="published"?<Button type="button" variant="secondary" disabled={busy||loading||!valid(editing)} onClick={()=>void mutate("published")}>Publish</Button>:<Button type="button" variant="secondary" disabled={busy||loading} onClick={()=>void mutate("draft")}>Unpublish to draft</Button>}

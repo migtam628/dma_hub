@@ -24,14 +24,38 @@ function verifyPassword(pass,encoded){if(typeof encoded!=="string"||!encoded.inc
 function publicUser(u){return {id:u.id,email:u.email,role:u.role,createdAt:u.created_at,emailVerified:u.email_verified_at!=null}}
 function validEmail(v){return typeof v==="string"&&v.length<255&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)}
 function validPassword(v){return typeof v==="string"&&v.length>=12&&v.length<=128}
-function normalizedProduct(v){
+function catalogRow(row,publicOnly=false){
+ const base={
+  id:row.id,slug:row.slug,name:row.name,description:row.description,
+  category:row.category,features:JSON.parse(row.features_json),requirements:JSON.parse(row.requirements_json),
+  updatedAt:row.updated_at
+ };
+ return publicOnly?base:{...base,status:row.status,version:row.version,createdAt:row.created_at};
+}
+function validTextList(value){
+ if(!Array.isArray(value)||value.length>10)return null;
+ const items=[];
+ for(const item of value){
+  if(typeof item!=="string")return null;
+  const line=item.trim();
+  if(line.length<1||line.length>140||Array.from(line).some(char=>char.charCodeAt(0)<32||char.charCodeAt(0)===127)||items.includes(line))return null;
+  items.push(line);
+ }
+ return items;
+}
+function normalizedProduct(v,previous=null){
  if(!v||typeof v!=="object"||Array.isArray(v))return null;
  const slug=typeof v.slug==="string"?v.slug.trim().toLowerCase():"";
  const name=typeof v.name==="string"?v.name.trim():"";
  const description=typeof v.description==="string"?v.description.trim():"";
- const status=v.status===undefined?"draft":v.status;
- if(!/^[a-z0-9][a-z0-9-]{2,59}$/.test(slug)||name.length<2||name.length>100||description.length>2000||!["draft","published","archived"].includes(status))return null;
- return {slug,name,description,status};
+ const status=v.status===undefined?(previous?.status??"draft"):v.status;
+ const category=v.category===undefined?(previous?.category??"unspecified"):v.category;
+ const features=validTextList(v.features===undefined?(previous?JSON.parse(previous.features_json):[]):v.features);
+ const requirements=validTextList(v.requirements===undefined?(previous?JSON.parse(previous.requirements_json):[]):v.requirements);
+ if(!/^[a-z0-9][a-z0-9-]{2,59}$/.test(slug)||name.length<2||name.length>100||description.length>2000||
+    !["draft","published","archived"].includes(status)||!["unspecified","software","hardware","cloud"].includes(category)||
+    features===null||requirements===null)return null;
+ return {slug,name,description,status,category,features,requirements};
 }
 function normalizedProfile(v){if(!v||typeof v!=="object"||Array.isArray(v))return null;const name=typeof v.name==="string"?v.name.trim():"";if(name.length<1||name.length>80)return null;const data=v.data;if(!data||typeof data!=="object"||Array.isArray(data))return null;const serialized=JSON.stringify(data);if(serialized.length>16000)return null;return {name,data:serialized}}
 export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:5173",clock=()=>Date.now(),sendEmail=null,requireEmailVerification=false,sandboxWebhookSecret=null,stripeTest=null}={}){
@@ -90,8 +114,8 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
    if(pathname==="/healthz"&&req.method==="GET"){response(res,200,{status:"ok",service:"dma-hub-api",database:"ready"});return}
    if(pathname==="/v1/catalog"&&req.method==="GET"){response(res,200,{items:[{id:"device-studio",name:"Device Studio",status:"preview"},{id:"profile-cloud",name:"Profile Cloud",status:"preview"},{id:"release-center",name:"Release Center",status:"preview"}]});return}
    if(pathname==="/v1/catalog/live"&&req.method==="GET"){
-     const rows=db.prepare("SELECT id,slug,name,description,updated_at FROM catalog_products WHERE status='published' ORDER BY name ASC LIMIT 200").all();
-     response(res,200,{items:rows.map(x=>({id:x.id,slug:x.slug,name:x.name,description:x.description,updatedAt:x.updated_at}))});return
+     const rows=db.prepare("SELECT * FROM catalog_products WHERE status='published' ORDER BY name ASC LIMIT 200").all();
+     response(res,200,{items:rows.map(row=>catalogRow(row,true))});return
    }
    // Public details are published-only and expose no internal status or draft records.
    const publicProductPath=pathname.match(/^\/v1\/catalog\/live\/([a-z0-9][a-z0-9-]{2,59})$/);
@@ -99,9 +123,9 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
      response(res,404,{error:"not_found"});return
    }
    if(publicProductPath&&req.method==="GET"){
-     const product=db.prepare("SELECT id,slug,name,description,updated_at FROM catalog_products WHERE slug=? AND status='published'").get(publicProductPath[1]);
+     const product=db.prepare("SELECT * FROM catalog_products WHERE slug=? AND status='published'").get(publicProductPath[1]);
      if(!product){response(res,404,{error:"not_found"});return}
-     response(res,200,{id:product.id,slug:product.slug,name:product.name,description:product.description,updatedAt:product.updated_at});return
+     response(res,200,catalogRow(product,true));return
    }
    const priced=commerce.publicRoute(pathname,req.method);
    if(priced){response(res,priced.status,priced.payload);return}
@@ -265,16 +289,16 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
     if(pathname==="/v1/admin/products"&&(req.method==="GET"||req.method==="POST")){
       if(u.role!=="admin"){response(res,403,{error:"forbidden"});return}
       if(req.method==="GET"){
-        const products=db.prepare("SELECT id,slug,name,description,status,version,created_at,updated_at FROM catalog_products ORDER BY updated_at DESC LIMIT 200").all();
-        response(res,200,{items:products.map(p=>({id:p.id,slug:p.slug,name:p.name,description:p.description,status:p.status,version:p.version,createdAt:p.created_at,updatedAt:p.updated_at}))});return
+        const products=db.prepare("SELECT * FROM catalog_products ORDER BY updated_at DESC LIMIT 200").all();
+        response(res,200,{items:products.map(row=>catalogRow(row))});return
       }
       const product=normalizedProduct(await jsonBody(req));
       if(!product){response(res,422,{error:"invalid_product"});return}
       const id=randomUUID(),now=clock();
       try{
         db.exec("BEGIN IMMEDIATE");
-        db.prepare("INSERT INTO catalog_products(id,slug,name,description,status,version,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)")
-          .run(id,product.slug,product.name,product.description,product.status,1,now,now);
+        db.prepare("INSERT INTO catalog_products(id,slug,name,description,status,category,features_json,requirements_json,version,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)")
+          .run(id,product.slug,product.name,product.description,product.status,product.category,JSON.stringify(product.features),JSON.stringify(product.requirements),1,now,now);
         audit(u.id,"catalog.product_created",id);db.exec("COMMIT");
       }catch(error){
         if(db.isTransaction)db.exec("ROLLBACK");
@@ -289,16 +313,16 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
       const id=adminProductPath[1];
       const existing=db.prepare("SELECT * FROM catalog_products WHERE id=?").get(id);
       if(!existing){response(res,404,{error:"not_found"});return}
-      if(req.method==="GET"){response(res,200,{id,slug:existing.slug,name:existing.name,description:existing.description,status:existing.status,version:existing.version,createdAt:existing.created_at,updatedAt:existing.updated_at});return}
+      if(req.method==="GET"){response(res,200,catalogRow(existing));return}
       const version=Number(req.headers["if-match"]);
       if(!Number.isInteger(version)||version<1){response(res,428,{error:"version_required"});return}
-      const product=normalizedProduct(await jsonBody(req));
+      const product=normalizedProduct(await jsonBody(req),existing);
       if(!product){response(res,422,{error:"invalid_product"});return}
       const now=clock();
       try{
         db.exec("BEGIN IMMEDIATE");
-        const updated=db.prepare("UPDATE catalog_products SET slug=?,name=?,description=?,status=?,version=version+1,updated_at=? WHERE id=? AND version=?")
-          .run(product.slug,product.name,product.description,product.status,now,id,version);
+        const updated=db.prepare("UPDATE catalog_products SET slug=?,name=?,description=?,status=?,category=?,features_json=?,requirements_json=?,version=version+1,updated_at=? WHERE id=? AND version=?")
+          .run(product.slug,product.name,product.description,product.status,product.category,JSON.stringify(product.features),JSON.stringify(product.requirements),now,id,version);
         if(!updated.changes){db.exec("ROLLBACK");response(res,409,{error:"version_conflict"});return}
         audit(u.id,"catalog.product_updated",id);
         db.exec("COMMIT");

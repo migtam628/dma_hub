@@ -26,3 +26,10 @@
 .admin-catalog-editor .field textarea{background:#0a1726;color:#e9f4fd;border:1px solid #375268;border-radius:8px;padding:12px;width:100%;resize:vertical;outline:0;font:inherit}
 .admin-catalog-editor .field textarea:focus{border-color:#25c2d7}
 @media(max-width:650px){.catalog-record{align-items:flex-start}.catalog-editor-meta .text-link{margin-left:0}}
+
+/* Structured published catalog metadata */
+.catalog-filter-label{min-width:min(290px,100%);flex:1}
+.catalog-feature-list,.catalog-detail-list{margin:12px 0;padding-left:20px;color:#c0d8e6;line-height:1.7;font-size:12px}
+.catalog-feature-list li,.catalog-detail-list li{padding:2px 0;overflow-wrap:anywhere}
+.catalog-detail-section{padding:18px 0;border-top:1px solid #294358;margin-top:20px}
+.catalog-detail-section h3{font-size:15px;margin:0 0 10px}
