@@ -23,13 +23,13 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 | Customer workspace | 🧪 Mixed preview | Signed-in users can view API-backed entitlements and create/review **sandbox** orders; other pages remain sample data |
 | Admin workspace | 🧪 Mixed preview | Local API admin-only Products editor, Pricing & Test Access, Sandbox Orders, Audit Log and aggregate Security Monitoring; remaining pages are synthetic |
 | Configuration Studio | ✅ Local functionality | Edit settings, live preview, JSON import/export, browser storage |
-| API | 🧪 Local alpha | Account sessions, SQLite schema v10, durable throttling, optional email verification/recovery, profiles and backup/restore tests |
+| API | 🧪 Local alpha | Account sessions, SQLite schema v12, durable throttling, optional email verification/recovery, profiles and backup/restore tests |
 | Cloud profiles | 🧪 Local API | Create, load, update, delete, optimistic version checks |
 | Desktop companion | 🧪 Windows scaffold | Tauri shell source, NSIS build CI, launcher and diagnostics previews; no hardware APIs |
 | Device adapters | 🧪 Read-only native serial discovery | Explicit Windows COM-port metadata scan; no port data access or device writes |
 | Persistent catalog | 🧪 Local API + UI alpha | Admin-gated versioned product editor, category/features/requirements metadata, published-only searchable catalog/detail pages, and audit records; storefront also labels demo concepts |
-| Pricing & entitlements | 🧪 API alpha | USD plans, sandbox orders, expiring test grants, HMAC test events and opt-in Stripe **test-mode** Checkout for one-time orders; no live payments |
-| Payments/licensing | ⏳ Not connected | No actual checkout, subscription charges, license activation or payment webhook |
+| Pricing & entitlements | 🧪 API alpha | USD plans, sandbox orders, expiring test grants, opt-in Stripe **test-mode** Checkout, and v12 admin/customer review APIs; no live payments |
+| Payments/licensing | 🧪 Test-only integration | Opt-in Stripe TEST Checkout, signed test webhook observations and manual reconciliation reviews; no live charges, settlement or commercial licensing |
 | Public hosting | ✅ Live | `https://dma.moobee.lol` via GitHub Pages; static preview **only** |
 
 ### Screens

@@ -44,7 +44,7 @@ tests/                 Repository validation
 | G0 — Completed | Concept 3 approved, design batches, web/desktop foundation and CI | Code and tests present, alpha release |
 | G1 — In progress | Backend identity and recoverability | SQLite v10 auth throttling and role-protected aggregate monitoring, plus migrations/backups and optional email recovery; distributed controls and security review outstanding |
 | G2 — In progress | Catalog, pricing and entitlement domain | Public published-only catalog detail + admin editor, immutable price records and manual expiring test entitlements exist; hosted backend, signed licensing and activation pending |
-| G3 — In progress | Commerce | Validated Stripe TEST provider reads and durable deduplicated **test observations** now implemented; financial ledger, actual settlement reconciliation, refunds, subscriptions, and paid licensing remain unfinished |
+| G3 — In progress | Commerce | Validated Stripe TEST provider reads, durable deduplicated **test observations**, and v12 admin/customer sandbox review cases now implemented; financial ledger, actual settlement reconciliation, refunds, subscriptions, and paid licensing remain unfinished |
 | G4 | Windows trust | Signed installers, signed update manifest, rollback and install/uninstall QA |
 | G5 | Authorized device integration | One supported model, consent, read-only diagnostics and device test evidence |
 | G6 — In progress | Operations | Role-restricted read-only audit explorer exists; ticketing, incident controls, centralized retention and signed reports remain open |
