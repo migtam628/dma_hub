@@ -23,9 +23,11 @@ test("admin catalog is versioned and audit-tracked, public listing excludes draf
   assert.equal((await call("/v1/admin/products","GET",undefined,customer)).status,403);
   assert.equal((await call("/v1/admin/products","POST",{slug:"test-product",name:"Test product"},customer)).status,403);
   assert.equal((await call("/v1/catalog/live")).body.items.length,0);
+  assert.equal((await call("/v1/catalog/live/first-product")).status,404);
   const draft=await call("/v1/admin/products","POST",{slug:"first-product",name:"First product",description:"Original",status:"draft"},admin);
   assert.equal(draft.status,201);
   assert.equal((await call("/v1/catalog/live")).body.items.length,0);
+  assert.equal((await call("/v1/catalog/live/first-product")).status,404,"draft detail is inaccessible");
   assert.equal((await call("/v1/admin/products","GET",undefined,admin)).body.items.length,1);
   assert.equal((await call("/v1/admin/products","POST",{slug:"first-product",name:"Duplicate"},admin)).status,409);
   assert.equal((await call("/v1/admin/products","POST",{slug:"INVALID URL!",name:"Wrong"},admin)).status,422);
@@ -39,10 +41,20 @@ test("admin catalog is versioned and audit-tracked, public listing excludes draf
    {slug:"first-product",name:"First product",description:"Public"}
   ]);
   assert.equal("status" in publicListing.body.items[0],false,"public listing omits internal product status");
+  const publicDetail=await call("/v1/catalog/live/first-product");
+  assert.equal(publicDetail.status,200);
+  assert.deepEqual(publicDetail.body,publicListing.body.items[0],"public details match listing fields");
+  assert.equal("status" in publicDetail.body,false);
+  assert.equal("version" in publicDetail.body,false);
+  assert.equal((await call("/v1/catalog/live/not-a-product")).status,404);
+  assert.equal((await call("/v1/catalog/live/INVALID-SLUG")).status,404);
+  assert.equal((await call("/v1/catalog/live/first-product","PATCH",{},customer)).status,404);
+
   assert.equal((await call("/v1/admin/products/"+draft.body.id,"PATCH",{slug:"first-product",name:"Old"},admin,1)).status,409);
   const archived=await call("/v1/admin/products/"+draft.body.id,"PATCH",{slug:"first-product",name:"First product",description:"",status:"archived"},admin,2);
   assert.equal(archived.status,200);
   assert.equal((await call("/v1/catalog/live")).body.items.length,0);
+  assert.equal((await call("/v1/catalog/live/first-product")).status,404,"archived detail must not be visible");
   const audits=app.db.prepare("SELECT action FROM audit WHERE action LIKE 'catalog.%'").all().map(x=>x.action);
   assert.deepEqual(audits,["catalog.product_created","catalog.product_updated","catalog.product_updated"]);
  }finally{await app.close()}
