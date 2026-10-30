@@ -11,3 +11,18 @@
 .live-catalog-heading h2 { margin: .35rem 0 .5rem; }
 .live-catalog-section .product-copy { min-height: 180px; }
 .live-catalog-section .callout { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+
+/* Database-backed catalog editor and published-only product details. */
+.catalog-record-list{display:flex;flex-direction:column;gap:6px;max-height:490px;overflow-y:auto}
+.catalog-record{background:#0a1a2a;border:1px solid #25455a;border-radius:10px;padding:13px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:inherit;text-align:left;cursor:pointer;width:100%}
+.catalog-record:hover,.catalog-record.active{border-color:#25c2d7;background:#14344a}
+.catalog-record span{display:flex;flex-direction:column;min-width:0;gap:6px}
+.catalog-record strong{font-size:13px;overflow-wrap:anywhere}
+.catalog-record small{font-size:11px;color:#8daabc;overflow-wrap:anywhere}
+.catalog-editor-meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:12px;color:#9ab1c3}
+.catalog-editor-meta .text-link{margin-left:auto}
+.catalog-detail-visual{display:grid;place-items:center;min-height:200px;margin:0 0 22px;border-radius:12px;border:1px solid #25556b;background:radial-gradient(circle at 50% 50%,#15445b,#081725 75%);color:#25c2d7;font-size:100px}
+.catalog-detail-description{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.75}
+.admin-catalog-editor .field textarea{background:#0a1726;color:#e9f4fd;border:1px solid #375268;border-radius:8px;padding:12px;width:100%;resize:vertical;outline:0;font:inherit}
+.admin-catalog-editor .field textarea:focus{border-color:#25c2d7}
+@media(max-width:650px){.catalog-record{align-items:flex-start}.catalog-editor-meta .text-link{margin-left:0}}

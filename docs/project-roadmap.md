@@ -10,9 +10,9 @@
 | Area | Evidence / current state | Next gate |
 |---|---|---|
 | Monorepo | `apps/web`, `apps/api`, `apps/desktop`, `packages/ui` and CI | Consistent contracts and integration testing |
-| Storefront | React preview on `https://dma.moobee.lol`; local frontend can show API-published records separately from demo fixtures | Hosted catalog API, real product details, plans and checkout |
+| Storefront | React preview on `https://dma.moobee.lol`; local API now serves published-only product detail records with distinct product pages | Secured hosted catalog API, real capabilities/asset metadata, plans and checkout |
 | Customer portal | Software/devices/account UI; synthetic state | Real authenticated account/entitlement data |
-| Admin portal | Synthetic users, products, releases | Server-enforced roles and operational workflows |
+| Admin portal | API-backed admin product editor, Pricing & Test Access, audit/security views; other preview areas remain synthetic | Hosted admin controls, real user and release operations |
 | Configuration Studio | Local editor, JSON import/export, local API profile revisions | Validation, sync trust, applied-state receipts |
 | API | Node.js/SQLite alpha with persisted auth limits, tenant-scoped profiles and read-only aggregate security monitoring | Mail-provider verification, cross-host abuse protection, TLS and independent security review |
 | Data recovery | Versioned SQLite migrations and tested manual backup/restore tools | Encrypted off-host backups, restore drills and SLOs |
@@ -43,7 +43,7 @@ tests/                 Repository validation
 |---|---|---|
 | G0 — Completed | Concept 3 approved, design batches, web/desktop foundation and CI | Code and tests present, alpha release |
 | G1 — In progress | Backend identity and recoverability | SQLite v10 auth throttling and role-protected aggregate monitoring, plus migrations/backups and optional email recovery; distributed controls and security review outstanding |
-| G2 — In progress | Catalog, pricing and entitlement domain | Published product API, immutable plan price records and manually granted expiring test entitlements exist; licensing/activation and customer UI pending |
+| G2 — In progress | Catalog, pricing and entitlement domain | Public published-only catalog detail + admin editor, immutable price records and manual expiring test entitlements exist; hosted backend, signed licensing and activation pending |
 | G3 — In progress | Commerce | Validated Stripe TEST provider reads and durable deduplicated **test observations** now implemented; financial ledger, actual settlement reconciliation, refunds, subscriptions, and paid licensing remain unfinished |
 | G4 | Windows trust | Signed installers, signed update manifest, rollback and install/uninstall QA |
 | G5 | Authorized device integration | One supported model, consent, read-only diagnostics and device test evidence |
@@ -78,3 +78,10 @@ Payment provider, business terms, first supported production software/hardware c
 - Added an admin-only explicit Stripe TEST Session retrieval and strict account/order/amount/mode matching, plus audit record and regression tests.
 - No test payment is treated as settled; no order state, entitlement, or license changes occur during lookup.
 - Next: genuine provider TEST account QA, a provider-neutral durable reconciliation ledger with retries/refunds/disputes, and independent commercial approval before any paid fulfillment.
+
+### October 29 — API product details and distinct admin editor
+
+- Added public read-only product lookup restricted to published slugs and regression tests for draft/archived privacy.
+- Replaced synthetic Admin Products page with role-gated local catalog editor including version checks and explicit status transitions.
+- Connected published-product cards to real local API detail pages with unavailable/404 states, while keeping mock products clearly separate.
+- Still no production API hosting, payments, licensing, signed downloads or device integration.

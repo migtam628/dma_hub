@@ -53,7 +53,10 @@ export function LiveCatalog(){
      <div className="product-meta"><span>API catalog record</span><Pill tone="positive">Published</Pill></div>
      <h3>{item.name}</h3>
      <p>{item.description||"No public description has been provided."}</p>
-     <div className="product-footer"><span className="muted">No checkout, download or activation linked</span></div>
+     <div className="product-footer">
+      <a className="text-link" href={"#/catalog/"+item.slug}>View details</a>
+      <span className="muted">No checkout or activation</span>
+     </div>
     </div>
    </article>)}
   </div>:null}

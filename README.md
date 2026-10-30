@@ -196,6 +196,14 @@ For local testing, run the API (`npm run dev:api`) and Vite frontend (`npm run d
 
 This is a first storefront binding, **not** commercial checkout, product-detail administration, or a production service. The hardware page and featured landing-page products remain labeled examples.
 
+### Catalog administration and published details (local API only)
+
+Authorized operators now use **Admin → Products** to manage API-backed catalog records (slug, name, public description, draft/published/archived status) with server-enforced admin access, explicit status confirmation and optimistic `If-Match` version checks. An admin must first sign in using an account provisioned through the local API; visitors on GitHub Pages have no remote admin backend.
+
+Published API product cards on **Products** link to public `#/catalog/:slug` detail pages, which read `GET /v1/catalog/live/:slug`. Draft, archived and missing products return `404` and no internal metadata is exposed. If the API is unreachable, the web UI reports that rather than substituting fictional product data. Existing Concept 3 product cards remain marked demo examples.
+
+**No purchase, real license, verified download, or hardware integration is enabled by publishing a product.** More details: [Catalog API and UI](docs/catalog.md).
+
 ### My Software — real test-access view
 
 When signed in through the **local API**, My Software fetches only the authenticated user's entitlements from `GET /v1/me/entitlements` and clearly labels each as a **manual test grant** (active, scheduled, expired, revoked or unavailable). Loading and network failure states never imply access. Logged-out views remain a labeled design preview.
