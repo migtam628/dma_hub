@@ -1,26 +1,25 @@
-# DMA Hub v0.2.0-alpha.17
+# DMA Hub v0.2.0-alpha.18
 
-**Security-operations development alpha. API remains local-only, Stripe remains test-only, and Windows remains unsigned.**
+**Catalog UI development alpha. Local API only; no live commerce or production backend. Windows installer remains unsigned.**
 
-## New in alpha.17
+## New in alpha.18
 
-- Admin-only `GET /v1/admin/security` returns aggregate authentication throttle activity from the local SQLite database, never individual account, email, IP address, or hashed bucket identifiers.
-- New **Admin → Security Monitoring** React dashboard shows active rate windows, rejected requests, blocked buckets, policy thresholds, and previous-24-hour successful authentication audit counts.
-- Rate-limit enforcement and security reporting use one shared `RATE_LIMIT_POLICIES` definition, avoiding threshold drift.
-- Privacy, RBAC, expiry, bucket-count, and threshold-consistency regression tests.
-- Clear API signals `distributedAcrossHosts:false`, `productionSecurityApproved:false`; the dashboard makes no claim of attack attribution or public-internet readiness.
-- README, API reference, rate-limiting guide, operations documentation, roadmap, and issue #2 updated.
+- **Admin → Products** now operates on persistent catalog data for authorized local API administrators, replacing the synthetic product table.
+- Create draft products, edit names/slugs/descriptions, and publish, unpublish or archive records using optimistic version checks and explicit confirmations.
+- Published-only API details at `GET /v1/catalog/live/:slug`; draft, archived, nonexistent and invalid slugs return 404 and expose no internal product status or version.
+- Public Products screen links API-backed published records to `#/catalog/:slug` detail views with loading, unavailable and 404 states.
+- API regression coverage for published/detail agreement, draft/archive exclusion and read-only behavior; updated catalog documentation, README and engineering roadmap.
 
 ## Existing foundation
 
-React/Tailwind storefront/admin preview, Node/SQLite v10 accounts, verification/recovery support with optional mail provider, persisted local throttling, product catalog and test pricing, sandbox orders and manual test entitlements, optional Stripe TEST Checkout/reconciliation observations, Tauri Windows preview and static GitHub Pages site.
+Previously released **v0.2.0-alpha.17**: privacy-preserving local admin Security Monitoring dashboard and persistent SQLite rate-limit controls. Also includes Concept 3 website, account/session API, pricing and manual test-access foundation, Stripe TEST Checkout/reconciliation observations, cloud profile API, GitHub Pages site and an unsigned Tauri Windows companion.
 
 ## Distribution
 
-Web preview ZIP and SHA-256 manifest. An unsigned Windows NSIS preview and corresponding SHA-256 manifest are attached only after Windows build and asset verification complete.
+GitHub Releases provides a tested static web preview ZIP and SHA-256 manifest. An **unsigned** Windows NSIS preview installer with checksum is uploaded only after Windows build and verification pass. Always verify checksums and treat these artifacts as development previews.
 
 ## Incomplete production gates
 
-No shared cross-host rate limiting, incident alerting/SIEM, tested live transactional email provider, security assessment, commercial billing, financial settlement reconciliation, paid license enforcement, publisher-signed installer, secure updater, or physical-device certification.
+No hosted production API, signed installer, verified paid license, actual financial settlement or subscription flow, secure updater, tested device adapter, independent security assessment, cross-host abuse detection, or commercial support guarantees.
 
-**Do not expose the local API to the public internet or interpret this monitoring dashboard as a production security control.**
+**Do not expose the SQLite development API to the public internet. Publishing catalog metadata does not make software purchasable or activate any license.**
