@@ -1,6 +1,6 @@
 import {DatabaseSync} from "node:sqlite";
 
-export const SCHEMA_VERSION=10;
+export const SCHEMA_VERSION=11;
 
 const BASE_SCHEMA=`CREATE TABLE IF NOT EXISTS users(
  id TEXT PRIMARY KEY,
@@ -274,6 +274,18 @@ export function migrateDatabase(db){
    version=10;
   }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
  }
+ if(version===10){
+  db.exec("BEGIN IMMEDIATE");
+  try{
+   // Additive migration also tolerates older test fixtures rebuilt from a newer file.
+   const existing=new Set(db.prepare("PRAGMA table_info(catalog_products)").all().map(c=>c.name));
+   if(!existing.has("category"))db.exec("ALTER TABLE catalog_products ADD COLUMN category TEXT NOT NULL DEFAULT 'unspecified' CHECK(category IN ('unspecified','software','hardware','cloud'))");
+   if(!existing.has("features_json"))db.exec("ALTER TABLE catalog_products ADD COLUMN features_json TEXT NOT NULL DEFAULT '[]'");
+   if(!existing.has("requirements_json"))db.exec("ALTER TABLE catalog_products ADD COLUMN requirements_json TEXT NOT NULL DEFAULT '[]'");
+   db.exec("PRAGMA user_version=11; COMMIT;");
+   version=11;
+  }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
+ }
  requiredColumns(db,"auth_rate_limits",["scope","key_hash","window_start","attempt_count","expires_at"]);
  requiredColumns(db,"stripe_test_reconciliation_checks",
   ["id","checkout_id","fingerprint","provider_session_status","provider_payment_status",
@@ -284,7 +296,7 @@ export function migrateDatabase(db){
  requiredColumns(db,"sandbox_orders",["id","user_id","product_id","plan_id","idempotency_key","amount_minor","currency","billing_period","state","entitlement_id","fulfilled_by","created_at","updated_at","fulfilled_at"]);
  requiredColumns(db,"pricing_plans",["id","product_id","code","name","amount_minor","currency","billing_period","status","version","created_at","updated_at"]);
  requiredColumns(db,"entitlements",["id","user_id","product_id","plan_id","source","state","starts_at","expires_at","revoked_at","granted_by","revoked_by","created_at","updated_at"]);
- requiredColumns(db,"catalog_products",["id","slug","name","description","status","version","created_at","updated_at"]);
+ requiredColumns(db,"catalog_products",["id","slug","name","description","status","version","created_at","updated_at","category","features_json","requirements_json"]);
  requiredColumns(db,"users",["id","email","password_hash","role","created_at","disabled_at","email_verified_at"]);
  requiredColumns(db,"auth_tokens",["token_hash","user_id","purpose","created_at","expires_at"]);
  requiredColumns(db,"sessions",["token_hash","user_id","expires_at","created_at"]);
