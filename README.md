@@ -27,7 +27,7 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 | Cloud profiles | 🧪 Local API | Create, load, update, delete, optimistic version checks |
 | Desktop companion | 🧪 Windows scaffold | Tauri shell source, NSIS build CI, launcher and diagnostics previews; no hardware APIs |
 | Device adapters | 🧪 Read-only native serial discovery | Explicit Windows COM-port metadata scan; no port data access or device writes |
-| Persistent catalog | 🧪 Local API + UI alpha | Admin-gated product editor, published-only listing and detail pages, versions and audit records; storefront also displays labeled demo concepts |
+| Persistent catalog | 🧪 Local API + UI alpha | Admin-gated versioned product editor, category/features/requirements metadata, published-only searchable catalog/detail pages, and audit records; storefront also labels demo concepts |
 | Pricing & entitlements | 🧪 API alpha | USD plans, sandbox orders, expiring test grants, HMAC test events and opt-in Stripe **test-mode** Checkout for one-time orders; no live payments |
 | Payments/licensing | ⏳ Not connected | No actual checkout, subscription charges, license activation or payment webhook |
 | Public hosting | ✅ Live | `https://dma.moobee.lol` via GitHub Pages; static preview **only** |
@@ -161,6 +161,7 @@ The landing page, public **Downloads** route (`#/releases`), customer Downloads,
 Versioned releases are triggered by changes to `release/version.json` on `main` or by manual workflow dispatch.
 
 - **v0.2.0-alpha.1** — initial tested static React preview ZIP, checksum and source archive.
+- **v0.2.0-alpha.19** — SQLite v11 structured product category/features/requirements, bounded admin validation, public catalog filters and documented detail sections; still local-API-only and unsigned.
 - **v0.2.0-alpha.18** — real local API-backed Admin Products editor, published-only public product details, versioned edits, 404/offline UX and API tests. No live purchases, licenses or hosted backend.
 - **v0.2.0-alpha.17** — admin-only, privacy-preserving Security Monitoring dashboard with aggregate SQLite rate-limit and auth-audit metrics. No distributed threat monitoring or production security certification.
 - **v0.2.0-alpha.16** — schema v10 restart-resistant, hashed-key SQLite authentication throttling for login/registration/recovery, tests and documentation. Not cross-host distributed protection.
