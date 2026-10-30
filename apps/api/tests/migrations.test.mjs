@@ -198,7 +198,7 @@ test("schema v10 catalog migration preserves existing products and supplies neut
  const upgraded=createApp({dbPath:file});
  assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,11);
  const product=upgraded.db.prepare("SELECT slug,description,version,category,features_json,requirements_json FROM catalog_products WHERE id='old-product'").get();
- assert.deepEqual(product,{slug:"older-product",description:"Previous listing",version:4,category:"unspecified",features_json:"[]",requirements_json:"[]"});
+ assert.deepEqual({...product},{slug:"older-product",description:"Previous listing",version:4,category:"unspecified",features_json:"[]",requirements_json:"[]"});
  assert.equal(upgraded.db.prepare("PRAGMA foreign_key_check").all().length,0);
  upgraded.db.close();
  const repeat=createApp({dbPath:file});
