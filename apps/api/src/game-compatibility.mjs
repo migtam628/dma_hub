@@ -24,7 +24,7 @@ function transaction(db,work){
 const publicRow=x=>({
  id:x.id,productId:x.product_id,productSlug:x.slug,productName:x.name,
  gameId:x.game_id,gameBuild:x.game_build,platform:x.platform,hardware:x.hardware,
- evidenceRef:x.evidence_ref,reviewedAt:x.reviewed_at,status:"operator_reviewed"
+ evidenceOnFile:!!x.evidence_ref,reviewedAt:x.reviewed_at,status:"operator_reviewed"
 });
 const adminRow=x=>({
  id:x.id,productId:x.product_id,productName:x.name,productSlug:x.slug,
