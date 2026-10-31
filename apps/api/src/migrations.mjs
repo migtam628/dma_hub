@@ -1,6 +1,6 @@
 import {DatabaseSync} from "node:sqlite";
 
-export const SCHEMA_VERSION=12;
+export const SCHEMA_VERSION=13;
 
 const BASE_SCHEMA=`CREATE TABLE IF NOT EXISTS users(
  id TEXT PRIMARY KEY,
@@ -320,6 +320,15 @@ export function migrateDatabase(db){
    version=12;
   }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
  }
+ if(version===12){
+  db.exec("BEGIN IMMEDIATE");
+  try{
+   const columns=new Set(db.prepare("PRAGMA table_info(catalog_products)").all().map(c=>c.name));
+   if(!columns.has("game_ids_json"))db.exec("ALTER TABLE catalog_products ADD COLUMN game_ids_json TEXT NOT NULL DEFAULT '[]'");
+   db.exec("PRAGMA user_version=13; COMMIT;");
+   version=13;
+  }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
+ }
  requiredColumns(db,"commerce_review_cases",["id","order_id","idempotency_key","provider","reason","state","version","opened_by","created_at","updated_at"]);
  requiredColumns(db,"commerce_review_events",["id","case_id","version","from_state","to_state","actor_id","created_at"]);
  requiredColumns(db,"auth_rate_limits",["scope","key_hash","window_start","attempt_count","expires_at"]);
@@ -332,7 +341,7 @@ export function migrateDatabase(db){
  requiredColumns(db,"sandbox_orders",["id","user_id","product_id","plan_id","idempotency_key","amount_minor","currency","billing_period","state","entitlement_id","fulfilled_by","created_at","updated_at","fulfilled_at"]);
  requiredColumns(db,"pricing_plans",["id","product_id","code","name","amount_minor","currency","billing_period","status","version","created_at","updated_at"]);
  requiredColumns(db,"entitlements",["id","user_id","product_id","plan_id","source","state","starts_at","expires_at","revoked_at","granted_by","revoked_by","created_at","updated_at"]);
- requiredColumns(db,"catalog_products",["id","slug","name","description","status","version","created_at","updated_at","category","features_json","requirements_json"]);
+ requiredColumns(db,"catalog_products",["id","slug","name","description","status","version","created_at","updated_at","category","features_json","requirements_json","game_ids_json"]);
  requiredColumns(db,"users",["id","email","password_hash","role","created_at","disabled_at","email_verified_at"]);
  requiredColumns(db,"auth_tokens",["token_hash","user_id","purpose","created_at","expires_at"]);
  requiredColumns(db,"sessions",["token_hash","user_id","expires_at","created_at"]);

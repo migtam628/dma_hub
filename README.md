@@ -9,7 +9,7 @@
 
 > **Status: public alpha / active development.** The web UI runs with sample data. The local API supports accounts and versioned profile storage, but is **not yet production hardened**. There is **no signed Windows executable, live billing, working license service, or hardware control** in the published alpha. A Tauri desktop build workflow exists on `main`, but Windows installers are **unsigned preview artifacts** until verified and signed. Demo screens are not proof of connected services.
 
-**[Live site — dma.moobee.lol](https://dma.moobee.lol/)** · **[Downloads](https://dma.moobee.lol/#/releases)** · **[Releases](https://github.com/migtam628/dma_hub/releases)** · **[Actions](https://github.com/migtam628/dma_hub/actions)** · **[Roadmap](docs/project-roadmap.md)**
+**[DMA Cheats for Games](https://dma.moobee.lol/#/games)** · **[Live site — dma.moobee.lol](https://dma.moobee.lol/)** · **[Downloads](https://dma.moobee.lol/#/releases)** · **[Releases](https://github.com/migtam628/dma_hub/releases)** · **[Actions](https://github.com/migtam628/dma_hub/actions)** · **[Roadmap](docs/project-roadmap.md)**
 
 **Hosting:** GitHub Pages is live with the GoDaddy-managed custom domain `dma.moobee.lol` and Enforce HTTPS. Frontend changes deploy automatically after a successful Pages workflow.
 
@@ -197,6 +197,12 @@ On the public Products screen, DMA Hub now attempts a **read-only** `GET /v1/cat
 For local testing, run the API (`npm run dev:api`) and Vite frontend (`npm run dev`) using the configured local CORS origin. If the API cannot be reached, the Products screen explicitly reports that and keeps the design examples labeled as samples. The public GitHub Pages deployment has **no hosted API**, so it cannot display real records until a separately secured API is deployed.
 
 This is a first storefront binding, **not** commercial checkout, product-detail administration, or a production service. The hardware page and featured landing-page products remain labeled examples.
+
+### DMA Cheats for Games — first implemented milestone
+
+DMA Hub now includes **`#/games`** and dedicated **`#/games/:gameId`** pages for game-first software discovery. Ten game titles are listed as **planning categories**, never as claims of available cheats. Admin Products can associate reviewed software entries with game IDs, and only published local API catalog records appear in game listings. Existing products receive empty game associations through an additive SQLite v13 migration; older admin clients do not erase those associations.
+
+The GitHub Pages site is static and cannot verify or serve real local API products. No game-specific DMA cheat executables, device disguise, anti-cheat bypass, license fulfillment or paid checkout has been implemented by this feature. Full details: [Gaming DMA Cheats product architecture and release gates](docs/games-dma-cheats.md).
 
 ### Structured catalog metadata (local API only)
 

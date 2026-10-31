@@ -4,16 +4,17 @@ import {ArrowUpRight,RefreshCcw,Plus,Save,ShieldCheck} from "lucide-react";
 import {Button,Card,Empty,Pill} from "@dma-hub/ui";
 import {api,ApiError} from "./api";
 import type {CatalogCategory,CatalogItem,Session} from "./api";
+import {GAME_CATALOG} from "./gameCatalog";
 
-type EditorFields=Pick<CatalogItem,"slug"|"name"|"description"|"category">&{featuresText:string;requirementsText:string};
-const empty:EditorFields={slug:"",name:"",description:"",category:"unspecified",featuresText:"",requirementsText:""};
-const fields=(p:CatalogItem):EditorFields=>({slug:p.slug,name:p.name,description:p.description,category:p.category,featuresText:p.features.join("\n"),requirementsText:p.requirements.join("\n")});
+type EditorFields=Pick<CatalogItem,"slug"|"name"|"description"|"category">&{featuresText:string;requirementsText:string;gameIds:string[]};
+const empty:EditorFields={slug:"",name:"",description:"",category:"unspecified",featuresText:"",requirementsText:"",gameIds:[]};
+const fields=(p:CatalogItem):EditorFields=>({slug:p.slug,name:p.name,description:p.description,category:p.category,featuresText:p.features.join("\n"),requirementsText:p.requirements.join("\n"),gameIds:p.gameIds});
 function entries(text:string){return text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean)}
 function validEntries(text:string){
  const items=entries(text);
  return items.length<=10&&items.every(x=>x.length<=140&&!Array.from(x).some(ch=>ch.charCodeAt(0)<32||ch.charCodeAt(0)===127))&&new Set(items).size===items.length;
 }
-function payload(v:EditorFields){return {slug:v.slug,name:v.name.trim(),description:v.description.trim(),category:v.category,features:entries(v.featuresText),requirements:entries(v.requirementsText)}}
+function payload(v:EditorFields){return {slug:v.slug,name:v.name.trim(),description:v.description.trim(),category:v.category,features:entries(v.featuresText),requirements:entries(v.requirementsText),gameIds:v.gameIds}}
 function friendly(error:unknown){
  if(error instanceof ApiError){
   if(error.status===409)return "Catalog version conflict or duplicate slug. Refresh records before trying again.";
@@ -27,7 +28,15 @@ function valid(v:EditorFields){
         v.name.trim().length>=2&&v.name.trim().length<=100&&
         v.description.length<=2000&&
         ["unspecified","software","hardware","cloud"].includes(v.category)&&
-        validEntries(v.featuresText)&&validEntries(v.requirementsText);
+        validEntries(v.featuresText)&&validEntries(v.requirementsText)&&v.gameIds.length<=10&&new Set(v.gameIds).size===v.gameIds.length&&v.gameIds.every(id=>GAME_CATALOG.some(g=>g.id===id))&&(v.category==="software"||v.gameIds.length===0);
+}
+function GameChoices({value,onChange}:{value:string[];onChange:(ids:string[])=>void}){
+ return <fieldset className="game-association-field"><legend>Game associations — select only titles supported by the specific software</legend>
+  <p className="muted">Associations classify this product in DMA Cheats; they do not establish functional compatibility.</p>
+  <div className="game-association-grid">{GAME_CATALOG.map(game=><label key={game.id} className="game-association-choice">
+   <input type="checkbox" checked={value.includes(game.id)} onChange={e=>onChange(e.target.checked?[...value,game.id]:value.filter(id=>id!==game.id))}/>
+   <span>{game.name}</span></label>)}</div>
+ </fieldset>
 }
 export function AdminCatalogEditor({session}:{session:Session|null}){
  const token=session?.token??"";
@@ -127,6 +136,7 @@ export function AdminCatalogEditor({session}:{session:Session|null}){
         </select></label>
         <label className="field">Documented features (one per line, maximum 10)<textarea rows={3} value={creating.featuresText} onChange={e=>setCreating(v=>({...v,featuresText:e.target.value}))} placeholder="Feature description"/></label>
         <label className="field">Requirements (one per line, maximum 10)<textarea rows={3} value={creating.requirementsText} onChange={e=>setCreating(v=>({...v,requirementsText:e.target.value}))} placeholder="Operating system or documented requirement"/></label>
+       <GameChoices value={creating.gameIds} onChange={gameIds=>setCreating(v=>({...v,gameIds}))}/>
        <Button type="submit" disabled={busy||loading||!valid(creating)}><Plus size={15}/>Create draft</Button>
       </form>
      </Card>
@@ -148,6 +158,7 @@ export function AdminCatalogEditor({session}:{session:Session|null}){
         </select></label>
         <label className="field">Documented features (one per line, maximum 10)<textarea rows={3} value={editing.featuresText} onChange={e=>setEditing(v=>({...v,featuresText:e.target.value}))} placeholder="Feature description"/></label>
         <label className="field">Requirements (one per line, maximum 10)<textarea rows={3} value={editing.requirementsText} onChange={e=>setEditing(v=>({...v,requirementsText:e.target.value}))} placeholder="Operating system or documented requirement"/></label>
+        <GameChoices value={editing.gameIds} onChange={gameIds=>setEditing(v=>({...v,gameIds}))}/>
         <div className="form-actions">
          <Button type="submit" disabled={busy||loading||!valid(editing)}><Save size={15}/>Save details</Button>
          {selected.status!=="published"?<Button type="button" variant="secondary" disabled={busy||loading||!valid(editing)} onClick={()=>void mutate("published")}>Publish</Button>:<Button type="button" variant="secondary" disabled={busy||loading} onClick={()=>void mutate("draft")}>Unpublish to draft</Button>}
