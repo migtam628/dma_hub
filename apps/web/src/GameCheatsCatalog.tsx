@@ -73,7 +73,7 @@ export function GameCheatsCatalog({gameId}:{gameId?:string}){
        {reviews.filter(r=>r.productId===item.id).map(r=><div className="game-review-public" key={r.id}>
         <strong>{r.gameBuild} · {r.platform}</strong>
         <small>Operator-declared hardware: {r.hardware}</small>
-        <small>Attested {new Date(r.reviewedAt).toLocaleDateString()}; evidence reference: {r.evidenceRef}</small>
+        <small>Attested {new Date(r.reviewedAt).toLocaleDateString()} · {r.evidenceOnFile?"QA evidence on file":"Evidence unavailable"}</small>
         <small>Operator attestation only; not independent testing or a promise of game-policy compliance.</small>
        </div>)}
        <div className="product-footer"><a className="text-link" href={"#/catalog/"+item.slug}>View product details <ArrowRight size={15}/></a></div>
