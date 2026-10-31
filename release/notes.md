@@ -1,26 +1,30 @@
-# DMA Hub v0.2.0-alpha.19
+# DMA Hub v0.2.0-alpha.20
 
-**Catalog metadata development alpha. API remains local-only, payments remain non-production/test-only, and the Windows installer is unsigned.**
+**Gaming DMA Cheats catalog foundation. Web-first planning UI; no working game-cheat engines or licensed software are included.**
 
-## New in alpha.19
+## New in alpha.20
 
-- SQLite schema v11 additive migration for `category`, `features_json`, and `requirements_json` with safe defaults for legacy products.
-- Strict admin-side and server-side catalog metadata validation: defined category values, up to 10 unique entries per list, 1–140 characters per entry and control-character rejection.
-- Version-checked admin create/update workflows that retain metadata when older PATCH clients omit new fields.
-- Published-only catalog API returns documented features and requirements without exposing drafts, archives or admin-only fields.
-- Public product catalog supports search and category filtering; product detail pages show the declared feature and requirement lists with verification caveats.
-- Added schema migration and API regression tests, updated README, API/catalog references and roadmap.
+- New **DMA Cheats** storefront route `#/games` and per-game pages `#/games/:gameId`; linked from the main navigation and homepage.
+- Ten clearly marked *planning* game categories. The category tiles do not claim supported cheats or downloads.
+- Published-only API product listings filtered by game associations, with honest empty/unavailable handling on the static website.
+- SQLite v13 additive `game_ids_json` migration preserving existing products with empty associations.
+- Server-side game ID allowlist, de-duplication, software-only restriction, admin authorization, and optimistic version checks.
+- Admin Products editor now supports game-to-product links. Older clients cannot silently erase the associations.
+- Updated README, roadmap, and gaming product architecture; regression tests for migration, validation, privacy and version conflicts.
 
 ## Existing foundation
 
-The v0.2.0-alpha.18 release added database-backed Admin Products editing and read-only public product detail routes. Earlier alpha releases include Concept 3 web/desktop UI, local account sessions, profiles, manual test grants, Stripe TEST Checkout observation-only flows, admin audit/security monitoring, GitHub Pages and unsigned Windows NSIS packaging.
+Prior alphas include the Concept 3 storefront and dashboard, local SQLite catalog, customer account API, manual test entitlements, commerce review cases, and an unsigned Tauri Windows companion.
 
-## Distribution
+## Artifacts
 
-Static web preview ZIP, SHA-256 manifest and verified **unsigned** Windows NSIS preview when Windows packaging finishes. Downloads are development-only and should be verified against published checksums.
+The release workflow publishes a static preview ZIP and checksum. Unsigned Windows NSIS preview and Windows checksum are added only after independent packaging verification.
 
-## Production gates not completed
+## Production limitations
 
-No public production API, signed Windows binaries, commercial payments or licenses, independently verified software or hardware compatibility, verified hosted email delivery, independent security review, cross-host rate limiting, reliable device adapters, or approved production fulfillment.
+- **No functional DMA cheat binaries, game-memory access or verified compatibility** were built in this milestone.
+- No hosted production API, secure release/licensing system, real paid fulfillment or commercial subscription is available.
+- The product does not promise anti-cheat evasion, undetectability, ban immunity or legitimate compatibility without evidence.
+- Games and product categories do not imply publisher affiliations.
 
-**Do not publicly expose the local SQLite API or interpret the published catalog metadata as compatibility certification.**
+See [DMA Cheats for Games architecture](docs/games-dma-cheats.md).
