@@ -123,3 +123,55 @@ test("catalog metadata is validated, versioned, published-only and preserved on 
   assert.deepEqual(JSON.parse(row.requirements_json),baseProduct.requirements);
  }finally{await app.close()}
 });
+
+test("game-specific catalog metadata is admin-gated, versioned and hidden until published",async()=>{
+ const app=createApp();
+ await new Promise(resolve=>app.server.listen(0,"127.0.0.1",resolve));
+ const base="http://127.0.0.1:"+app.server.address().port;
+ const call=async(path,method="GET",body,token,version)=>{
+  const headers={"Content-Type":"application/json"};
+  if(token)headers.Authorization="Bearer "+token;
+  if(version)headers["If-Match"]=String(version);
+  const response=await fetch(base+path,{method,headers,body:body===undefined?undefined:JSON.stringify(body)});
+  return {status:response.status,body:await response.json()};
+ };
+ try{
+  const email="gameadmin@example.test",pass="long-test-password-987";
+  await call("/v1/auth/register","POST",{email,password:pass});
+  const token=(await call("/v1/auth/login","POST",{email,password:pass})).body.token;
+  app.db.prepare("UPDATE users SET role='admin' WHERE email=?").run(email);
+  const product={slug:"game-software-test",name:"Game software prototype",description:"Testing catalog labels only",category:"software",status:"draft",features:[],requirements:[],gameIds:["rust","counter-strike-2"]};
+  for(const input of [
+   {...product,gameIds:"rust"},
+   {...product,gameIds:["rust","rust"]},
+   {...product,gameIds:["not-a-real-game"]},
+   {...product,gameIds:Array(11).fill("rust")},
+   {...product,category:"hardware"}
+  ])assert.equal((await call("/v1/admin/products","POST",input,token)).status,422);
+  const draft=await call("/v1/admin/products","POST",product,token);
+  assert.equal(draft.status,201);
+  assert.deepEqual(draft.body.gameIds,product.gameIds);
+  assert.equal((await call("/v1/catalog/live/game-software-test")).status,404);
+  assert.deepEqual((await call("/v1/catalog/live")).body.items,[]);
+  const published=await call("/v1/admin/products/"+draft.body.id,"PATCH",{...product,status:"published"},token,1);
+  assert.equal(published.status,200);
+  const publicRecord=await call("/v1/catalog/live/game-software-test");
+  assert.equal(publicRecord.status,200);
+  assert.deepEqual(publicRecord.body.gameIds,product.gameIds);
+  assert.equal(publicRecord.body.status,undefined);
+  assert.equal(publicRecord.body.version,undefined);
+  const publicList=await call("/v1/catalog/live");
+  assert.deepEqual(publicList.body.items.map(x=>x.gameIds),[product.gameIds]);
+  const oldClient=await call("/v1/admin/products/"+draft.body.id,"PATCH",{slug:product.slug,name:"Renamed",description:product.description,status:"published",category:"software"},token,2);
+  assert.equal(oldClient.status,200);
+  assert.deepEqual(oldClient.body.gameIds,product.gameIds,"older clients must not erase associations");
+  const stale=await call("/v1/admin/products/"+draft.body.id,"PATCH",{...product,status:"archived"},token,2);
+  assert.equal(stale.status,409);
+  const archived=await call("/v1/admin/products/"+draft.body.id,"PATCH",{...product,status:"archived"},token,3);
+  assert.equal(archived.status,200);
+  assert.equal((await call("/v1/catalog/live/game-software-test")).status,404);
+  assert.deepEqual((await call("/v1/catalog/live")).body.items,[]);
+  const saved=app.db.prepare("SELECT game_ids_json FROM catalog_products WHERE id=?").get(draft.body.id);
+  assert.deepEqual(JSON.parse(saved.game_ids_json),product.gameIds);
+ }finally{await app.close()}
+});
