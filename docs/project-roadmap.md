@@ -112,3 +112,11 @@ Payment provider, business terms, first supported production software/hardware c
 - Additive database game associations, server validation/admin role restriction, versioned updates, published-only listings and privacy tests.
 - Planned game titles are not working software; the static Pages site has no connected backend.
 - Next: verified game/product compatibility matrix and reviewed release asset mapping, not unsupported anti-cheat or device-identity claims.
+
+### October 31 — game compatibility QA and evidence workflow (schema v14)
+
+- Additive SQLite review/event tables preserve existing game/product associations.
+- Operators can create draft records scoped to an exact product, game build, OS and hardware, then attest or withdraw using optimistic version checks.
+- Public game pages fail closed: only operator-reviewed current product versions are shown, and internal QA evidence references are never exposed.
+- Changes to product information invalidate prior reviewed records until a new draft/review cycle completes.
+- Unfinished: independent hardware/game QA, authentic publisher-owned builds, real licensed delivery, signed distribution, payment/identity hosting, operational security and merchant policy review.

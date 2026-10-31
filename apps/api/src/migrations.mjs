@@ -1,6 +1,6 @@
 import {DatabaseSync} from "node:sqlite";
 
-export const SCHEMA_VERSION=13;
+export const SCHEMA_VERSION=14;
 
 const BASE_SCHEMA=`CREATE TABLE IF NOT EXISTS users(
  id TEXT PRIMARY KEY,
@@ -329,6 +329,48 @@ export function migrateDatabase(db){
    version=13;
   }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
  }
+ if(version===13){
+  db.exec("BEGIN IMMEDIATE");
+  try{
+   db.exec(`CREATE TABLE game_compatibility_reviews(
+    id TEXT PRIMARY KEY,
+    product_id TEXT NOT NULL REFERENCES catalog_products(id) ON DELETE RESTRICT,
+    game_id TEXT NOT NULL,
+    game_build TEXT NOT NULL,
+    platform TEXT NOT NULL,
+    hardware TEXT NOT NULL,
+    evidence_ref TEXT NOT NULL DEFAULT '',
+    state TEXT NOT NULL CHECK(state IN ('draft','reviewed','withdrawn')),
+    version INTEGER NOT NULL CHECK(version>=1),
+    product_version INTEGER NOT NULL CHECK(product_version>=1),
+    created_by TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    reviewed_by TEXT REFERENCES users(id) ON DELETE RESTRICT,
+    reviewed_at INTEGER,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    UNIQUE(product_id,game_id,game_build,platform)
+   );
+   CREATE INDEX game_reviews_public ON game_compatibility_reviews(game_id,state,product_id);
+   CREATE TABLE game_compatibility_events(
+    id TEXT PRIMARY KEY,
+    review_id TEXT NOT NULL REFERENCES game_compatibility_reviews(id) ON DELETE RESTRICT,
+    version INTEGER NOT NULL CHECK(version>=1),
+    from_state TEXT,
+    to_state TEXT NOT NULL CHECK(to_state IN ('draft','reviewed','withdrawn')),
+    actor_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    created_at INTEGER NOT NULL,
+    UNIQUE(review_id,version)
+   );
+   CREATE TRIGGER game_compatibility_events_no_update BEFORE UPDATE ON game_compatibility_events
+    BEGIN SELECT RAISE(ABORT,'immutable compatibility event'); END;
+   CREATE TRIGGER game_compatibility_events_no_delete BEFORE DELETE ON game_compatibility_events
+    BEGIN SELECT RAISE(ABORT,'immutable compatibility event'); END;`);
+   db.exec("PRAGMA user_version=14; COMMIT;");
+   version=14;
+  }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
+ }
+ requiredColumns(db,"game_compatibility_reviews",["id","product_id","game_id","game_build","platform","hardware","evidence_ref","state","version","product_version","created_by","reviewed_by","reviewed_at","created_at","updated_at"]);
+ requiredColumns(db,"game_compatibility_events",["id","review_id","version","from_state","to_state","actor_id","created_at"]);
  requiredColumns(db,"commerce_review_cases",["id","order_id","idempotency_key","provider","reason","state","version","opened_by","created_at","updated_at"]);
  requiredColumns(db,"commerce_review_events",["id","case_id","version","from_state","to_state","actor_id","created_at"]);
  requiredColumns(db,"auth_rate_limits",["scope","key_hash","window_start","attempt_count","expires_at"]);

@@ -13,7 +13,7 @@ async function withTempDir(fn){
 }
 test("fresh database receives tracked schema migrations",()=>withTempDir(async(folder)=>{
  const app=createApp({dbPath:join(folder,"new.sqlite")});
- assert.equal(app.db.prepare("PRAGMA user_version").get().user_version,13);
+ assert.equal(app.db.prepare("PRAGMA user_version").get().user_version,14);
  assert.ok(app.db.prepare("PRAGMA table_info(users)").all().some(row=>row.name==="disabled_at"));
  app.db.close();
 }));
@@ -28,12 +28,12 @@ test("legacy pre-migration database retains users and profiles",()=>withTempDir(
  INSERT INTO profiles VALUES ('p1','u1','Existing settings','{"density":41}',3,1,2);`);
  legacy.close();
  const upgraded=createApp({dbPath:path});
- assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,13);
+ assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,14);
  assert.equal(upgraded.db.prepare("SELECT email FROM users WHERE id='u1'").get().email,"legacy@example.test");
  assert.equal(upgraded.db.prepare("SELECT version FROM profiles WHERE id='p1'").get().version,3);
  upgraded.db.close();
  const reopened=createApp({dbPath:path});
- assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,13);
+ assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,14);
  assert.equal(reopened.db.prepare("SELECT count(*) AS n FROM profiles").get().n,1);
  reopened.db.close();
 }));
@@ -51,7 +51,7 @@ test("SQLite backup is verified, non-overwriting, and restore preserves user dat
  app.db.close();
  const created=await backupDatabase(original,snapshot);
  assert.equal(created.verified,true);
- assert.equal(verifyBackup(snapshot).schemaVersion,13);
+ assert.equal(verifyBackup(snapshot).schemaVersion,14);
  if(process.platform!=="win32")assert.equal((await stat(snapshot)).mode&0o777,0o600);
  await assert.rejects(backupDatabase(original,snapshot),/already exists/);
  await copyFile(snapshot,restored); // isolated restore drill; production restore must stop the service
@@ -90,7 +90,7 @@ test("schema v2 upgrades to v3 without losing existing user sessions or profiles
  PRAGMA user_version=2;`);
  db.close();
  const app=createApp({dbPath:path});
- assert.equal(app.db.prepare("PRAGMA user_version").get().user_version,13);
+ assert.equal(app.db.prepare("PRAGMA user_version").get().user_version,14);
  assert.equal(app.db.prepare("SELECT email FROM users WHERE id='existing'").get().email,"kept@example.test");
  assert.equal(app.db.prepare("SELECT count(*) n FROM sessions").get().n,1);
  assert.equal(app.db.prepare("SELECT count(*) n FROM profiles").get().n,1);
@@ -106,10 +106,10 @@ test("schema v4 upgrades to v5 without modifying existing product records",()=>w
  const first=createApp({dbPath:path});
  first.db.prepare("INSERT INTO catalog_products(id,slug,name,description,status,version,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)")
   .run("old-product","test-legacy","Legacy Catalog Entry","Original description","published",2,1,2);
- first.db.exec("DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; DROP TABLE sandbox_webhook_events; DROP TABLE sandbox_orders; DROP TABLE entitlements; DROP TABLE pricing_plans; PRAGMA user_version=4;");
+ first.db.exec("DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; DROP TABLE sandbox_webhook_events; DROP TABLE sandbox_orders; DROP TABLE entitlements; DROP TABLE pricing_plans; PRAGMA user_version=4;");
  first.db.close();
  const restored=createApp({dbPath:path});
- assert.equal(restored.db.prepare("PRAGMA user_version").get().user_version,13);
+ assert.equal(restored.db.prepare("PRAGMA user_version").get().user_version,14);
  assert.equal(restored.db.prepare("SELECT name FROM catalog_products WHERE id='old-product'").get().name,"Legacy Catalog Entry");
  assert.ok(restored.db.prepare("SELECT name FROM sqlite_master WHERE name='entitlements'").get());
  assert.ok(restored.db.prepare("SELECT name FROM sqlite_master WHERE name='pricing_plans'").get());
@@ -126,10 +126,10 @@ test("schema v5 upgrades to v6 without losing manual entitlements",()=>withTempD
   .run("plan-1","item-1","plan","Existing plan",1234,"USD","monthly","active",1,1,1);
  app.db.prepare("INSERT INTO entitlements(id,user_id,product_id,plan_id,source,state,starts_at,expires_at,granted_by,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)")
   .run("grant-1","user-1","item-1","plan-1","admin_test_grant","active",1,999999999999,"user-1",1,1);
- app.db.exec("DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; DROP TABLE sandbox_webhook_events; DROP TABLE sandbox_orders; PRAGMA user_version=5;");
+ app.db.exec("DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; DROP TABLE sandbox_webhook_events; DROP TABLE sandbox_orders; PRAGMA user_version=5;");
  app.db.close();
  const restored=createApp({dbPath:file});
- assert.equal(restored.db.prepare("PRAGMA user_version").get().user_version,13);
+ assert.equal(restored.db.prepare("PRAGMA user_version").get().user_version,14);
  assert.equal(restored.db.prepare("SELECT source FROM entitlements WHERE id='grant-1'").get().source,"admin_test_grant");
  assert.equal(restored.db.prepare("SELECT count(*) AS n FROM sandbox_orders").get().n,0);
  assert.equal(restored.db.prepare("PRAGMA foreign_key_check").all().length,0);
@@ -139,11 +139,11 @@ test("schema v5 upgrades to v6 without losing manual entitlements",()=>withTempD
 test("schema v6 upgrades to v7 and retains sandbox order records",()=>withTempDir(async(folder)=>{
  const file=join(folder,"from-v6.sqlite");
  const a=createApp({dbPath:file});
- assert.equal(a.db.prepare("PRAGMA user_version").get().user_version,13);
- a.db.exec("DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; DROP TABLE sandbox_webhook_events; PRAGMA user_version=6;");
+ assert.equal(a.db.prepare("PRAGMA user_version").get().user_version,14);
+ a.db.exec("DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; DROP TABLE sandbox_webhook_events; PRAGMA user_version=6;");
  a.db.close();
  const b=createApp({dbPath:file});
- assert.equal(b.db.prepare("PRAGMA user_version").get().user_version,13);
+ assert.equal(b.db.prepare("PRAGMA user_version").get().user_version,14);
  assert.equal(b.db.prepare("SELECT count(*) AS n FROM sandbox_webhook_events").get().n,0);
  assert.equal(b.db.prepare("PRAGMA foreign_key_check").all().length,0);
  b.db.close();
@@ -152,10 +152,10 @@ test("schema v6 upgrades to v7 and retains sandbox order records",()=>withTempDi
 test("schema v7 upgrades to v8 and retains existing sandbox event table",()=>withTempDir(async(folder)=>{
  const file=join(folder,"v7.sqlite");
  const first=createApp({dbPath:file});
- first.db.exec("DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; PRAGMA user_version=7;");
+ first.db.exec("DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; PRAGMA user_version=7;");
  first.db.close();
  const second=createApp({dbPath:file});
- assert.equal(second.db.prepare("PRAGMA user_version").get().user_version,13);
+ assert.equal(second.db.prepare("PRAGMA user_version").get().user_version,14);
  assert.ok(second.db.prepare("SELECT name FROM sqlite_master WHERE name='stripe_test_events'").get());
  assert.equal(second.db.prepare("PRAGMA foreign_key_check").all().length,0);
  second.db.close();
@@ -164,10 +164,10 @@ test("schema v7 upgrades to v8 and retains existing sandbox event table",()=>wit
 test("schema v8 upgrades to v9 while preserving Stripe TEST checkout and event tables",()=>withTempDir(async(folder)=>{
  const file=join(folder,"from-v8.sqlite");
  const initial=createApp({dbPath:file});
- initial.db.exec("DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; PRAGMA user_version=8;");
+ initial.db.exec("DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; PRAGMA user_version=8;");
  initial.db.close();
  const upgraded=createApp({dbPath:file});
- assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,13);
+ assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,14);
  assert.equal(upgraded.db.prepare("SELECT count(*) n FROM stripe_test_reconciliation_checks").get().n,0);
  assert.ok(upgraded.db.prepare("SELECT name FROM sqlite_master WHERE name='stripe_test_events'").get());
  assert.equal(upgraded.db.prepare("PRAGMA foreign_key_check").all().length,0);
@@ -177,10 +177,10 @@ test("schema v8 upgrades to v9 while preserving Stripe TEST checkout and event t
 test("schema v9 upgrades to v10 without changing existing test observations",()=>withTempDir(async(folder)=>{
  const file=join(folder,"from-v9.sqlite");
  const first=createApp({dbPath:file});
- first.db.exec("DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; PRAGMA user_version=9;");
+ first.db.exec("DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; PRAGMA user_version=9;");
  first.db.close();
  const second=createApp({dbPath:file});
- assert.equal(second.db.prepare("PRAGMA user_version").get().user_version,13);
+ assert.equal(second.db.prepare("PRAGMA user_version").get().user_version,14);
  assert.equal(second.db.prepare("SELECT COUNT(*) n FROM auth_rate_limits").get().n,0);
  assert.ok(second.db.prepare("SELECT name FROM sqlite_master WHERE name='stripe_test_reconciliation_checks'").get());
  assert.equal(second.db.prepare("PRAGMA foreign_key_check").all().length,0);
@@ -193,31 +193,31 @@ test("schema v10 catalog migration preserves existing products and supplies neut
  fresh.db.prepare("INSERT INTO catalog_products(id,slug,name,description,status,version,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)")
   .run("old-product","older-product","Existing product","Previous listing","published",4,10,11);
  // Emulate the v10 catalog layout (before metadata columns existed).
- fresh.db.exec("DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; ALTER TABLE catalog_products DROP COLUMN category; ALTER TABLE catalog_products DROP COLUMN features_json; ALTER TABLE catalog_products DROP COLUMN requirements_json; PRAGMA user_version=10;");
+ fresh.db.exec("DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; ALTER TABLE catalog_products DROP COLUMN category; ALTER TABLE catalog_products DROP COLUMN features_json; ALTER TABLE catalog_products DROP COLUMN requirements_json; PRAGMA user_version=10;");
  fresh.db.close();
  const upgraded=createApp({dbPath:file});
- assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,13);
+ assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,14);
  const product=upgraded.db.prepare("SELECT slug,description,version,category,features_json,requirements_json FROM catalog_products WHERE id='old-product'").get();
  assert.deepEqual({...product},{slug:"older-product",description:"Previous listing",version:4,category:"unspecified",features_json:"[]",requirements_json:"[]"});
  assert.equal(upgraded.db.prepare("PRAGMA foreign_key_check").all().length,0);
  upgraded.db.close();
  const repeat=createApp({dbPath:file});
- assert.equal(repeat.db.prepare("PRAGMA user_version").get().user_version,13);
+ assert.equal(repeat.db.prepare("PRAGMA user_version").get().user_version,14);
  repeat.db.close();
 }));
 
 test("schema v11 upgrades to append-only provider-neutral review tables",()=>withTempDir(async(folder)=>{
  const file=join(folder,"review-upgrade.sqlite");
  const initial=createApp({dbPath:file});
- initial.db.exec("DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; PRAGMA user_version=11;");
+ initial.db.exec("DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; PRAGMA user_version=11;");
  initial.db.close();
  const upgraded=createApp({dbPath:file});
- assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,13);
+ assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,14);
  assert.ok(upgraded.db.prepare("SELECT name FROM sqlite_master WHERE name='commerce_review_events'").get());
  assert.equal(upgraded.db.prepare("PRAGMA foreign_key_check").all().length,0);
  upgraded.db.close();
  const repeat=createApp({dbPath:file});
- assert.equal(repeat.db.prepare("PRAGMA user_version").get().user_version,13);
+ assert.equal(repeat.db.prepare("PRAGMA user_version").get().user_version,14);
  repeat.db.close();
 }));
 
@@ -226,15 +226,34 @@ test("schema v12 gains game associations without losing existing catalog product
  const initial=createApp({dbPath:file});
  initial.db.prepare("INSERT INTO catalog_products(id,slug,name,description,status,version,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)")
    .run("game-existing","game-existing","Existing title","Unchanged description","published",5,4,6);
- initial.db.exec("ALTER TABLE catalog_products DROP COLUMN game_ids_json; PRAGMA user_version=12;");
+ initial.db.exec("DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; ALTER TABLE catalog_products DROP COLUMN game_ids_json; PRAGMA user_version=12;");
  initial.db.close();
  const upgraded=createApp({dbPath:file});
- assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,13);
+ assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,14);
  const record=upgraded.db.prepare("SELECT name,description,status,version,game_ids_json FROM catalog_products WHERE id='game-existing'").get();
  assert.deepEqual({...record},{name:"Existing title",description:"Unchanged description",status:"published",version:5,game_ids_json:"[]"});
  assert.equal(upgraded.db.prepare("PRAGMA foreign_key_check").all().length,0);
  upgraded.db.close();
  const reopened=createApp({dbPath:file});
- assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,13);
+ assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,14);
+ reopened.db.close();
+}));
+
+test("v13-to-v14 game compatibility review migration preserves catalog and is idempotent",()=>withTempDir(async(folder)=>{
+ const file=join(folder,"compat-v13.sqlite");
+ const app=createApp({dbPath:file});
+ app.db.prepare("INSERT INTO catalog_products(id,slug,name,description,status,version,created_at,updated_at,category,game_ids_json) VALUES(?,?,?,?,?,?,?,?,?,?)")
+  .run("legacy","legacy-game","Legacy game","Preserved","published",3,1,2,"software",'["rust"]');
+ app.db.exec("DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; PRAGMA user_version=13;");
+ app.db.close();
+ const upgraded=createApp({dbPath:file});
+ assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,14);
+ const product=upgraded.db.prepare("SELECT slug,version,game_ids_json FROM catalog_products WHERE id='legacy'").get();
+ assert.deepEqual({...product},{slug:"legacy-game",version:3,game_ids_json:'["rust"]'});
+ assert.ok(upgraded.db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='game_compatibility_events'").get());
+ assert.equal(upgraded.db.prepare("PRAGMA foreign_key_check").all().length,0);
+ upgraded.db.close();
+ const reopened=createApp({dbPath:file});
+ assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,14);
  reopened.db.close();
 }));

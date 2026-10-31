@@ -199,6 +199,10 @@ For local testing, run the API (`npm run dev:api`) and Vite frontend (`npm run d
 
 This is a first storefront binding, **not** commercial checkout, product-detail administration, or a production service. The hardware page and featured landing-page products remain labeled examples.
 
+### Game compatibility QA reviews (local API only)
+
+A new **Admin → Game QA** workspace allows server-authorized administrators to create evidence-linked draft reviews for an exact game build, OS, hardware and catalog software record. State transitions are version-checked and audit-recorded. The **public per-game pages now require current operator-reviewed records** as well as published software; stale, withdrawn or draft claims are hidden. Internal evidence references stay private; only an evidence-on-file flag appears publicly. No cheat binaries, anti-cheat workarounds, hardware integrations, signed licenses or payments were added. See [the game QA contract](docs/games-dma-cheats.md).
+
 ### DMA Cheats for Games — first implemented milestone
 
 DMA Hub now includes **`#/games`** and dedicated **`#/games/:gameId`** pages for game-first software discovery. Ten game titles are listed as **planning categories**, never as claims of available cheats. Admin Products can associate reviewed software entries with game IDs, and only published local API catalog records appear in game listings. Existing products receive empty game associations through an additive SQLite v13 migration; older admin clients do not erase those associations.

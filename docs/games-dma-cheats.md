@@ -39,3 +39,16 @@ The project will not claim a product is undetectable, ban-proof or compatible wi
 5. Validate business/commercial integrations before enabling checkout, license issuance or subscriptions.
 
 No actual gaming-cheat functionality is included in the first milestone. The scope is honest product discovery and infrastructure for a potential product offering.
+
+## Game compatibility QA — schema v14 (development milestone)
+
+Versioned operator attestations now use an append-only review history:
+- `GET /v1/games/:gameId/compatibility` lists only **operator-reviewed** records for currently published software, exact matching game association and unchanged product version. Drafts, withdrawn reviews, archived products and stale reviews never appear.
+- `GET /v1/admin/game-compatibility` shows the admin review queue with build, OS, hardware, evidence reference, status, and stale-version indicators.
+- `POST /v1/admin/game-compatibility` creates a **private draft** (game, product, exact game build, Windows OS, hardware and optional HTTPS evidence reference).
+- `PATCH /v1/admin/game-compatibility/:id` requires `If-Match` and accepts deliberate state transitions: `draft → reviewed / withdrawn`, `reviewed → draft / withdrawn`, `withdrawn → draft`.
+- To attest **reviewed**, the product must remain published software with a matching game association, a current product version and non-empty HTTPS evidence reference. Resetting to draft adopts the product's current version for a new review cycle.
+- The public API exposes only an **evidence-on-file boolean** and a review timestamp; the private evidence reference and staff identities are not returned.
+- Changes are audit-recorded, review event history is append-only and database triggers block event modification/deletion. The admin UI is under **Admin → Game QA** on an authenticated local API.
+
+**Important:** `operator_reviewed` means a human administrator attested evidence. It is neither independent verification nor proof that a game, DMA device, operating system, or a publisher's rules allow the software. No cheat functionality, download delivery, device firmware changes, evasion, or customer licensing is enabled here.
