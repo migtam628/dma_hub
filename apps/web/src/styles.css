@@ -33,3 +33,44 @@
 .catalog-feature-list li,.catalog-detail-list li{padding:2px 0;overflow-wrap:anywhere}
 .catalog-detail-section{padding:18px 0;border-top:1px solid #294358;margin-top:20px}
 .catalog-detail-section h3{font-size:15px;margin:0 0 10px}
+
+/* Game-specific DMA Cheats catalog — planned titles remain distinct from published API records. */
+.game-cheats-page{--game-accent:#25c2d7}
+.game-cheats-hero{padding:clamp(25px,5vw,58px);border-radius:21px;border:1px solid #325572;background:radial-gradient(ellipse at 82% 28%,rgba(103,76,194,.3),transparent 48%),linear-gradient(120deg,#102940,#081726);display:flex;flex-direction:column;align-items:flex-start;gap:15px;margin-bottom:38px}
+.game-cheats-hero .eyebrow{display:flex;align-items:center;gap:10px}
+.game-cheats-hero h1{font-size:clamp(31px,4.4vw,52px);line-height:1.08;letter-spacing:-.03em;margin:3px 0}
+.game-cheats-hero p{max-width:730px;color:#acc7d8;font-size:14px;line-height:1.8;margin:0}
+.game-cheats-hero-foot{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:11px;color:#a4c3d4}
+.game-cheats-hero-foot span{display:flex;align-items:center;gap:7px}
+.game-catalog-title{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap;margin:28px 0 21px}
+.game-catalog-title h2{font-size:23px;margin:0 0 8px}
+.game-catalog-title p{margin:0;font-size:12px}
+.game-catalog-search{display:flex;align-items:center;gap:9px;border:1px solid #315069;border-radius:10px;padding:10px 14px;color:#9fbbce;background:#0b1d2d;min-width:min(310px,100%)}
+.game-catalog-search input{background:transparent;color:inherit;border:0;outline:0;min-width:0;width:100%;font-size:13px}
+.game-tile-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.game-tile{border:1px solid #29485e;background:#11273a;border-radius:15px;display:flex;flex-direction:column;color:#e6f5ff;text-decoration:none;overflow:hidden;min-width:0;transition:transform .16s,border-color .16s}
+.game-tile:hover,.game-tile:focus-visible{border-color:#41cfe4;transform:translateY(-3px)}
+.game-tile-art{min-height:132px;background:radial-gradient(circle at 28% 24%,rgba(70,189,228,.35),transparent 68%),linear-gradient(130deg,#133a59,#1b2040);display:flex;align-items:center;justify-content:space-between;padding:20px;color:#9dd9f6}
+.game-tile-1 .game-tile-art{background:linear-gradient(130deg,#173a42,#26325b)}.game-tile-2 .game-tile-art{background:linear-gradient(130deg,#523223,#212d43)}.game-tile-3 .game-tile-art{background:linear-gradient(130deg,#29375e,#122a43)}.game-tile-4 .game-tile-art{background:linear-gradient(130deg,#32254b,#174450)}
+.game-tile-art span{font-size:clamp(18px,2vw,28px);font-weight:850;letter-spacing:-.05em}
+.game-tile-copy{padding:17px;display:flex;flex:1;flex-direction:column;align-items:flex-start;gap:9px}
+.game-tile-copy small{color:#88a9c0;font-size:10px;text-transform:uppercase;letter-spacing:.1em}
+.game-tile-copy h3{margin:0;font-size:15px}
+.game-tile-copy p{color:#a7becf;font-size:11px;margin:0;line-height:1.6}
+.game-tile-copy .text-link{margin-top:auto;font-size:11px;padding-top:8px}
+.game-catalog-empty,.game-catalog-disclosure{border:1px solid #2b4b5e;background:#10273b;border-radius:14px;padding:25px;color:#b9d0e0}
+.game-catalog-empty{display:flex;align-items:flex-start;flex-direction:column;gap:10px}
+.game-catalog-empty h3{margin:0}
+.game-catalog-empty p{line-height:1.65;font-size:12px;max-width:660px}
+.game-catalog-disclosure{display:flex;align-items:flex-start;gap:14px;margin:28px 0}
+.game-catalog-disclosure svg{flex:none;color:#45cee1}
+.game-catalog-disclosure strong{font-size:13px}
+.game-catalog-disclosure p{font-size:12px;line-height:1.8;margin:7px 0 0}
+.game-association-field{border:1px solid #33556a;border-radius:12px;padding:15px}
+.game-association-field legend{font-size:12px;font-weight:700;padding:0 8px;color:#b1d5e5}
+.game-association-field>p{font-size:11px;line-height:1.6}
+.game-association-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:12px}
+.game-association-choice{display:flex;align-items:center;gap:9px;font-size:11px;color:#c3d8e7}
+.game-association-choice input{accent-color:#25c2d7}
+@media(max-width:1160px){.game-tile-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:650px){.game-tile-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.game-tile-art{min-height:95px;padding:14px}.game-tile-copy{padding:12px}.game-association-grid{grid-template-columns:1fr}}
