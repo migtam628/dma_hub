@@ -1,30 +1,23 @@
-# DMA Hub v0.2.0-alpha.20
+# DMA Hub v0.2.0-alpha.21
 
-**Gaming DMA Cheats catalog foundation. Web-first planning UI; no working game-cheat engines or licensed software are included.**
+**Game compatibility QA alpha. Operator-reviewed, version-scoped compatibility attestations; not independent certification and not functioning game cheats.**
 
-## New in alpha.20
+## New in alpha.21
 
-- New **DMA Cheats** storefront route `#/games` and per-game pages `#/games/:gameId`; linked from the main navigation and homepage.
-- Ten clearly marked *planning* game categories. The category tiles do not claim supported cheats or downloads.
-- Published-only API product listings filtered by game associations, with honest empty/unavailable handling on the static website.
-- SQLite v13 additive `game_ids_json` migration preserving existing products with empty associations.
-- Server-side game ID allowlist, de-duplication, software-only restriction, admin authorization, and optimistic version checks.
-- Admin Products editor now supports game-to-product links. Older clients cannot silently erase the associations.
-- Updated README, roadmap, and gaming product architecture; regression tests for migration, validation, privacy and version conflicts.
+- SQLite schema v14 additive compatibility-review tables with immutable event history and audit trail, preserving existing products and game associations.
+- Local API admin-only workflow for game build, OS, hardware and evidence-reference recording, controlled draft/review/withdraw transitions and optimistic version checks.
+- Review approval requires currently published software, matching game association, current product version and an internal HTTPS evidence reference.
+- Public per-game pages now **fail closed**: show software as operator-reviewed only with a matching current review; no draft, withdrawn, archived or stale records. Reviews go stale automatically when the product changes.
+- Private internal evidence links, internal reviewer IDs and review history are never exposed through the public compatibility endpoint.
+- New **Admin → Game QA** workspace with draft creation, queue, attestation/withdrawal controls, and validation/error messages.
+- Regression tests for v13→v14 migration, permissions, visibility, immutable events, stale invalidation and revocation. Updated README, API, roadmap, and gaming documentation.
 
-## Existing foundation
+## Distribution
 
-Prior alphas include the Concept 3 storefront and dashboard, local SQLite catalog, customer account API, manual test entitlements, commerce review cases, and an unsigned Tauri Windows companion.
+Static web preview ZIP, checksums, and unsigned Windows NSIS alpha preview after successful packaging verification.
 
-## Artifacts
+## Important boundaries
 
-The release workflow publishes a static preview ZIP and checksum. Unsigned Windows NSIS preview and Windows checksum are added only after independent packaging verification.
+The `operator_reviewed` label records an administrator attestation only; it does **not** independently verify compatibility or guarantee any hardware/game/anti-cheat outcome. DMA Hub still provides no working cheat executables, game-memory integration, device impersonation, real commercial payments, production license fulfillment, or signed Windows installer. The GitHub Pages site is static with no hosted API; all local API claims are conditional on a separately configured development backend.
 
-## Production limitations
-
-- **No functional DMA cheat binaries, game-memory access or verified compatibility** were built in this milestone.
-- No hosted production API, secure release/licensing system, real paid fulfillment or commercial subscription is available.
-- The product does not promise anti-cheat evasion, undetectability, ban immunity or legitimate compatibility without evidence.
-- Games and product categories do not imply publisher affiliations.
-
-See [DMA Cheats for Games architecture](docs/games-dma-cheats.md).
+See [Game DMA catalog and compatibility QA](docs/games-dma-cheats.md).
