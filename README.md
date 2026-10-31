@@ -161,6 +161,7 @@ The landing page, public **Downloads** route (`#/releases`), customer Downloads,
 Versioned releases are triggered by changes to `release/version.json` on `main` or by manual workflow dispatch.
 
 - **v0.2.0-alpha.1** — initial tested static React preview ZIP, checksum and source archive.
+- **v0.2.0-alpha.20** — new game-specific DMA Cheats storefront, schema v13 game-to-product associations and admin editor integration; catalog foundation only, not working cheats or licenses.
 - **v0.2.0-alpha.19** — SQLite v11 structured product category/features/requirements, bounded admin validation, public catalog filters and documented detail sections; still local-API-only and unsigned.
 - **v0.2.0-alpha.18** — real local API-backed Admin Products editor, published-only public product details, versioned edits, 404/offline UX and API tests. No live purchases, licenses or hosted backend.
 - **v0.2.0-alpha.17** — admin-only, privacy-preserving Security Monitoring dashboard with aggregate SQLite rate-limit and auth-audit metrics. No distributed threat monitoring or production security certification.
