@@ -5,6 +5,10 @@
 **Approved UI:** Concept 3 — Professional Hybrid  
 **Status:** Functional alpha with a public static preview and unsigned Windows installer. **Not production ready.**
 
+## Gaming DMA Cheats division — scope and current status
+
+The storefront now includes game-first `#/games` discovery and dedicated title pages, supported by schema v13 administrator-managed software-to-game links. Ten game categories are planning-only. The published-only API and UI never imply working game cheats when none exist. The real game modules, hardware adapters, tested compatibility, safe launcher integration, downloads, payments and licensing remain unimplemented. See [Gaming DMA Cheats architecture](games-dma-cheats.md).
+
 ## What actually exists
 
 | Area | Evidence / current state | Next gate |
@@ -101,3 +105,10 @@ Payment provider, business terms, first supported production software/hardware c
 - Added sanitized, owner-scoped customer review status API; internal reasons and staff IDs are never returned to customers.
 - Added migration/backup checks and regression tests for RBAC, tenant isolation, retries, state conflicts, immutability, and **zero entitlement issuance**.
 - **Still blocked:** real provider TEST account evidence, financial settlement ledger, charge/refund/dispute handling, verified merchant terms, signing, secure hosting and independent production review. Closed test reviews are not payment confirmation.
+
+### October 31 — gaming DMA storefront foundation (schema v13)
+
+- Public DMA Cheats game discovery and title pages built on the Concept 3 storefront, plus a landing page/navigation entry point.
+- Additive database game associations, server validation/admin role restriction, versioned updates, published-only listings and privacy tests.
+- Planned game titles are not working software; the static Pages site has no connected backend.
+- Next: verified game/product compatibility matrix and reviewed release asset mapping, not unsupported anti-cheat or device-identity claims.
