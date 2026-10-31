@@ -101,3 +101,12 @@ Each product record supports `category`: `unspecified | software | hardware | cl
 - States are only `open`, `investigating`, `closed_unverified`, `closed_test_only`; none establishes settlement or grants access.
 
 See [commerce review workflow](commerce-reviews.md). These endpoints are local-only and **do not** implement a financial ledger or real payment processing.
+
+## Game compatibility review API (local development only, schema v14)
+
+- `GET /v1/games/:gameId/compatibility`: read-only operator-reviewed compatibility records with `gameBuild`, `platform`, `hardware`, `reviewedAt` and `evidenceOnFile`. Never returns internal evidence links, staff IDs, drafts, withdrawals, archived products or stale product versions. An unknown game returns 404.
+- `GET /v1/admin/game-compatibility`: admin-only review queue.
+- `POST /v1/admin/game-compatibility`: admin-only draft creation with `{productId,gameId,gameBuild,platform,hardware,evidenceRef}`. The product must be software associated with the game; game build syntax is bounded and platform is explicitly Windows 10/11.
+- `PATCH /v1/admin/game-compatibility/:id`: admin-only `{state}` transition requiring numeric `If-Match`. Only a published, still-associated, unchanged product with an HTTPS evidence reference can be reviewed. Reset to draft after changes to re-attest. All transitions create immutable events and audit records.
+
+An operator attestation is not independent compatibility certification and grants no downloads, access rights, licenses, or payment settlement. Public route requires no auth, but local SQLite API is not Internet-hosted.
