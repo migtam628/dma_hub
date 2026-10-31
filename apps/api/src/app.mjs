@@ -6,6 +6,7 @@ import {DatabaseSync} from "node:sqlite";
 import {migrateDatabase} from "./migrations.mjs";
 import {createCommerce} from "./commerce.mjs";
 import {createCommerceReviews} from "./commerce-reviews.mjs";
+import {createGameCompatibility} from "./game-compatibility.mjs";
 import {createSandboxWebhook} from "./sandbox-webhook.mjs";
 import {createStripeTestGateway} from "./stripe-test.mjs";
 import {createRateLimiter} from "./rate-limiter.mjs";
@@ -77,6 +78,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
  const audit=(actor,action,target)=>db.prepare("INSERT INTO audit VALUES(?,?,?,?,?)").run(randomUUID(),actor,action,target,clock());
  const commerce=createCommerce({db,clock,audit,readBody:jsonBody});
  const commerceReviews=createCommerceReviews({db,clock,audit,readBody:jsonBody});
+ const gameCompatibility=createGameCompatibility({db,clock,audit,readBody:jsonBody});
  const testWebhook=createSandboxWebhook({db,clock,audit,secret:sandboxWebhookSecret});
  const stripeGateway=createStripeTestGateway({db,clock,audit,...(stripeTest||{})});
  function issueToken(userId,purpose,ttl){
@@ -119,6 +121,8 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
      const event=await testWebhook.receive(req);
      response(res,event.status,event.payload);return
    }
+   const publicCompatibility=gameCompatibility.publicRoute(pathname,req);
+   if(publicCompatibility){response(res,publicCompatibility.status,publicCompatibility.payload);return}
    if(pathname==="/healthz"&&req.method==="GET"){response(res,200,{status:"ok",service:"dma-hub-api",database:"ready"});return}
    if(pathname==="/v1/catalog"&&req.method==="GET"){response(res,200,{items:[{id:"device-studio",name:"Device Studio",status:"preview"},{id:"profile-cloud",name:"Profile Cloud",status:"preview"},{id:"release-center",name:"Release Center",status:"preview"}]});return}
    if(pathname==="/v1/catalog/live"&&req.method==="GET"){
@@ -270,6 +274,8 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
     }
     const stripePrivate=await stripeGateway.authenticatedRoute(pathname,req,u);
     if(stripePrivate){response(res,stripePrivate.status,stripePrivate.payload);return}
+    const gameCompatibilityResult=await gameCompatibility.authenticatedRoute(pathname,req,u);
+    if(gameCompatibilityResult){response(res,gameCompatibilityResult.status,gameCompatibilityResult.payload);return}
     const reviewResult=await commerceReviews.authenticatedRoute(pathname,req,u);
     if(reviewResult){response(res,reviewResult.status,reviewResult.payload);return}
     const commerceResult=await commerce.authenticatedRoute(pathname,req,u);
