@@ -83,7 +83,7 @@ export function GameCheatsCatalog({gameId}:{gameId?:string}){
       <h1>{game.name}</h1><p>{game.summary}</p></>:
      <><h1>DMA Cheats for Games</h1>
       <p>Choose a game to browse dedicated software listings, documented requirements, update information and related hardware. The titles below are planning categories, not claims of active game support.</p></>}
-   {game?.id==="call-of-duty"?<div className="cod-pilot-hero-link"><a className="text-link" href="#/games/call-of-duty/pilot"><ShieldCheck size={15}/>Open Warzone PC pilot — official requirements, build review and test preparation <ArrowRight size={15}/></a><p>PC readiness survey only; no game cheats or software downloads are currently supported.</p></div>:null}
+   {game?.id==="call-of-duty"?<div className="cod-pilot-hero-link"><a className="text-link" href="#/games/call-of-duty/pilot"><ShieldCheck size={15}/>Open Warzone PC pilot — official requirements, build review and test preparation <ArrowRight size={15}/></a><p>PC readiness survey only; no game cheats or software downloads are currently supported.</p><p><a className="text-link" href="#/games/call-of-duty/platforms">View Call of Duty Xbox/PC title coverage and supported DMA Hub services <ArrowRight size={13}/></a></p></div>:null}
    <div className="game-cheats-hero-foot"><span><ShieldCheck size={15}/>Operator-reviewed records only</span><span><Monitor size={15}/>Hardware requirements clearly listed</span><span><Package size={15}/>No unverified downloads</span></div>
   </div>
   {game?<>
