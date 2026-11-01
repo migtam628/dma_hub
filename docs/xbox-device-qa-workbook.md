@@ -36,3 +36,7 @@ A release acceptance report should include an actual console model and console O
 Code-level tests cover data validation and fail-closed claims. They **do not replace a console-in-hand test**. Only after this evidence should an exact browser feature be described as manually tested on a specific console/build.
 
 References: [Xbox/PC game and capabilities matrix](call-of-duty-xbox-pc-matrix.md), [publisher enforcement policy](https://support.activision.com/articles/call-of-duty-security-and-enforcement-policy), [official Microsoft Edge Xbox overview](https://www.microsoft.com/en-us/edge/learning-center/how-to-use-microsoft-edge-on-xbox).
+
+## Optional private API handoff (Alpha 32)
+
+Once a genuine operator report has been prepared, export its v1 JSON and transfer it securely to an authorized administrator of the **local** DMA Hub API. The administrator can choose the report in **Admin → Xbox QA Intake**, review its preview, explicitly import, and record triaged/retest-required history. This is **not automatic synchronization** and never certifies a game or console. [Private intake instructions](xbox-qa-private-intake.md).
