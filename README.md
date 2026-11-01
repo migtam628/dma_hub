@@ -23,12 +23,12 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 | Customer workspace | 🧪 Mixed preview | Signed-in users can view API-backed entitlements and create/review **sandbox** orders; other pages remain sample data |
 | Admin workspace | 🧪 Mixed preview | Local API admin-only Products editor, Pricing & Test Access, Sandbox Orders, Audit Log and aggregate Security Monitoring; remaining pages are synthetic |
 | Configuration Studio | ✅ Local functionality | Edit settings, live preview, JSON import/export, browser storage |
-| API | 🧪 Local alpha | Account sessions, SQLite schema v12, durable throttling, optional email verification/recovery, profiles and backup/restore tests |
+| API | 🧪 Local alpha | Account sessions, SQLite schema v17, durable throttling, optional email verification/recovery, profiles and backup/restore tests |
 | Cloud profiles | 🧪 Local API | Create, load, update, delete, optimistic version checks |
 | Desktop companion | 🧪 Windows scaffold | Tauri shell source, NSIS build CI, launcher and diagnostics previews; no hardware APIs |
 | Device adapters | 🧪 Read-only native serial discovery | Explicit Windows COM-port metadata scan; no port data access or device writes |
 | Persistent catalog | 🧪 Local API + UI alpha | Admin-gated versioned product editor, category/features/requirements metadata, published-only searchable catalog/detail pages, and audit records; storefront also labels demo concepts |
-| Pricing & entitlements | 🧪 API alpha | USD plans, sandbox orders, expiring test grants, opt-in Stripe **test-mode** Checkout, and v12 admin/customer review APIs; no live payments |
+| Pricing & entitlements | 🧪 API alpha | USD plans, sandbox orders, expiring test grants, opt-in Stripe **test-mode** Checkout, and versioned admin/customer review APIs; no live payments |
 | Payments/licensing | 🧪 Test-only integration | Opt-in Stripe TEST Checkout, signed test webhook observations and manual reconciliation reviews; no live charges, settlement or commercial licensing |
 | Public hosting | ✅ Live | `https://dma.moobee.lol` via GitHub Pages; static preview **only** |
 
@@ -402,6 +402,12 @@ Every meaningful implementation milestone should be tested, committed and pushed
 ### Provider-neutral commerce review queue (local API, schema v12)
 
 Admin operators can open idempotent, auditable **test-only** review cases for sandbox orders, transition them with optimistic version checks, and inspect immutable case-event history. Signed-in customers can see only their own sanitized case statuses. No provider secrets, live payment processing, financial settlement, order fulfillment or license issuance is involved. The review queue is a foundation for later provider-neutral reconciliation workflows, **not** a financial ledger. See [Commerce review cases](docs/commerce-reviews.md). The public Pages site has no hosted API or review console.
+
+### Private self-hosted API staging (Alpha 28; no public exposure)
+
+The `deployment/staging/` package offers a **Docker Compose v2** API build with a persistent SQLite volume, loopback-only TCP binding (`127.0.0.1:8787`), reduced container privileges, health checks, a deploy script, SQLite snapshot/verification/export, and CI Compose boot/health validation. A detailed [private staging runbook](deployment/staging/README.md) covers setup, Tailscale/SSH tunneling, backups, and production deployment gates.
+
+This is **not** a public API deployment. GitHub Pages remains static, and real customer accounts/tickets are not yet Internet-connected. Do not publish port 8787 or claim that a public HTTPS endpoint exists.
 
 ### Authenticated Support Center (Alpha 27; local API)
 

@@ -163,3 +163,10 @@ Payment provider, business terms, first supported production software/hardware c
 - Server-side customer authorization and role restrictions, per-ticket If-Match conflict guards, active ticket/message limits, append-only communication and event audit.
 - Updated customer Support and Admin Support Tickets UI with local API lifecycle and explicit no-email/no-SLA disclaimers. Tests cover privacy, closure, status audit and optimistic conflicts.
 - External gates: deploy production API with secure authentication, configure real email and notification provider, staffing/SLA policies, moderation and retention/compliance, and support analytics. Do not market 24/7 support until staffed.
+
+### November 1 — Alpha 28 private containerized API staging foundation
+
+- New Docker Compose API deployment with loopback-only host port 127.0.0.1:8787, persistent SQLite volume, read-only container root, reduced capabilities, health check and restart policy.
+- Explicit staging.env setup (never committed), deploy and verify scripts, SQLite online snapshot verification/export script with file-mode protections and off-host encryption warning.
+- GitHub Actions private Compose smoke boots API and verifies health, then destroys disposable CI storage. Node tests assert safe network defaults.
+- No DNS, TLS/proxy exposure, email provider, user-hosted production API or public payment service has been deployed. Production API access requires security review and external user-owned environment configuration.

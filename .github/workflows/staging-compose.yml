@@ -1,0 +1,47 @@
+name: Private API Staging Compose Smoke
+on:
+  pull_request:
+    paths:
+      - "deployment/staging/**"
+      - "apps/api/**"
+      - ".github/workflows/staging-compose.yml"
+  push:
+    branches: [main]
+    paths:
+      - "deployment/staging/**"
+      - "apps/api/**"
+      - ".github/workflows/staging-compose.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare private non-secret staging config
+        run: cp deployment/staging/staging.env.example deployment/staging/staging.env
+      - name: Validate Docker Compose configuration
+        run: docker compose -f deployment/staging/compose.yaml config --quiet
+      - name: Build and launch loopback-only staging API
+        run: docker compose -f deployment/staging/compose.yaml up --build -d
+      - name: Check private API health and origin restrictions
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          for i in $(seq 1 40); do
+            if curl --fail --silent http://127.0.0.1:8787/healthz | grep -q '"database":"ready"'; then
+              echo "Staging API health PASS"
+              break
+            fi
+            if [[ "$i" -eq 40 ]]; then echo "API never became healthy" >&2; exit 1; fi
+            sleep 2
+          done
+          docker compose -f deployment/staging/compose.yaml ps
+      - name: Show container logs on failure
+        if: failure()
+        run: docker compose -f deployment/staging/compose.yaml logs --tail=100
+      - name: Stop disposable staging services
+        if: always()
+        run: docker compose -f deployment/staging/compose.yaml down --volumes --remove-orphans

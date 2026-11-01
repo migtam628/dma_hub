@@ -142,3 +142,9 @@ The CLI in `scripts/verify-game-artifact.mjs` checks a local artifact against a 
 - `PATCH /v1/admin/support/tickets/:id` admin-only with `If-Match` and `{state}` supporting `awaiting_staff`, `awaiting_customer`, `resolved`, `closed`. All transitions are audited and versioned.
 - SQLite v17 adds `support_tickets`, `support_messages` and immutable `support_events`; update/delete triggers prevent alteration of historic messages/events. Browser renders plain text, not trusted HTML.
 - No notification transport, email receipt, webhooks, file uploads, staff SLA, hosted public API or guaranteed 24/7 availability is implemented. API responses indicate `notificationsConfigured:false`.
+
+## Private Docker Compose staging (Alpha 28)
+
+A repeatable, loopback-only API staging package lives in [deployment/staging](../deployment/staging/README.md). It builds `apps/api/Dockerfile`, stores SQLite persistently in a named Docker volume, and binds host `127.0.0.1:8787` only. The scripts verify `/healthz`, support online SQLite backup and demonstrate private SSH/Tailscale forwarding. A new CI workflow parses the Compose configuration and boots the disposable service.
+
+**Not production Internet hosting:** No public API domain, reverse proxy, TLS certificate, firewall/DNS change, email notification, staff SLA or commercial payment activation is created. Public use requires user-owned hosting/DNS decisions, secrets, stronger anti-abuse security, backups and independent verification.

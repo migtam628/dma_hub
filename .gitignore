@@ -16,3 +16,7 @@ coverage/
 *.db-*
 apps/api/data/
 backups/
+
+# Private staging API environment and exported snapshots
+deployment/staging/staging.env
+deployment/staging/backups/

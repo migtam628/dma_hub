@@ -1,0 +1,36 @@
+name: dma-hub-staging
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    env_file:
+      - path: ./staging.env
+        required: true
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8787"
+      DB_PATH: /var/lib/dmahub/dma-hub.sqlite
+      NODE_ENV: production
+    ports:
+      - "127.0.0.1:8787:8787"
+    volumes:
+      - api_data:/var/lib/dmahub
+    init: true
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 128
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/healthz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+volumes:
+  api_data:
