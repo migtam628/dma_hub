@@ -48,3 +48,7 @@ Unit tests verify the sunset logic, Modern Warfare 4 Xbox One exclusion, Windows
 ## Pending external inputs
 
 The user has indicated a broad modern Call of Duty testing scope, but has not yet provided the physical Xbox model, games actually installed, test evidence or equipment. These are the prerequisites for certifying browser and hardware behavior. There is no native Xbox DMA Hub application and no signed, approved console-game integration.
+
+## Operator hardware test workbook — Alpha 31
+
+The user requested continued Xbox work without identifying a specific model, so the public `#/games/call-of-duty/xbox-qa` worksheet intentionally **does not preselect a model, game build or successful tests**. It supports Xbox Series X/S and Xbox One variants, actual per-feature pass/fail/blocked/non-applicable results and portable locally stored observations. The [manual console test procedure](xbox-device-qa-workbook.md) describes gathering valid physical evidence. Nothing is uploaded to a backend or independently certified.
