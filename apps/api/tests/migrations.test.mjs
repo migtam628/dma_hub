@@ -272,3 +272,19 @@ test("schema v14 upgrades to v15 while retaining older compatibility tables",()=
  assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,16);
  reopened.db.close();
 }));
+
+test("schema v15 upgrades to v16 preserving game review and release records",()=>withTempDir(async folder=>{
+ const file=join(folder,"from-v15.sqlite");
+ const first=createApp({dbPath:file});
+ first.db.exec("DROP TRIGGER game_qa_results_no_update; DROP TRIGGER game_qa_results_no_delete; DROP TABLE game_qa_results; PRAGMA user_version=15;");
+ first.db.close();
+ const upgraded=createApp({dbPath:file});
+ assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,16);
+ assert.ok(upgraded.db.prepare("SELECT name FROM sqlite_master WHERE name='game_release_artifacts'").get());
+ assert.ok(upgraded.db.prepare("SELECT name FROM sqlite_master WHERE name='game_qa_results'").get());
+ assert.equal(upgraded.db.prepare("PRAGMA foreign_key_check").all().length,0);
+ upgraded.db.close();
+ const reopened=createApp({dbPath:file});
+ assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,16);
+ reopened.db.close();
+}));
