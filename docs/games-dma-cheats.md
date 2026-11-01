@@ -86,3 +86,9 @@ The local API now includes an **append-only operator-reported QA journal** linke
 - After any game patch/build change the operator should record **retest required** and update the corresponding exact game-build review. No automated game patch detection is yet implemented.
 
 This is a **manual test evidence and status mechanism**, not a test runner, source provenance guarantee, permission to cheat, independent validation or compatibility certification. The storefront still provides **no executable software downloads**.
+
+## Buyer readiness and setup planner — Alpha 26
+
+The public `#/setup` route provides a real client-side hardware inventory wizard, not a game cheat, device diagnostic or executable setup. It covers environment identification (game planning category, self-reported build, Windows PCs, hardware model), six manual readiness checks and a summary that distinguishes inventory status from real compatibility. Plans are held only in local browser storage and can be exported as JSON/text/PDF, copied, or reset. There are no network requests for the planner, no runtime device access or commercial entitlement changes. Even complete inventory cannot establish game support or authorized software access.
+
+Research and reference decisions are documented in [competitive-reference-research.md](competitive-reference-research.md).
