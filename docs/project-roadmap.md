@@ -177,3 +177,5 @@ Payment provider, business terms, first supported production software/hardware c
 - Created a live, local browser questionnaire, fail-closed RAM/VRAM/SSD and TPM/Secure Boot/DirectX12/AVX/broadband readiness review, versioned input validation, and JSON/TXT/clipboard/print reports.
 - Activision's **November 6, 2026** Warzone/MW4 Season 1 update window triggers a new exact-build review; no assumption a scheduled update actually shipped, no automatic compatibility claims.
 - Still blocked: authorized real Windows PC hardware/build evidence, game publisher/software rights, independent QA, real signed software artifact and commercial delivery. No game-modification or anti-cheat bypass code is included.
+
+- Added a server-side conservative Call of Duty patch gate for three public record families. When the announced integration date arrives, pre-window reviews are hidden until operator re-attestation; QA and asset records must be re-established on the new version. Synthetic regression tests cover hiding and re-review without fake production evidence.
