@@ -420,6 +420,12 @@ Customer **Support** and administrator **Support Tickets** now use a real SQLite
 
 **Important:** GitHub Pages alone has no support backend. A deployed/configured API and valid account are required. No emails, Discord syncing, attachments, automatic resolution or response-time guarantee are currently configured. Never place passwords or signing keys in ticket messages. See [Support API](docs/api.md).
 
+### Xbox QA version-to-version comparison (Alpha 33)
+
+Administrators can now compare **two private field reports** for the same Xbox model and Call of Duty edition in **Admin → Xbox QA Intake**. The API returns a per-check change list, counts of operator-reported regressions/improvements, and whether an Xbox OS or installed game build change requires manual retesting. Comparison is versioned by the source immutable reports, and the results remain authenticated/private.
+
+Changes are **operator-reported only**. A reported pass becoming a failure is a signal for technicians to investigate, not independently measured game compatibility. No game access, licensing or downloads are enabled.
+
 ### Private Xbox QA intake and operator triage (Alpha 32)
 
 The **admin-only local API** now accepts an exported v1 Xbox field report, stores a canonical hash-deduplicated and immutable submission, and maintains a separate append-only operator triage history with `If-Match` version checks. **Admin → Xbox QA Intake** provides file preview, explicit import, private report inspection, and `triaged` / `retest_required` actions. The public site **does not upload reports automatically**.
