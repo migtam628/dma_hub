@@ -1,25 +1,27 @@
-# DMA Hub v0.2.0-alpha.23
+# DMA Hub v0.2.0-alpha.24
 
-**Offline publisher-signed game artifact integrity verification. No trusted game-software publisher is yet enrolled and no game cheat downloads are enabled.**
+**Publisher trust fingerprint hardening and safer offline artifact verification. No real publisher key has been authenticated or added.**
 
-## New in alpha.23
+## New in alpha.24
 
-- Added an offline, read-only file verifier: `npm run verify:game-artifact -- --artifact <file> --manifest <signed-manifest.json> --signature <manifest.sig>`.
-- Verifier independently streams the **actual local artifact bytes** through SHA-256, checks exact signed filename and file size, and validates a detached Ed25519 signature over the original manifest bytes.
-- Publisher public keys are loaded from the repository-pinned `release/trusted-game-publishers.json` file, **initially empty**. Missing, revoked, invalid and unverified keys fail closed. No demo/test publisher identity is shipped as a trusted production key.
-- The manifest must identify the fixed `migtam628/dma_hub` repository, a release tag, publisher ID, exact artifact filename, byte count and lowercase digest. Extra/unsupported fields are rejected.
-- Added regression tests using ephemeral synthetic keys and artifacts: success, changed file bytes, altered manifest, false signature, revoked/no trust, wrong algorithm, mismatched filename/size and schema validation.
-- Updated README, gaming architecture, API separation, roadmap, and detailed operator trust-bootstrap/verification instructions.
+- Publisher trust registry updated to **schema v2**, requiring a lowercase SHA-256 fingerprint of each Ed25519 public key's canonical SPKI DER bytes. Fingerprint mismatches, duplicate public-key fingerprints, wrong algorithms, private key material, unexpected registry fields and unknown status values are rejected.
+- Added **read-only publisher public-key inspection**: `npm run inspect:publisher-key -- --key <public-key.pem>`. It displays the canonical SPKI fingerprint and explicitly does **not** authenticate a real publisher or modify trusted keys.
+- Hardened `npm run verify:game-artifact` to hash file bytes from an already-opened regular file handle, with no-follow protection on supporting operating systems and file identity/size/time consistency checks before and after reading.
+- Manifest, signature and trust-registry inputs use the same bounded file-handle reading approach.
+- Successful CLI verification now returns the matched publisher's trusted-key fingerprint for independent operator review.
+- Expanded tests for signature/byte tampering, fingerprint swap, duplicate anchors, revoked/missing trust, private keys, unsupported algorithms, symlinks and unexpected metadata.
+- Updated README, publisher onboarding guide, game architecture and roadmap.
 
-## Still not implemented
+## Security and production boundaries
 
-- No real publisher identity/key has been authenticated or registered. A success in synthetic tests is not evidence of any real software's provenance.
-- No game cheat executables, game memory manipulation, device impersonation, anti-cheat evasion, hardware test certifications, production game integrations, commercial payments or license fulfillment.
-- No automatic server-side binary verification, customer artifact downloads, or publication approvals. This CLI does **not** mutate the catalog API.
-- GitHub Pages remains a static UI and the Windows installer remains an **unsigned alpha preview**.
+The checked-in `release/trusted-game-publishers.json` registry is **empty**. No legitimate game-software publisher is yet authenticated, and inspection of a key alone does not establish identity. Out-of-band verification and reviewed changes remain mandatory before any publisher becomes trusted.
 
-## Distribution
+The local verifier demonstrates cryptographic consistency for a point-in-time artifact snapshot only. It is **not** malware scanning, Windows code-signing verification, game compatibility testing, anti-cheat compliance, source authenticity independently of key onboarding, software execution authorization or a license service.
 
-The release workflow publishes a static web ZIP/checksum, and after Windows packaging verification adds an unsigned NSIS installer and Windows checksum. This game artifact verifier is included in the repository source and is **not** a certified publisher signing service.
+No functional DMA game cheat modules, hardware memory operations, anti-cheat bypasses, download/activation flows or real payment processing were added. GitHub Pages remains a static frontend.
 
-See [offline artifact verification](docs/game-artifact-verification.md) and [gaming DMA roadmap](docs/games-dma-cheats.md).
+## Download artifacts
+
+The release workflow publishes a web ZIP and SHA-256 checksum; the separate Windows job publishes an **unsigned** NSIS preview and its checksum only after successful build verification. The publisher inspection and artifact verifier commands run from the repository source and do not require unsigned installer execution.
+
+See [publisher trust verification guide](docs/game-artifact-verification.md) and [DMA Cheats roadmap](docs/games-dma-cheats.md).
