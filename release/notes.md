@@ -1,29 +1,27 @@
-# DMA Hub v0.2.0-alpha.28
+# DMA Hub v0.2.0-alpha.29
 
-**Private API staging deployment, verification and backup package. Not a public production API or actual gaming software distribution.**
+**First game pilot: Call of Duty: Warzone PC, official-source readiness and patch-aware QA handling. No game cheat binaries or supported-game claim.**
 
-## New in alpha.28
+## New in Alpha 29
 
-- Complete repeatable Docker Compose deployment under `deployment/staging/` for the existing Node 22 + SQLite API; host port is **127.0.0.1:8787** only, with no public network exposure.
-- Hardened container defaults: non-root Node user, read-only root filesystem, Linux capability drop, no-new-privileges, read-only health probe, tmpfs, process limit, restart policy and persistent SQLite volume.
-- Operators explicitly copy and protect `staging.env`, validate Docker Compose configuration and start the service via the documented deploy script. The environment and database snapshots are ignored by Git.
-- Health verification command and SQLite online backup/export script use the existing verified backup utility, with mode-600 host-side snapshots and encrypted off-host storage instructions.
-- GitHub Actions **Private API Staging Compose Smoke** checks Docker Compose syntax, builds/starts the API and verifies the local health response, then deletes disposable CI storage. Added Node tests for loopback-only configuration and private backup defaults.
-- Updated README, local API docs, security/production gating roadmap and full private staging runbook.
+- Dedicated source-backed pilot page at `#/games/call-of-duty/pilot`, linked from the Call of Duty catalog detail and Setup Planner.
+- Captures self-reported PC game client, installed game build, Windows version, CPU and GPU model, RAM, VRAM, free SSD space, TPM 2.0, Secure Boot, DirectX 12, CPU AVX and broadband status.
+- Displays Activision's March 11, 2026 minimum and recommended Warzone PC system requirements, with links to its official TPM/Secure Boot guidance and enforcement policy.
+- Read-only, local-browser questionnaire; allows TXT/JSON handoff exports, clipboard copy and print/PDF. No game process scanning, device access, firmware updates, cheating or installation.
+- Honest status gating for reported below-minimum requirements and unknowns; a completely filled questionnaire still has `gameCompatibilityVerified:false`, `downloadEnabled:false` and no publisher authorization.
+- Activision's announced **November 6, 2026 at 00:00 Eastern** Warzone/MW4 Season 1 integration is a mandatory re-check window. The local API conservatively hides **pre-window Call of Duty public compatibility, QA and matched asset metadata records** once the window starts. New operator reviews may restore reports; previous QA and artifact evidence stay stale. It does **not** assume the announced update actually shipped.
+- New tests for numeric minimums, security checks, unknown data, date logic, right-to-use and software/download denials, and synthetic API patch-window hiding/re-review.
+- Updated README, game architecture, project roadmap and detailed official-source pilot runbook.
 
-## Deployment limitation
+## Critical limitations
 
-The public `dma.moobee.lol` website remains on static GitHub Pages. There is **no public API domain, HTTPS reverse proxy, email provider, real support staffing, third-party software publisher or payment configuration** in this release. Customer accounts/support tickets are not publicly hosted. Do not expose the local API directly to the Internet.
+- **No actual Windows PC/game build is measured or connected** and no real signed publisher software is supplied. Warzone is the initial selected edition of the broader Call of Duty family; this is not confirmation of the user's exact edition.
+- No API-backed independent QA pass, license activation, public API deployment, payment settlement or authenticated customer software download.
+- No cheating, exploit, game-memory interaction, anti-cheat bypass, unsupported firmware, or authorized-to-use certification is provided.
+- Authenticated support and game QA remain features of the separate, privately staged local API, not automatically public services on static GitHub Pages.
 
 ## Distribution
 
-The GitHub prerelease publishes the web ZIP and checksum; after successful Windows packaging it adds an **unsigned** Windows preview NSIS installer and checksum. A successful test does not mean the installer is signed.
+GitHub Pages publishes the static web preview, and the release publishes a web ZIP/checksum. A separate Windows workflow publishes an **unsigned** NSIS preview and checksum only once packaging succeeds.
 
-## Remaining blockers for 100% production readiness
-
-- Owner-approved server/network and DNS configuration, TLS reverse proxy, rate limiting, secrets and compliance review.
-- Real publisher permission, software artifacts, hardware and game build QA, independent security checks.
-- Real merchant account and verified payment settlement, commercial entitlement and refund policies.
-- Support email/notification provider, staffed support, backups and restore drills, external monitoring and incident-response plan.
-
-See [private staging runbook](deployment/staging/README.md) and [project roadmap](docs/project-roadmap.md).
+**References:** [Warzone pilot](docs/call-of-duty-warzone-pilot.md), [roadmap](docs/project-roadmap.md), [Activision PC requirements](https://support.activision.com/warzone-2/articles/pc-system-requirements-for-warzone-2), [Activision enforcement policy](https://support.activision.com/articles/call-of-duty-security-and-enforcement-policy).
