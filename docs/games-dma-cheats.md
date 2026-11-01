@@ -52,3 +52,16 @@ Versioned operator attestations now use an append-only review history:
 - Changes are audit-recorded, review event history is append-only and database triggers block event modification/deletion. The admin UI is under **Admin → Game QA** on an authenticated local API.
 
 **Important:** `operator_reviewed` means a human administrator attested evidence. It is neither independent verification nor proof that a game, DMA device, operating system, or a publisher's rules allow the software. No cheat functionality, download delivery, device firmware changes, evasion, or customer licensing is enabled here.
+
+## Game release provenance — schema v15
+
+This milestone adds metadata-only records bound to one operator-reviewed game/build. It does **not** provide executable distribution, authorization, signed licenses, or downloads.
+
+- Admin → **Game Assets** registers the reviewed game compatibility record, fixed-repository GitHub tag, exact asset filename, and an expected 64-character SHA-256 checksum.
+- The repository is **fixed** to `migtam628/dma_hub`. No user-provided URLs are fetched. The server reads GitHub's public Releases API over HTTPS and compares the asset's `digest` (format `sha256:...`) with the operator-supplied expected hash. It also checks exact filename, positive asset ID and size, and uploaded state. Missing or contradictory metadata fails closed.
+- State transitions are `draft → metadata_matched → withdrawn` (or `draft → withdrawn`). Every transition requires an admin session and `If-Match` version; events are immutable and audit-recorded.
+- When an associated compatibility review or product version changes, the older metadata record is **stale** and hidden from the public game page. Archived products and withdrawn reviews are similarly hidden.
+- The public `GET /v1/games/:gameId/release-records` returns matching metadata and *never returns* a download URL. It states `metadataOnly=true`, `noDownloadLinks=true`, and `notBinaryVerified=true`. GitHub's asset digest is compared without downloading or hashing the asset's bytes; this is **not** independent binary verification, source-signature verification, malware screening, or publisher attestation.
+- Private operator identities and QA evidence links do not appear in public records.
+
+Before any production download can be enabled: independently hash the downloaded artifact, verify publisher ownership/signatures, check the build's approved QA matrix and current release provenance, design revocation/rollback and authentication, and independently review safety/legality. No cheat binaries or anti-cheat functionality are created by this milestone.
