@@ -2,13 +2,15 @@ import {useEffect,useState} from "react";
 import {ArrowLeft,ArrowRight,Gamepad2,Monitor,Package,RefreshCcw,Search,ShieldCheck} from "lucide-react";
 import {Button,Pill} from "@dma-hub/ui";
 import {api} from "./api";
-import type {GameCompatibilityRecord,PublishedCatalogItem} from "./api";
+import type {GameCompatibilityRecord,PublishedCatalogItem,PublicGameReleaseRecord} from "./api";
 import {GAME_CATALOG,findGame} from "./gameCatalog";
 
 type State="loading"|"ready"|"unavailable";
 export function GameCheatsCatalog({gameId}:{gameId?:string}){
  const [records,setRecords]=useState<PublishedCatalogItem[]>([]);
  const [reviews,setReviews]=useState<GameCompatibilityRecord[]>([]);
+ const [releaseRecords,setReleaseRecords]=useState<PublicGameReleaseRecord[]>([]);
+ const [releaseState,setReleaseState]=useState<State>("loading");
  const [reviewState,setReviewState]=useState<State>("loading");
  const [state,setState]=useState<State>("loading");
  const [query,setQuery]=useState("");
@@ -38,6 +40,19 @@ export function GameCheatsCatalog({gameId}:{gameId?:string}){
    setReviewState("ready");
   }).catch(()=>{if(live){setReviews([]);setReviewState("unavailable")}});
   return ()=>{live=false};
+ },[gameId,revision]);
+ useEffect(()=>{
+  let active=true;
+  setReleaseRecords([]);
+  setReleaseState(game?"loading":"ready");
+  if(!game)return;
+  api.gameReleaseRecords(game.id).then(result=>{
+   if(!active)return;
+   if(!Array.isArray(result.items)||result.items.some(a=>a.gameId!==game.id||a.downloadEnabled!==false))
+    throw new Error("Invalid release provenance response");
+   setReleaseRecords(result.items);setReleaseState("ready");
+  }).catch(()=>{if(active){setReleaseRecords([]);setReleaseState("unavailable")}});
+  return ()=>{active=false};
  },[gameId,revision]);
  const entries=GAME_CATALOG.filter(item=>[item.name,item.id,item.category].join(" ").toLowerCase().includes(query.toLowerCase().trim()));
  const listed=records.filter(p=>game?
@@ -70,6 +85,14 @@ export function GameCheatsCatalog({gameId}:{gameId?:string}){
        <div className="product-copy"><div className="product-meta"><span>Game-specific software</span><Pill tone="neutral">Operator reviewed</Pill></div>
        <h3>{item.name}</h3><p>{item.description}</p>
        {item.requirements.length>0?<p className="muted">{item.requirements.length} documented requirements</p>:null}
+       {releaseState==="unavailable"?<p className="muted" role="status">GitHub release metadata status is currently unavailable; no downloads can be offered.</p>:null}
+       {releaseState==="ready"&&releaseRecords.filter(a=>a.productId===item.id).map(asset=><div className="game-review-public" key={asset.id}>
+        <strong>Release metadata matched: {asset.releaseTag}</strong>
+        <small>GitHub asset: {asset.assetName} · {asset.assetBytes} bytes</small>
+        <small>Expected SHA-256: <code>{asset.sha256}</code></small>
+        <small>Last source-metadata comparison: {new Date(asset.metadataMatchedAt).toLocaleString()}</small>
+        <small>Metadata match only. Binary bytes, publisher signature and compatibility are not independently verified. Downloads remain disabled.</small>
+       </div>)}
        {reviews.filter(r=>r.productId===item.id).map(r=><div className="game-review-public" key={r.id}>
         <strong>{r.gameBuild} · {r.platform}</strong>
         <small>Operator-declared hardware: {r.hardware}</small>
