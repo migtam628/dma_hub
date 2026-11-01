@@ -98,3 +98,7 @@ Research and reference decisions are documented in [competitive-reference-resear
 The user selected Call of Duty as the first pilot. `#/games/call-of-duty/pilot` now offers a non-executable PC readiness worksheet with official Activision requirements, an upcoming patch/build recheck window, strict local input validation and portable QA handoff exports. The Warzone edition is an initial scope choice, **not** a user-verified game build. No game-specific cheat software has been tested or approved. See [Call of Duty pilot research and testing gates](call-of-duty-warzone-pilot.md).
 
 The same November 6 recheck gate is enforced **server-side** on public Call of Duty compatibility, operator QA and metadata-only release records, not just in the browser worksheet. Pre-update reviewed records disappear after the announced date until manually reviewed again; current reviews still do not authorize execution/downloads.
+
+## Multi-title Xbox/PC platform expansion — Alpha 30
+
+The user plans to test several modern Call of Duty editions and asked whether Xbox can use DMA Hub services. A new [official-source Xbox and PC availability matrix](call-of-duty-xbox-pc-matrix.md) documents Warzone, Modern Warfare II–IV and Black Ops 6–7 with a Series X|S / Xbox One choice and separate web-vs-native capability status. Xbox One Warzone sunset and MW4 Xbox One exclusion are explicitly flagged. No native Xbox software, direct game-memory features, unapproved input manipulation, automated console diagnostics or Xbox compatibility certification is implemented.
