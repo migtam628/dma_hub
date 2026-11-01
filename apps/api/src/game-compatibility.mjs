@@ -1,4 +1,5 @@
 import {randomUUID} from "node:crypto";
+import {codReviewCurrentForPublic} from "./cod-patch-gate.mjs";
 
 // This module is a documented operator-attestation workflow, not independent game
 // compatibility certification and not a license/download/anti-cheat service.
@@ -48,7 +49,7 @@ export function createGameCompatibility({db,clock,audit,readBody}){
   // A stale game association must never be presented as compatibility, even if
   // a previously reviewed product later changed its declared game list.
   return result(200,{gameId,items:rows.filter(x=>{
-   try{return JSON.parse(db.prepare("SELECT game_ids_json FROM catalog_products WHERE id=?").get(x.product_id).game_ids_json).includes(gameId)}
+   try{return codReviewCurrentForPublic(gameId,x.reviewed_at,clock())&&JSON.parse(db.prepare("SELECT game_ids_json FROM catalog_products WHERE id=?").get(x.product_id).game_ids_json).includes(gameId)}
    catch{return false}
   }).map(publicRow),operatorAttestedOnly:true,noDownloads:true});
  }
