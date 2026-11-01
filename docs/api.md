@@ -124,3 +124,10 @@ An operator attestation is not independent compatibility certification and grant
 ## Offline artifact verification separation
 
 The CLI in `scripts/verify-game-artifact.mjs` checks a local artifact against a detached Ed25519-signed manifest and independently pinned trust registry. It has **no API endpoint** and does not issue entitlements or raise `metadata_matched` to a stronger status. No public or admin endpoint claims completed local-byte verification. See [operator procedure](game-artifact-verification.md).
+
+## Operator game QA journal (schema v16, local-only API)
+
+- `GET /v1/games/:gameId/qa-status`: published current review's latest per-scope operator-reported status, each `{reviewId,gameId,gameBuild,scope,outcome,recordedAt,operatorReported:true,independentlyCertified:false,downloadEnabled:false}`. Private notes, actors and evidence URLs never appear. Old review/product versions, withdrawn/archived products are excluded.
+- `GET /v1/admin/game-qa-results`: administrator-only chronological QA journal, with stale flags and private evidence reference for authorized operators.
+- `POST /v1/admin/game-qa-results`: administrator-only append-only observation `{reviewId,scope,outcome,osBuild,firmware,evidenceRef,notes,rightsConfirmed}`; requires `If-Match: <reviewVersion>`. Scope is one of `hardware_setup`, `install_validation`, `functional_smoke`; outcome one of `passed`, `failed`, `retest_required`. Pass/fail require HTTPS evidence and meaningful notes; pass requires explicit authorization attestation. No record can be submitted for stale/unpublished/unreviewed products.
+- Observations are never edited or deleted; later outcomes supersede earlier outcomes within each review/scope. `passed` records are **operator reports only**, not independent QA certification or a license/download approval.

@@ -1,6 +1,6 @@
 import {DatabaseSync} from "node:sqlite";
 
-export const SCHEMA_VERSION=15;
+export const SCHEMA_VERSION=16;
 
 const BASE_SCHEMA=`CREATE TABLE IF NOT EXISTS users(
  id TEXT PRIMARY KEY,
@@ -409,6 +409,34 @@ export function migrateDatabase(db){
    version=15;
   }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
  }
+ if(version===15){
+  db.exec("BEGIN IMMEDIATE");
+  try{
+   db.exec(`CREATE TABLE game_qa_results(
+    id TEXT PRIMARY KEY,
+    review_id TEXT NOT NULL REFERENCES game_compatibility_reviews(id) ON DELETE RESTRICT,
+    review_version INTEGER NOT NULL CHECK(review_version>=1),
+    product_version INTEGER NOT NULL CHECK(product_version>=1),
+    test_scope TEXT NOT NULL CHECK(test_scope IN ('hardware_setup','install_validation','functional_smoke')),
+    outcome TEXT NOT NULL CHECK(outcome IN ('passed','failed','retest_required')),
+    os_build TEXT NOT NULL,
+    firmware TEXT NOT NULL,
+    evidence_ref TEXT NOT NULL,
+    notes TEXT NOT NULL,
+    rights_confirmed INTEGER NOT NULL CHECK(rights_confirmed IN (0,1)),
+    actor_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    recorded_at INTEGER NOT NULL
+   );
+   CREATE INDEX game_qa_lookup ON game_qa_results(review_id,recorded_at DESC);
+   CREATE TRIGGER game_qa_results_no_update BEFORE UPDATE ON game_qa_results
+    BEGIN SELECT RAISE(ABORT,'immutable game QA result'); END;
+   CREATE TRIGGER game_qa_results_no_delete BEFORE DELETE ON game_qa_results
+    BEGIN SELECT RAISE(ABORT,'immutable game QA result'); END;`);
+   db.exec("PRAGMA user_version=16; COMMIT;");
+   version=16;
+  }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
+ }
+ requiredColumns(db,"game_qa_results",["id","review_id","review_version","product_version","test_scope","outcome","os_build","firmware","evidence_ref","notes","rights_confirmed","actor_id","recorded_at"]);
  requiredColumns(db,"game_release_artifacts",["id","review_id","release_tag","asset_name","expected_sha256","state","version","review_version","github_asset_id","asset_bytes","matched_at","created_by","matched_by","created_at","updated_at"]);
  requiredColumns(db,"game_release_artifact_events",["id","artifact_id","version","from_state","to_state","actor_id","created_at"]);
  requiredColumns(db,"game_compatibility_reviews",["id","product_id","game_id","game_build","platform","hardware","evidence_ref","state","version","product_version","created_by","reviewed_by","reviewed_at","created_at","updated_at"]);

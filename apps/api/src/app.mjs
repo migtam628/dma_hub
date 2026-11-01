@@ -7,6 +7,7 @@ import {migrateDatabase} from "./migrations.mjs";
 import {createCommerce} from "./commerce.mjs";
 import {createCommerceReviews} from "./commerce-reviews.mjs";
 import {createGameCompatibility} from "./game-compatibility.mjs";
+import {createGameQA} from "./game-qa.mjs";
 import {createGameReleaseAssets} from "./game-release-assets.mjs";
 import {createSandboxWebhook} from "./sandbox-webhook.mjs";
 import {createStripeTestGateway} from "./stripe-test.mjs";
@@ -80,6 +81,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
  const commerce=createCommerce({db,clock,audit,readBody:jsonBody});
  const commerceReviews=createCommerceReviews({db,clock,audit,readBody:jsonBody});
  const gameCompatibility=createGameCompatibility({db,clock,audit,readBody:jsonBody});
+ const gameQA=createGameQA({db,clock,audit,readBody:jsonBody});
  const gameReleaseAssets=createGameReleaseAssets({db,clock,audit,readBody:jsonBody,...(releaseLookup?{releaseLookup}:{})});
  const testWebhook=createSandboxWebhook({db,clock,audit,secret:sandboxWebhookSecret});
  const stripeGateway=createStripeTestGateway({db,clock,audit,...(stripeTest||{})});
@@ -125,6 +127,8 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
    }
    const publicAssets=gameReleaseAssets.publicRoute(pathname,req);
    if(publicAssets){response(res,publicAssets.status,publicAssets.payload);return}
+   const publicQA=gameQA.publicRoute(pathname,req);
+   if(publicQA){response(res,publicQA.status,publicQA.payload);return}
    const publicCompatibility=gameCompatibility.publicRoute(pathname,req);
    if(publicCompatibility){response(res,publicCompatibility.status,publicCompatibility.payload);return}
    if(pathname==="/healthz"&&req.method==="GET"){response(res,200,{status:"ok",service:"dma-hub-api",database:"ready"});return}
@@ -280,6 +284,8 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
     if(stripePrivate){response(res,stripePrivate.status,stripePrivate.payload);return}
     const gameAssetResult=await gameReleaseAssets.authenticatedRoute(pathname,req,u);
     if(gameAssetResult){response(res,gameAssetResult.status,gameAssetResult.payload);return}
+    const gameQAResult=await gameQA.authenticatedRoute(pathname,req,u);
+    if(gameQAResult){response(res,gameQAResult.status,gameQAResult.payload);return}
     const gameCompatibilityResult=await gameCompatibility.authenticatedRoute(pathname,req,u);
     if(gameCompatibilityResult){response(res,gameCompatibilityResult.status,gameCompatibilityResult.payload);return}
     const reviewResult=await commerceReviews.authenticatedRoute(pathname,req,u);

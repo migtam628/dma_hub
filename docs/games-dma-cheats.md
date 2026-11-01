@@ -73,3 +73,16 @@ The optional `npm run verify:game-artifact` CLI adds an **independent local-byte
 ## Alpha 24 trust onboarding safeguards
 
 Offline `npm run inspect:publisher-key -- --key <public.pem>` prints an Ed25519 SPKI SHA-256 fingerprint without importing the key. Publisher trust registry v2 requires the fingerprint to match the pinned key bytes; missing/revoked keys, duplicates, key replacement and private keys fail closed. This does not authenticate the publisher: human out-of-band verification and reviewed onboarding are required. The local file verifier now hashes an already-opened file descriptor and checks file metadata stability, but no software distribution or anti-cheat functionality is enabled. See [verification guide](game-artifact-verification.md).
+
+## Manual game and hardware QA evidence journal — schema v16
+
+The local API now includes an **append-only operator-reported QA journal** linked to an exact, currently reviewed product, game build and Windows platform. No software is automatically executed, installed, modified or certified.
+
+- Admin → **QA Lab** records a test scope (hardware setup, installation validation or functional smoke), an outcome (passed, failed or retest required), Windows build, hardware/firmware revision, optional private HTTPS evidence link, operator notes and an explicit authorization attestation.
+- Passing or failing observations require evidence and meaningful notes. A reported pass additionally requires confirmation that the relevant owner/publisher authorized the test; this is operator self-attestation, **not independent rights verification**.
+- Every observation is append-only, actor-audited and linked to the product and compatibility-review versions at the time of recording. Old observations become stale if the product or review changes, is withdrawn or archived. A later failure or retest-required outcome for the same scope supersedes an earlier pass.
+- `GET /v1/games/:gameId/qa-status` returns only the **latest currently valid operator-reported result per review and test scope**, without staff identities, private evidence URLs or internal notes. All responses explicitly declare `independentlyCertified:false` and `downloadEnabled:false`. No assessment is fabricated for untested products.
+- `GET /v1/admin/game-qa-results` and `POST /v1/admin/game-qa-results` require an authenticated administrator. POST additionally requires an `If-Match` header equal to the current compatibility-review version. SQLite schema v16 creates `game_qa_results` with triggers preventing UPDATE/DELETE.
+- After any game patch/build change the operator should record **retest required** and update the corresponding exact game-build review. No automated game patch detection is yet implemented.
+
+This is a **manual test evidence and status mechanism**, not a test runner, source provenance guarantee, permission to cheat, independent validation or compatibility certification. The storefront still provides **no executable software downloads**.
