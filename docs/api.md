@@ -148,3 +148,14 @@ The CLI in `scripts/verify-game-artifact.mjs` checks a local artifact against a 
 A repeatable, loopback-only API staging package lives in [deployment/staging](../deployment/staging/README.md). It builds `apps/api/Dockerfile`, stores SQLite persistently in a named Docker volume, and binds host `127.0.0.1:8787` only. The scripts verify `/healthz`, support online SQLite backup and demonstrate private SSH/Tailscale forwarding. A new CI workflow parses the Compose configuration and boots the disposable service.
 
 **Not production Internet hosting:** No public API domain, reverse proxy, TLS certificate, firewall/DNS change, email notification, staff SLA or commercial payment activation is created. Public use requires user-owned hosting/DNS decisions, secrets, stronger anti-abuse security, backups and independent verification.
+
+## Xbox QA private intake — schema v18
+
+Administrator-only manual evidence workflow. See [Xbox QA intake SOP](xbox-qa-private-intake.md).
+
+- `GET /v1/admin/xbox-qa`: up to 200 operator-reported report summaries; no private notes or raw evidence.
+- `POST /v1/admin/xbox-qa` with `{session:<v1 Xbox QA field object>}`: strict server-side schema/console/title/build/checklist validation, at least one reported physical test, SHA-256 duplicate prevention; 201 on insert, 409 duplicate, 422 invalid. Only admins may import.
+- `GET /v1/admin/xbox-qa/:id`: full private manual report plus versioned triage history.
+- `PATCH /v1/admin/xbox-qa/:id` with `If-Match` and `{state:"triaged"|"retest_required",note:"at least 10 characters"}`: append immutable triage event; 409 stale/already state, 428 missing valid If-Match.
+- SQLite v18 tables: `xbox_qa_submissions` and `xbox_qa_triage_events`, write-protected by immutable SQL triggers; backups must include both.
+- No public publication, no physical Xbox attestation, no real software QA pass, no independent certification, game download, payment, entitlement or licensed integration results from import/triage.
