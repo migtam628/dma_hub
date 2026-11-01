@@ -55,3 +55,9 @@ All inputs remain in current-browser local storage. No game process, driver, ant
 ## External inputs still needed
 
 A real Windows PC environment and its specs, exact installed game client/version, and evidence of any companion software's authorized publisher/test rights. Absent those, this milestone is a source-backed *working preparation tool*, not a finished game implementation or 100% commercial product.
+
+## Additional server-side retest gate
+
+From the announced November 6, 2026 00:00 Eastern integration window onward, the local API deliberately **omits** Call of Duty public compatibility records, per-game QA status and matched asset metadata when their operator review predates that window. This is a conservative **re-review trigger**, not evidence that an update actually shipped or that a post-window re-attestation independently verified game software. Other game IDs are unaffected.
+
+The existing admin review/QA workflow can re-attest a product against an exact game build after manual testing, but new QA observations and release records must be separately issued for the new review version. Nothing is automatically approved for download.
