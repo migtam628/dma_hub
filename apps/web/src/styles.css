@@ -101,3 +101,15 @@
 .game-asset-item small{font-size:11px;color:#acc5d7;overflow-wrap:anywhere}
 .game-asset-item code,.game-review-public code{font-size:11px;word-break:break-all;color:#a6e2f6}
 .game-asset-item .form-actions{margin-top:8px}
+
+/* Operator-reported game & hardware QA; no automatic compatibility certification */
+.game-qa-form{max-width:800px}
+.game-qa-form .field select,.game-qa-form .field input,.game-qa-form .field textarea{
+ background:#0a1726;color:#e9f4fd;border:1px solid #375268;border-radius:8px;padding:11px 12px;width:100%;font:inherit}
+.game-qa-form textarea{resize:vertical;min-height:82px}
+.game-qa-checkbox{display:flex;align-items:flex-start;gap:10px;line-height:1.6;color:#b7d2e2;font-size:12px}
+.game-qa-checkbox input{width:16px;height:16px;flex:0 0 auto;margin-top:3px}
+.game-qa-public{margin-top:10px;padding:10px 12px;border:1px solid #35516b;border-radius:9px;font-size:12px}
+.game-qa-public strong,.game-qa-public small{display:block;line-height:1.6}
+.game-qa-public strong{color:#c7e7f6}
+.game-qa-public small{color:#95b2c5}
