@@ -1,25 +1,20 @@
-# DMA Hub v0.2.0-alpha.25
+# DMA Hub v0.2.0-alpha.26
 
-**Manual game and hardware QA observations with fail/retest state precedence. No independent compatibility certification or functioning game cheat binaries.**
+**Interactive Setup Planner & reference-backed customer experience improvements. No game software downloads or compatibility certification.**
 
-## New in alpha.25
+## New features
+- Public, responsive `#/setup` **three-stage guided hardware setup planner** integrated into navigation and the homepage.
+- Capture planning game category, exact build (self-reported), primary/secondary Windows environments, hardware model, usage purpose, and six checklist responses.
+- Every result explicitly distinguishes confirmed/unknown/missing inventory from independent game compatibility or publisher authorization. All approval and download flags remain false even when all six answers are confirmed.
+- Functional local browser persistence with schema-validated plan inputs, clear/reset, JSON/TXT export, clipboard copy and browser Print/PDF. No server calls, devices probed, firmware changes, installer execution or license requests.
+- Added reusable planner evaluator and Node regression tests (input sanitization, incomplete setups, complete inventory not implying support, unsupported/unknown OS and export honesty).
+- Source-linked market and customer journey audit covering OverDMA, CamUnlocks and Blurred; SSZ was unreachable. No competitor assets, product claims, pricing or proprietary methods copied.
+- README, gaming architecture and roadmap updated with current limitations and priorities.
 
-- Additive SQLite schema **v16** adds immutable, operator-recorded game QA results linked to an exact, currently reviewed product/game build and product/review versions.
-- New **Admin → QA Lab** workspace records hardware setup, installation validation or functional smoke-test observations as **passed**, **failed** or **retest required**, with Windows build, hardware/firmware revision, private evidence URL, notes, and an explicit permission declaration.
-- Pass/fail require HTTPS evidence and meaningful notes; a reported pass also requires an administrator attestation that testing was authorized. This is *not independent validation* of rights or compatibility.
-- Public game detail pages display only the **latest current operator-reported status** for each review and scope, clearly distinguish failure/retest from a prior reported pass, and never expose internal QA notes, reviewer identities or evidence URLs.
-- A change to the associated game compatibility review or product version automatically makes older QA observations stale and removes them from the current public status response.
-- New admin-only `GET/POST /v1/admin/game-qa-results` and public read-only `GET /v1/games/:gameId/qa-status`; observations are append-only with database write/delete prevention triggers and user audit.
-- Expanded tests cover stale review/product invalidation, RBAC, evidence checks, fail/retest precedence and migration v15→v16. Updated README, API specification, game architecture and roadmap.
+## Deployment
+GitHub Pages hosts only a static client preview. Alpha ZIP and checksums publish through the workflow; a separate unsigned Windows NSIS alpha installer and checksum are uploaded after verification.
 
-## Distribution
+## Not production-complete
+No authenticated public API hosting, real publisher/owner rights, independent game compatibility testing, working game software, anti-cheat bypass, trusted publisher enrollment, live payment settlement, final secure download fulfillment, operator support coverage, or production service reliability assurance.
 
-The release workflow publishes a static web ZIP and checksum; after verification, a separate Windows job publishes an **unsigned** NSIS installer and checksum.
-
-## Still not implemented
-
-No authentic game-cheat modules, memory access or anti-cheat bypass features, live hostable API, real publisher trust onboarding, independent game/hardware tests, downloadable game software, production billing, commercial entitlements, signing service, rollout or revocation automation.
-
-A manually recorded `passed` result is **operator-reported only**; it does not certify game compatibility, publisher compliance, malware absence or legal permission. No QA results are seeded or fabricated.
-
-See [DMA Cheats documentation](docs/games-dma-cheats.md).
+See [competitive research](docs/competitive-reference-research.md), [setup planner](https://dma.moobee.lol/#/setup) and [roadmap](docs/project-roadmap.md).
