@@ -7,6 +7,7 @@ import {migrateDatabase} from "./migrations.mjs";
 import {createCommerce} from "./commerce.mjs";
 import {createCommerceReviews} from "./commerce-reviews.mjs";
 import {createGameCompatibility} from "./game-compatibility.mjs";
+import {createGameReleaseAssets} from "./game-release-assets.mjs";
 import {createSandboxWebhook} from "./sandbox-webhook.mjs";
 import {createStripeTestGateway} from "./stripe-test.mjs";
 import {createRateLimiter} from "./rate-limiter.mjs";
@@ -66,7 +67,7 @@ function normalizedProduct(v,previous=null){
  return {slug,name,description,status,category,features,requirements,gameIds};
 }
 function normalizedProfile(v){if(!v||typeof v!=="object"||Array.isArray(v))return null;const name=typeof v.name==="string"?v.name.trim():"";if(name.length<1||name.length>80)return null;const data=v.data;if(!data||typeof data!=="object"||Array.isArray(data))return null;const serialized=JSON.stringify(data);if(serialized.length>16000)return null;return {name,data:serialized}}
-export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:5173",clock=()=>Date.now(),sendEmail=null,requireEmailVerification=false,sandboxWebhookSecret=null,stripeTest=null}={}){
+export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:5173",clock=()=>Date.now(),sendEmail=null,requireEmailVerification=false,sandboxWebhookSecret=null,stripeTest=null,releaseLookup=undefined}={}){
  if(requireEmailVerification&&typeof sendEmail!=="function")throw new Error("Email verification requires a configured mail transport");
  if(dbPath!==":memory:")mkdirSync(dirname(dbPath),{recursive:true});
  const db=new DatabaseSync(dbPath);
@@ -79,6 +80,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
  const commerce=createCommerce({db,clock,audit,readBody:jsonBody});
  const commerceReviews=createCommerceReviews({db,clock,audit,readBody:jsonBody});
  const gameCompatibility=createGameCompatibility({db,clock,audit,readBody:jsonBody});
+ const gameReleaseAssets=createGameReleaseAssets({db,clock,audit,readBody:jsonBody,...(releaseLookup?{releaseLookup}:{})});
  const testWebhook=createSandboxWebhook({db,clock,audit,secret:sandboxWebhookSecret});
  const stripeGateway=createStripeTestGateway({db,clock,audit,...(stripeTest||{})});
  function issueToken(userId,purpose,ttl){
@@ -121,6 +123,8 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
      const event=await testWebhook.receive(req);
      response(res,event.status,event.payload);return
    }
+   const publicAssets=gameReleaseAssets.publicRoute(pathname,req);
+   if(publicAssets){response(res,publicAssets.status,publicAssets.payload);return}
    const publicCompatibility=gameCompatibility.publicRoute(pathname,req);
    if(publicCompatibility){response(res,publicCompatibility.status,publicCompatibility.payload);return}
    if(pathname==="/healthz"&&req.method==="GET"){response(res,200,{status:"ok",service:"dma-hub-api",database:"ready"});return}
@@ -274,6 +278,8 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
     }
     const stripePrivate=await stripeGateway.authenticatedRoute(pathname,req,u);
     if(stripePrivate){response(res,stripePrivate.status,stripePrivate.payload);return}
+    const gameAssetResult=await gameReleaseAssets.authenticatedRoute(pathname,req,u);
+    if(gameAssetResult){response(res,gameAssetResult.status,gameAssetResult.payload);return}
     const gameCompatibilityResult=await gameCompatibility.authenticatedRoute(pathname,req,u);
     if(gameCompatibilityResult){response(res,gameCompatibilityResult.status,gameCompatibilityResult.payload);return}
     const reviewResult=await commerceReviews.authenticatedRoute(pathname,req,u);

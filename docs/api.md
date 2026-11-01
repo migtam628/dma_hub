@@ -110,3 +110,13 @@ See [commerce review workflow](commerce-reviews.md). These endpoints are local-o
 - `PATCH /v1/admin/game-compatibility/:id`: admin-only `{state}` transition requiring numeric `If-Match`. Only a published, still-associated, unchanged product with an HTTPS evidence reference can be reviewed. Reset to draft after changes to re-attest. All transitions create immutable events and audit records.
 
 An operator attestation is not independent compatibility certification and grants no downloads, access rights, licenses, or payment settlement. Public route requires no auth, but local SQLite API is not Internet-hosted.
+
+## Game release provenance (local API, schema v15)
+
+- `GET /v1/games/:gameId/release-records` — metadata only; current reviewed game association, current product version, uploaded GitHub asset SHA-256 digest compared, and not withdrawn. No download URLs, executable approval, license, or reviewer PII are provided.
+- `GET /v1/admin/game-release-assets` — admin-only source metadata queue including pending, matched and withdrawn records; stale flags.
+- `POST /v1/admin/game-release-assets` — admin-only draft registration `{reviewId,releaseTag,assetName,expectedSha256}`, where the review must be current.
+- `POST /v1/admin/game-release-assets/:id/match` — admin-only with `If-Match` expected version; compare exact asset metadata against the fixed `migtam628/dma_hub` GitHub Releases API. Missing digest, mismatched SHA, unavailable source or stale review cannot produce a match.
+- `POST /v1/admin/game-release-assets/:id/withdraw` — admin-only with `If-Match`; removes future public metadata without deleting audit history.
+
+`metadata_matched` only means the expected SHA-256 string matched GitHub's asset metadata at a recorded time. No asset download/hashing, safety or source attestation, licensing, paid checkout, or production distribution is implied.

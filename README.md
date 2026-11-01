@@ -200,6 +200,12 @@ For local testing, run the API (`npm run dev:api`) and Vite frontend (`npm run d
 
 This is a first storefront binding, **not** commercial checkout, product-detail administration, or a production service. The hardware page and featured landing-page products remain labeled examples.
 
+### Game release provenance records (local API only)
+
+Admin → **Game Assets** supports registering an exact game/build review, GitHub Release tag, asset filename, and operator-expected SHA-256 digest. The server compares these fields against GitHub's public asset metadata from the fixed `migtam628/dma_hub` repository. Versioned, auditable records are public only while the associated game review and product remain current, and the public API exposes **metadata only—no download URLs**. A GitHub digest match is not a downloaded-binary hash, publisher verification, malware scan, software compatibility certification or authorization to execute. The GitHub Pages preview has no connected local backend.
+
+See [Game DMA release provenance](docs/games-dma-cheats.md).
+
 ### Game compatibility QA reviews (local API only)
 
 A new **Admin → Game QA** workspace allows server-authorized administrators to create evidence-linked draft reviews for an exact game build, OS, hardware and catalog software record. State transitions are version-checked and audit-recorded. The **public per-game pages now require current operator-reviewed records** as well as published software; stale, withdrawn or draft claims are hidden. Internal evidence references stay private; only an evidence-on-file flag appears publicly. No cheat binaries, anti-cheat workarounds, hardware integrations, signed licenses or payments were added. See [the game QA contract](docs/games-dma-cheats.md).

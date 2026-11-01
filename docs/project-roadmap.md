@@ -120,3 +120,11 @@ Payment provider, business terms, first supported production software/hardware c
 - Public game pages fail closed: only operator-reviewed current product versions are shown, and internal QA evidence references are never exposed.
 - Changes to product information invalidate prior reviewed records until a new draft/review cycle completes.
 - Unfinished: independent hardware/game QA, authentic publisher-owned builds, real licensed delivery, signed distribution, payment/identity hosting, operational security and merchant policy review.
+
+### October 31 — GitHub source-metadata provenance registry (schema v15)
+
+- Added server-pinned GitHub Releases metadata comparison by exact release tag and filename with SHA-256 digest requirement. Unknown or mismatched metadata cannot become `metadata_matched`.
+- Release asset records are tied to operator-reviewed, current game/build compatibility; when a review/product changes, the older asset metadata is automatically excluded from public game pages.
+- Admin Game Assets queue uses versioned create/match/withdraw actions, immutable event history and strict RBAC.
+- Public pages show provenance facts only: no user download URLs, executable permission, signature validation, binary safety certification, entitlement, or actual game cheat integration.
+- Next: independent downloaded-byte verification plus publisher signature/provenance, release artifact QA, authorization and revocation design, and secure hosting. Distinguish these gates from a successful GitHub metadata match.

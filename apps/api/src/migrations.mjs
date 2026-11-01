@@ -1,6 +1,6 @@
 import {DatabaseSync} from "node:sqlite";
 
-export const SCHEMA_VERSION=14;
+export const SCHEMA_VERSION=15;
 
 const BASE_SCHEMA=`CREATE TABLE IF NOT EXISTS users(
  id TEXT PRIMARY KEY,
@@ -369,6 +369,48 @@ export function migrateDatabase(db){
    version=14;
   }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
  }
+ if(version===14){
+  db.exec("BEGIN IMMEDIATE");
+  try{
+   db.exec(`CREATE TABLE game_release_artifacts(
+    id TEXT PRIMARY KEY,
+    review_id TEXT NOT NULL REFERENCES game_compatibility_reviews(id) ON DELETE RESTRICT,
+    release_tag TEXT NOT NULL,
+    asset_name TEXT NOT NULL,
+    expected_sha256 TEXT NOT NULL CHECK(length(expected_sha256)=64),
+    state TEXT NOT NULL CHECK(state IN ('draft','metadata_matched','withdrawn')),
+    version INTEGER NOT NULL CHECK(version>=1),
+    review_version INTEGER NOT NULL CHECK(review_version>=1),
+    github_asset_id INTEGER,
+    asset_bytes INTEGER,
+    matched_at INTEGER,
+    created_by TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    matched_by TEXT REFERENCES users(id) ON DELETE RESTRICT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    UNIQUE(review_id,release_tag,asset_name)
+   );
+   CREATE INDEX game_release_artifacts_review_state ON game_release_artifacts(review_id,state);
+   CREATE TABLE game_release_artifact_events(
+    id TEXT PRIMARY KEY,
+    artifact_id TEXT NOT NULL REFERENCES game_release_artifacts(id) ON DELETE RESTRICT,
+    version INTEGER NOT NULL CHECK(version>=1),
+    from_state TEXT,
+    to_state TEXT NOT NULL CHECK(to_state IN ('draft','metadata_matched','withdrawn')),
+    actor_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    created_at INTEGER NOT NULL,
+    UNIQUE(artifact_id,version)
+   );
+   CREATE TRIGGER game_release_artifact_events_no_update BEFORE UPDATE ON game_release_artifact_events
+    BEGIN SELECT RAISE(ABORT,'immutable release event'); END;
+   CREATE TRIGGER game_release_artifact_events_no_delete BEFORE DELETE ON game_release_artifact_events
+    BEGIN SELECT RAISE(ABORT,'immutable release event'); END;`);
+   db.exec("PRAGMA user_version=15; COMMIT;");
+   version=15;
+  }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
+ }
+ requiredColumns(db,"game_release_artifacts",["id","review_id","release_tag","asset_name","expected_sha256","state","version","review_version","github_asset_id","asset_bytes","matched_at","created_by","matched_by","created_at","updated_at"]);
+ requiredColumns(db,"game_release_artifact_events",["id","artifact_id","version","from_state","to_state","actor_id","created_at"]);
  requiredColumns(db,"game_compatibility_reviews",["id","product_id","game_id","game_build","platform","hardware","evidence_ref","state","version","product_version","created_by","reviewed_by","reviewed_at","created_at","updated_at"]);
  requiredColumns(db,"game_compatibility_events",["id","review_id","version","from_state","to_state","actor_id","created_at"]);
  requiredColumns(db,"commerce_review_cases",["id","order_id","idempotency_key","provider","reason","state","version","opened_by","created_at","updated_at"]);
