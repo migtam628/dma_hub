@@ -120,3 +120,7 @@ An operator attestation is not independent compatibility certification and grant
 - `POST /v1/admin/game-release-assets/:id/withdraw` — admin-only with `If-Match`; removes future public metadata without deleting audit history.
 
 `metadata_matched` only means the expected SHA-256 string matched GitHub's asset metadata at a recorded time. No asset download/hashing, safety or source attestation, licensing, paid checkout, or production distribution is implied.
+
+## Offline artifact verification separation
+
+The CLI in `scripts/verify-game-artifact.mjs` checks a local artifact against a detached Ed25519-signed manifest and independently pinned trust registry. It has **no API endpoint** and does not issue entitlements or raise `metadata_matched` to a stronger status. No public or admin endpoint claims completed local-byte verification. See [operator procedure](game-artifact-verification.md).
