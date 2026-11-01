@@ -1,4 +1,5 @@
 import {useEffect,useMemo,useState} from "react";
+import type {ChangeEvent} from "react";
 import {ArrowLeft,ClipboardCheck,Download,Gamepad2,RefreshCcw,ShieldAlert,Trash2} from "lucide-react";
 import {Button,Pill} from "@dma-hub/ui";
 import {COD_TITLE_PLATFORMS,resolveCODTitlePlatform} from "./cod-platform-matrix.mjs";
@@ -77,7 +78,7 @@ export function XboxQALab(){
   try{await navigator.clipboard.writeText(xboxQAMarkdown(data));setMessage("QA report copied.")}
   catch{setMessage("Clipboard access unavailable. Export a text file instead.")}
  }
- function importDraft(event:React.ChangeEvent<HTMLInputElement>){
+ function importDraft(event:ChangeEvent<HTMLInputElement>){
   const file=event.target.files?.[0];
   event.target.value="";
   if(!file)return;
