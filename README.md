@@ -161,6 +161,7 @@ The landing page, public **Downloads** route (`#/releases`), customer Downloads,
 Versioned releases are triggered by changes to `release/version.json` on `main` or by manual workflow dispatch.
 
 - **v0.2.0-alpha.1** — initial tested static React preview ZIP, checksum and source archive.
+- **v0.2.0-alpha.27** — SQLite v17 private customer support tickets, API-backed customer/admin workflows, replies and versioned audit history; no hosted backend or email delivery yet.
 - **v0.2.0-alpha.26** — browser-local guided setup planner, honest readiness assessments, JSON/TXT/PDF exports, source-linked customer journey research; no hardware control, game compatibility certification or licensed software downloads.
 - **v0.2.0-alpha.25** — schema v16 append-only operator game QA evidence journal and Admin QA Lab, pass/fail/retest precedence, review version invalidation; no real game cheat software or download approvals.
 - **v0.2.0-alpha.24** — publisher trust v2 with pinned Ed25519 public-key SHA-256 fingerprints, read-only key inspection, and file-handle-based artifact hashing; still no trusted production publisher or game cheats.
