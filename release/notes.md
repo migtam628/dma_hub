@@ -1,23 +1,23 @@
-# DMA Hub v0.2.0-alpha.21
+# DMA Hub v0.2.0-alpha.22
 
-**Game compatibility QA alpha. Operator-reviewed, version-scoped compatibility attestations; not independent certification and not functioning game cheats.**
+**Game software release provenance metadata alpha. No functional cheat binaries, binary verification, user downloads, or live licenses.**
 
-## New in alpha.21
+## New in alpha.22
 
-- SQLite schema v14 additive compatibility-review tables with immutable event history and audit trail, preserving existing products and game associations.
-- Local API admin-only workflow for game build, OS, hardware and evidence-reference recording, controlled draft/review/withdraw transitions and optimistic version checks.
-- Review approval requires currently published software, matching game association, current product version and an internal HTTPS evidence reference.
-- Public per-game pages now **fail closed**: show software as operator-reviewed only with a matching current review; no draft, withdrawn, archived or stale records. Reviews go stale automatically when the product changes.
-- Private internal evidence links, internal reviewer IDs and review history are never exposed through the public compatibility endpoint.
-- New **Admin → Game QA** workspace with draft creation, queue, attestation/withdrawal controls, and validation/error messages.
-- Regression tests for v13→v14 migration, permissions, visibility, immutable events, stale invalidation and revocation. Updated README, API, roadmap, and gaming documentation.
+- Additive SQLite schema v15 introduces immutable, auditable game release asset records bound to exact operator-reviewed game/build compatibility records.
+- Admin **Game Assets** workspace: draft registration of exact GitHub Release tag, asset filename and expected SHA-256; deliberate metadata-match and withdrawal actions.
+- Server-side source is **pinned** to `migtam628/dma_hub`. It compares the expected hash with GitHub's uploaded release asset `digest`, and checks exact asset name, release tag, asset ID, uploaded state and positive size. Arbitrary operator URLs are never fetched.
+- All state changes use admin-only authorization, optimistic version guards, append-only event history and audit records.
+- Public `/v1/games/:gameId/release-records` and gaming product pages display only **current, matched metadata** when game review, product version and publication remain valid; withdrawn and stale records are hidden.
+- Public metadata responses have **no download links** and explicitly deny executable approval. Matching GitHub's digest does *not* hash or validate downloaded binary bytes, publisher signatures, authenticity, malware absence or game compatibility.
+- New regression tests, migration and backup verification, updated README, API specification and roadmap.
 
 ## Distribution
 
-Static web preview ZIP, checksums, and unsigned Windows NSIS alpha preview after successful packaging verification.
+The release workflow publishes web alpha ZIP and SHA-256 manifest. An **unsigned** Windows NSIS preview and its checksum will appear only after the Windows packaging/verification job completes.
 
-## Important boundaries
+## Production blockers
 
-The `operator_reviewed` label records an administrator attestation only; it does **not** independently verify compatibility or guarantee any hardware/game/anti-cheat outcome. DMA Hub still provides no working cheat executables, game-memory integration, device impersonation, real commercial payments, production license fulfillment, or signed Windows installer. The GitHub Pages site is static with no hosted API; all local API claims are conditional on a separately configured development backend.
+No live hosted catalog API, signed/publisher-verified binary distribution, final game software builds, independent hardware/game compatibility tests, game integrations, production billing, license issuance, refund policies, or secure update rollout. Do not present planning games as compatible or metadata-matched records as download approvals.
 
-See [Game DMA catalog and compatibility QA](docs/games-dma-cheats.md).
+See [DMA Cheats architecture and release metadata](docs/games-dma-cheats.md).
