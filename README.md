@@ -9,7 +9,7 @@
 
 > **Status: public alpha / active development.** The web UI runs with sample data. The local API supports accounts and versioned profile storage, but is **not yet production hardened**. There is **no signed Windows executable, live billing, working license service, or hardware control** in the published alpha. A Tauri desktop build workflow exists on `main`, but Windows installers are **unsigned preview artifacts** until verified and signed. Demo screens are not proof of connected services.
 
-**[DMA Cheats for Games](https://dma.moobee.lol/#/games)** · **[Live site — dma.moobee.lol](https://dma.moobee.lol/)** · **[Downloads](https://dma.moobee.lol/#/releases)** · **[Releases](https://github.com/migtam628/dma_hub/releases)** · **[Actions](https://github.com/migtam628/dma_hub/actions)** · **[Roadmap](docs/project-roadmap.md)**
+**[DMA Setup Planner](https://dma.moobee.lol/#/setup)** · **[DMA Cheats for Games](https://dma.moobee.lol/#/games)** · **[Live site — dma.moobee.lol](https://dma.moobee.lol/)** · **[Downloads](https://dma.moobee.lol/#/releases)** · **[Releases](https://github.com/migtam628/dma_hub/releases)** · **[Actions](https://github.com/migtam628/dma_hub/actions)** · **[Roadmap](docs/project-roadmap.md)**
 
 **Hosting:** GitHub Pages is live with the GoDaddy-managed custom domain `dma.moobee.lol` and Enforce HTTPS. Frontend changes deploy automatically after a successful Pages workflow.
 
@@ -400,3 +400,11 @@ Every meaningful implementation milestone should be tested, committed and pushed
 ### Provider-neutral commerce review queue (local API, schema v12)
 
 Admin operators can open idempotent, auditable **test-only** review cases for sandbox orders, transition them with optimistic version checks, and inspect immutable case-event history. Signed-in customers can see only their own sanitized case statuses. No provider secrets, live payment processing, financial settlement, order fulfillment or license issuance is involved. The review queue is a foundation for later provider-neutral reconciliation workflows, **not** a financial ledger. See [Commerce review cases](docs/commerce-reviews.md). The public Pages site has no hosted API or review console.
+
+### Guided Setup Planner (Alpha 26)
+
+The [browser-local Setup Planner](https://dma.moobee.lol/#/setup) is an actual working client-side hardware inventory wizard: select a planning game category and exact build, identify both Windows machines, record a hardware model, answer a six-item checklist, and export a report as JSON, TXT, clipboard text, or print/PDF. It persists answers only in the **current browser's local storage**; there is no cloud upload, device scanning, installer, software download, license activation or external API interaction. All inventory answers are self-reported, and even 6/6 confirmed checklist entries **never** constitute game compatibility or publisher authorization.
+
+The underlying validation and fail-closed readiness assessment are unit tested in `tests/setup-planner.test.mjs`. Browser imports are sanitized, and an unknown/unsupported platform, missing item or incomplete game build cannot imply software support.
+
+The workflow patterns are based on a dated, source-linked [competitor/reference audit](docs/competitive-reference-research.md), not copied product claims or content.
