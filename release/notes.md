@@ -1,27 +1,24 @@
-# DMA Hub v0.2.0-alpha.29
+# DMA Hub v0.2.0-alpha.30
 
-**First game pilot: Call of Duty: Warzone PC, official-source readiness and patch-aware QA handling. No game cheat binaries or supported-game claim.**
+**Modern Call of Duty Xbox and PC game-platform matrix. Game availability does NOT mean DMA Hub game tool compatibility.**
 
-## New in Alpha 29
+## New in Alpha 30
 
-- Dedicated source-backed pilot page at `#/games/call-of-duty/pilot`, linked from the Call of Duty catalog detail and Setup Planner.
-- Captures self-reported PC game client, installed game build, Windows version, CPU and GPU model, RAM, VRAM, free SSD space, TPM 2.0, Secure Boot, DirectX 12, CPU AVX and broadband status.
-- Displays Activision's March 11, 2026 minimum and recommended Warzone PC system requirements, with links to its official TPM/Secure Boot guidance and enforcement policy.
-- Read-only, local-browser questionnaire; allows TXT/JSON handoff exports, clipboard copy and print/PDF. No game process scanning, device access, firmware updates, cheating or installation.
-- Honest status gating for reported below-minimum requirements and unknowns; a completely filled questionnaire still has `gameCompatibilityVerified:false`, `downloadEnabled:false` and no publisher authorization.
-- Activision's announced **November 6, 2026 at 00:00 Eastern** Warzone/MW4 Season 1 integration is a mandatory re-check window. The local API conservatively hides **pre-window Call of Duty public compatibility, QA and matched asset metadata records** once the window starts. New operator reviews may restore reports; previous QA and artifact evidence stay stale. It does **not** assume the announced update actually shipped.
-- New tests for numeric minimums, security checks, unknown data, date logic, right-to-use and software/download denials, and synthetic API patch-window hiding/re-review.
-- Updated README, game architecture, project roadmap and detailed official-source pilot runbook.
+- A new public `#/games/call-of-duty/platforms` experience compares official game listings for Warzone, Modern Warfare II, Modern Warfare III, Modern Warfare 4, Black Ops 6 and Black Ops 7 across Windows PC, Xbox Series X|S and Xbox One.
+- Select Xbox Series X|S or Xbox One to inspect DMA Hub service boundaries: Xbox Edge website and browser-local planning, customer support/accounts after separate secure API hosting, optional ordinary capture/Remote Play, and **no direct console installation of the Windows launcher**.
+- Official Xbox and Activision source links are provided for each game. Only Modern Warfare 4 is marked Xbox Play Anywhere where official listing directly supports the claim; other editions are unverified for that specific purchase entitlement.
+- Xbox One Warzone is clearly marked as **end-of-service announced** ahead of MW4 Season 1. After the announced November 6, 2026 integration window, the website reports that service shutdown must be independently verified; it never claims real-time service checking.
+- Modern Warfare 4 is documented as unavailable for Xbox One, while modern Xbox Series X|S is the default console target.
+- Direct Xbox game-memory DMA, cheating tools, unapproved controller-input modification, hardware spoofing and anti-cheat bypass remain **unsupported**, regardless of official game listing.
+- Unit tests assert version/platform validation, sunset handling, Windows/Xbox boundary, and that the project does not claim a published Xbox app, running public account backend, game compatibility certification or approved cheat software.
+- Added source-backed [Xbox/PC platform test runbook](docs/call-of-duty-xbox-pc-matrix.md), and updated README, games guide and roadmap.
 
-## Critical limitations
+## What remains unverified
 
-- **No actual Windows PC/game build is measured or connected** and no real signed publisher software is supplied. Warzone is the initial selected edition of the broader Call of Duty family; this is not confirmation of the user's exact edition.
-- No API-backed independent QA pass, license activation, public API deployment, payment settlement or authenticated customer software download.
-- No cheating, exploit, game-memory interaction, anti-cheat bypass, unsupported firmware, or authorized-to-use certification is provided.
-- Authenticated support and game QA remain features of the separate, privately staged local API, not automatically public services on static GitHub Pages.
+No physical Xbox has been connected or tested. Xbox Edge rendering, customer account flows, exact installed game builds, individual video capture/accessory compatibility, authorized hardware/software QA, and real customer operation need actual evidence. Static GitHub Pages has no production account backend. The existing Windows NSIS preview is **unsigned** and does not run as a native retail Xbox app.
 
-## Distribution
+## Release artifacts
 
-GitHub Pages publishes the static web preview, and the release publishes a web ZIP/checksum. A separate Windows workflow publishes an **unsigned** NSIS preview and checksum only once packaging succeeds.
+GitHub publishes the static web ZIP and checksum. A separate Windows release job publishes the unsigned NSIS installer and checksum after packaging validation.
 
-**References:** [Warzone pilot](docs/call-of-duty-warzone-pilot.md), [roadmap](docs/project-roadmap.md), [Activision PC requirements](https://support.activision.com/warzone-2/articles/pc-system-requirements-for-warzone-2), [Activision enforcement policy](https://support.activision.com/articles/call-of-duty-security-and-enforcement-policy).
+**Sources:** [Official Xbox Modern Warfare 4](https://www.xbox.com/en-US/games/call-of-duty-modern-warfare-4), [Activision Warzone platform update](https://support.activision.com/warzone-2/articles/warzone-platform-update), [Xbox Edge browser](https://www.microsoft.com/en-us/edge/learning-center/how-to-use-microsoft-edge-on-xbox), [Activision enforcement policy](https://support.activision.com/articles/call-of-duty-security-and-enforcement-policy).
