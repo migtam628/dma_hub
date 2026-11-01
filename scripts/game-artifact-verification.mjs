@@ -1,6 +1,7 @@
-import {createHash,createPublicKey,verify as verifySignature} from "node:crypto";
-import {createReadStream} from "node:fs";
-import {readFile,lstat} from "node:fs/promises";
+import {createHash,verify as verifySignature} from "node:crypto";
+import {constants} from "node:fs";
+import {open,lstat} from "node:fs/promises";
+import {validatePublisherTrustRegistry} from "./publisher-trust.mjs";
 import {basename} from "node:path";
 
 // Deliberately offline: this module never downloads, opens, or executes the
@@ -12,10 +13,33 @@ const ASSET=/^[A-Za-z0-9][A-Za-z0-9._-]{2,119}$/;
 const TAG=/^v[0-9]+\.[0-9]+\.[0-9]+(?:-[a-z0-9][a-z0-9.-]{0,45})?$/;
 const REPO="migtam628/dma_hub";
 function ensure(condition,why){if(!condition)throw new Error(why)}
+async function openRegularFile(path){
+ // O_NOFOLLOW prevents path symlink redirection on supported platforms.
+ // The before/after inode and metadata checks detect path replacement and
+ // in-place writes observed during this verification pass.
+ const before=await lstat(path);
+ ensure(before.isFile()&&!before.isSymbolicLink(),"File is not a permitted regular file");
+ const handle=await open(path,constants.O_RDONLY|(constants.O_NOFOLLOW??0));
+ try{
+  const info=await handle.stat();
+  ensure(info.isFile()&&info.ino===before.ino&&info.dev===before.dev,
+   "File changed between path inspection and opening");
+  return {handle,info};
+ }catch(e){await handle.close();throw e}
+}
+function unchanged(before,after){
+ return before.dev===after.dev&&before.ino===after.ino&&before.size===after.size&&
+  before.mtimeMs===after.mtimeMs&&before.ctimeMs===after.ctimeMs;
+}
 async function boundedFile(path,max){
- const file=await lstat(path);
- ensure(file.isFile()&&!file.isSymbolicLink()&&file.size>0&&file.size<=max,"File is not a permitted regular file");
- return readFile(path);
+ const {handle,info}=await openRegularFile(path);
+ try{
+  ensure(info.size>0&&info.size<=max,"File is not a permitted regular file");
+  const bytes=await handle.readFile();
+  ensure(bytes.length===info.size&&unchanged(info,await handle.stat()),
+   "File changed during verification");
+  return bytes;
+ }finally{await handle.close()}
 }
 function validatedManifest(value){
  ensure(value&&typeof value==="object"&&!Array.isArray(value),"Invalid artifact manifest");
@@ -30,21 +54,10 @@ function validatedManifest(value){
  return value;
 }
 function getPublisher(store,publisherId){
- ensure(store&&store.schemaVersion===1&&Array.isArray(store.publishers)&&store.publishers.length<=50,
-  "Invalid trusted publisher registry");
- const seen=new Set();
- for(const entry of store.publishers){
-  ensure(entry&&typeof entry.id==="string"&&ID.test(entry.id)&&!seen.has(entry.id),
-   "Duplicate or invalid trusted publisher");
-  seen.add(entry.id);
-  ensure(entry.status==="trusted"||entry.status==="revoked","Invalid publisher trust status");
-  ensure(typeof entry.publicKeyPem==="string"&&entry.publicKeyPem.length<4096,"Missing trusted public key");
- }
- const publisher=store.publishers.find(item=>item.id===publisherId);
+ const approved=validatePublisherTrustRegistry(store);
+ const publisher=approved.get(publisherId);
  ensure(publisher&&publisher.status==="trusted","Publisher key is not independently trusted");
- const publicKey=createPublicKey(publisher.publicKeyPem);
- ensure(publicKey.asymmetricKeyType==="ed25519"&&publicKey.type==="public","Only pinned Ed25519 public keys are accepted");
- return publicKey;
+ return publisher;
 }
 export async function verifyGameArtifact({artifactPath,manifestPath,signaturePath,trustStorePath}){
  ensure([artifactPath,manifestPath,signaturePath,trustStorePath].every(x=>typeof x==="string"&&x.length>0),
@@ -54,22 +67,31 @@ export async function verifyGameArtifact({artifactPath,manifestPath,signaturePat
  ]);
  const manifest=validatedManifest(JSON.parse(manifestBytes.toString("utf8")));
  const store=JSON.parse(trustBytes.toString("utf8"));
- const key=getPublisher(store,manifest.publisherId);
+ const publisher=getPublisher(store,manifest.publisherId);
  const sigText=signatureBytes.toString("ascii").trim();
  ensure(/^[A-Za-z0-9+/]{86}==$/.test(sigText),"Detached signature must be canonical base64 Ed25519");
  const signature=Buffer.from(sigText,"base64");
- ensure(signature.length===64&&verifySignature(null,manifestBytes,key,signature),
+ ensure(signature.length===64&&verifySignature(null,manifestBytes,publisher.key,signature),
   "Detached publisher signature failed");
- const info=await lstat(artifactPath);
- ensure(info.isFile()&&!info.isSymbolicLink(),"Artifact must be a regular file, not a symlink");
  ensure(basename(artifactPath)===manifest.assetName,"Artifact filename differs from signed manifest");
- ensure(info.size===manifest.sizeBytes,"Artifact byte count differs from signed manifest");
- const sha=createHash("sha256");
- for await(const chunk of createReadStream(artifactPath,{highWaterMark:1024*1024}))sha.update(chunk);
- const digest=sha.digest("hex");
+ const {handle,info}=await openRegularFile(artifactPath);
+ let digest;
+ try{
+  ensure(info.size===manifest.sizeBytes,"Artifact byte count differs from signed manifest");
+  const sha=createHash("sha256");
+  let count=0;
+  for await(const chunk of handle.createReadStream({autoClose:false,highWaterMark:1024*1024})){
+   count+=chunk.length;
+   ensure(count<=manifest.sizeBytes,"Artifact size changed during hashing");
+   sha.update(chunk);
+  }
+  ensure(count===manifest.sizeBytes&&unchanged(info,await handle.stat()),
+   "Artifact changed during verification");
+  digest=sha.digest("hex");
+ }finally{await handle.close()}
  ensure(digest===manifest.sha256,"Actual artifact bytes fail signed SHA-256 comparison");
  return {verified:true,checks:{pinnedPublisherEd25519:true,actualFileSha256:true,exactAssetName:true,exactByteCount:true},
-  publisherId:manifest.publisherId,releaseTag:manifest.releaseTag,assetName:manifest.assetName,
+  publisherId:manifest.publisherId,publisherKeyFingerprintSha256:publisher.fingerprintSha256,releaseTag:manifest.releaseTag,assetName:manifest.assetName,
   sha256:digest,sizeBytes:manifest.sizeBytes,downloadEnabled:false,
   note:"Offline byte/signature integrity only; not game compatibility, malware screening, authorization or software signing certification"};
 }

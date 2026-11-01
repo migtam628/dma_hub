@@ -202,6 +202,10 @@ For local testing, run the API (`npm run dev:api`) and Vite frontend (`npm run d
 
 This is a first storefront binding, **not** commercial checkout, product-detail administration, or a production service. The hardware page and featured landing-page products remain labeled examples.
 
+### Publisher trust validation and key inspection (Alpha 24)
+
+Publisher trust entries now require an Ed25519 public-key **SPKI SHA-256 fingerprint** verified against the key bytes. `npm run inspect:publisher-key -- --key /path/to/publisher-public.pem` inspects a public key and prints its fingerprint **without adding it to the trusted registry**. Trust remains empty until an operator authenticates the fingerprint independently and reviews the change. The offline artifact verifier also uses a pre-opened file handle and checks the file metadata before and after hashing. No binaries are approved or distributed.
+
 ### Offline signed game artifact verification (local CLI; no distribution)
 
 `npm run verify:game-artifact -- --artifact <file> --manifest <file.json> --signature <file.sig>` now checks the **actual local file's SHA-256 and byte count** against an Ed25519-signed manifest using a pinned trusted publisher public key. The publisher trust registry is **empty** in this alpha because no verified publisher key has been provided; the command fails closed until a key is independently authenticated and explicitly pinned. It never downloads/executes software, changes API approval status, or enables purchases/licenses. See [offline verification procedure](docs/game-artifact-verification.md).
