@@ -2,7 +2,7 @@ import {useEffect,useState} from "react";
 import {ArrowLeft,ArrowRight,Gamepad2,Monitor,Package,RefreshCcw,Search,ShieldCheck} from "lucide-react";
 import {Button,Pill} from "@dma-hub/ui";
 import {api} from "./api";
-import type {GameCompatibilityRecord,PublishedCatalogItem,PublicGameReleaseRecord} from "./api";
+import type {GameCompatibilityRecord,PublishedCatalogItem,PublicGameReleaseRecord,PublicQAStatus} from "./api";
 import {GAME_CATALOG,findGame} from "./gameCatalog";
 
 type State="loading"|"ready"|"unavailable";
@@ -10,6 +10,8 @@ export function GameCheatsCatalog({gameId}:{gameId?:string}){
  const [records,setRecords]=useState<PublishedCatalogItem[]>([]);
  const [reviews,setReviews]=useState<GameCompatibilityRecord[]>([]);
  const [releaseRecords,setReleaseRecords]=useState<PublicGameReleaseRecord[]>([]);
+ const [qaResults,setQaResults]=useState<PublicQAStatus[]>([]);
+ const [qaState,setQaState]=useState<State>("loading");
  const [releaseState,setReleaseState]=useState<State>("loading");
  const [reviewState,setReviewState]=useState<State>("loading");
  const [state,setState]=useState<State>("loading");
@@ -54,6 +56,19 @@ export function GameCheatsCatalog({gameId}:{gameId?:string}){
   }).catch(()=>{if(active){setReleaseRecords([]);setReleaseState("unavailable")}});
   return ()=>{active=false};
  },[gameId,revision]);
+ useEffect(()=>{
+  let active=true;
+  setQaResults([]);
+  setQaState(game?"loading":"ready");
+  if(!game)return;
+  api.gameQAStatus(game.id).then(result=>{
+   if(!active)return;
+   if(!Array.isArray(result.items)||result.items.some(q=>q.gameId!==game.id||q.operatorReported!==true||q.downloadEnabled!==false))
+    throw new Error("Invalid game QA status response");
+   setQaResults(result.items);setQaState("ready");
+  }).catch(()=>{if(active){setQaResults([]);setQaState("unavailable")}});
+  return ()=>{active=false};
+ },[gameId,revision]);
  const entries=GAME_CATALOG.filter(item=>[item.name,item.id,item.category].join(" ").toLowerCase().includes(query.toLowerCase().trim()));
  const listed=records.filter(p=>game?
   p.gameIds.includes(game.id)&&reviews.some(r=>r.productId===p.id):
@@ -85,6 +100,10 @@ export function GameCheatsCatalog({gameId}:{gameId?:string}){
        <div className="product-copy"><div className="product-meta"><span>Game-specific software</span><Pill tone="neutral">Operator reviewed</Pill></div>
        <h3>{item.name}</h3><p>{item.description}</p>
        {item.requirements.length>0?<p className="muted">{item.requirements.length} documented requirements</p>:null}
+       {qaState==="loading"?<p className="muted" role="status">Checking manual QA observations…</p>:null}
+       {qaState==="unavailable"?<p className="muted" role="status">QA status is unavailable. Do not infer a passing test or game compatibility.</p>:null}
+       {qaState==="ready"&&qaResults.filter(q=>reviews.some(r=>r.productId===item.id&&r.id===q.reviewId)).length===0?<div className="game-qa-public"><strong>No current operator QA observation</strong><small>Compatibility has not been independently tested or certified.</small></div>:null}
+       {qaState==="ready"&&qaResults.filter(q=>reviews.some(r=>r.productId===item.id&&r.id===q.reviewId)).map(q=><div key={q.reviewId+q.scope} className="game-qa-public"><strong>{q.scope.replaceAll("_"," ")}: {q.outcome==="passed"?"Operator-reported pass":q.outcome==="failed"?"Failed":"Retest required"}</strong><small>Recorded {new Date(q.recordedAt).toLocaleString()} · Not independently certified · Downloads disabled</small></div>)}
        {releaseState==="unavailable"?<p className="muted" role="status">GitHub release metadata status is currently unavailable; no downloads can be offered.</p>:null}
        {releaseState==="ready"&&releaseRecords.filter(a=>a.productId===item.id).map(asset=><div className="game-review-public" key={asset.id}>
         <strong>Release metadata matched: {asset.releaseTag}</strong>
