@@ -371,3 +371,15 @@
 .admin-xbox-detail textarea{background:#091a2a;color:#eefaff;border:1px solid #37566c;border-radius:9px;font:inherit;padding:11px 12px;min-height:90px;resize:vertical}
 .admin-xbox-actions{display:flex;flex-wrap:wrap;gap:8px}
 @media(max-width:850px){.admin-xbox-grid{grid-template-columns:1fr}}
+
+/* Alpha 33: operator-reported Xbox QA regression comparisons */
+.admin-xbox-compare{display:grid;gap:12px;border:1px solid #33566a;border-radius:11px;padding:16px;margin:15px 0;background:#0b2637;min-width:0}
+.admin-xbox-compare h4{margin:0}
+.admin-xbox-compare>p{color:#b4cddd;font-size:11px;margin:0;line-height:1.6}
+.admin-xbox-compare select{background:#071b2b;color:#e9f6ff;border:1px solid #406276;border-radius:8px;padding:10px;font-size:11px;min-width:0;max-width:100%;flex:1}
+.admin-xbox-comparison{min-width:0;overflow-x:auto;background:#0c1c2b;border:1px solid #39596d;border-radius:10px;padding:14px}
+.admin-xbox-comparison p{font-size:11px}
+.admin-xbox-comparison table{margin-top:13px;border-collapse:collapse;min-width:520px;width:100%;font-size:11px}
+.admin-xbox-comparison td,.admin-xbox-comparison th{border-bottom:1px solid #355065;padding:10px;text-align:left}
+.admin-xbox-comparison th{color:#a6c9d9}
+.admin-xbox-comparison small{display:block;margin-top:12px;color:#9ec0ce}
