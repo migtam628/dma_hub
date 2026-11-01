@@ -203,6 +203,10 @@ For local testing, run the API (`npm run dev:api`) and Vite frontend (`npm run d
 
 This is a first storefront binding, **not** commercial checkout, product-detail administration, or a production service. The hardware page and featured landing-page products remain labeled examples.
 
+### Game & hardware QA Lab (Alpha 25; manual evidence only)
+
+The authenticated local admin workspace now includes **Admin → QA Lab** for append-only, operator-reported testing observations on exact reviewed game builds. Operators can record hardware setup, installation validation and functional smoke outcomes as **passed / failed / retest required**, with Windows version, hardware/firmware details, notes, private evidence and an authorization declaration. A later failure overrides an earlier pass; changed product or review versions invalidate older public observations. Public game pages display only latest current status and explicitly avoid independent-certification or download claims. See [gaming QA documentation](docs/games-dma-cheats.md).
+
 ### Publisher trust validation and key inspection (Alpha 24)
 
 Publisher trust entries now require an Ed25519 public-key **SPKI SHA-256 fingerprint** verified against the key bytes. `npm run inspect:publisher-key -- --key /path/to/publisher-public.pem` inspects a public key and prints its fingerprint **without adding it to the trusted registry**. Trust remains empty until an operator authenticates the fingerprint independently and reviews the change. The offline artifact verifier also uses a pre-opened file handle and checks the file metadata before and after hashing. No binaries are approved or distributed.
