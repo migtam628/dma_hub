@@ -201,6 +201,10 @@ For local testing, run the API (`npm run dev:api`) and Vite frontend (`npm run d
 
 This is a first storefront binding, **not** commercial checkout, product-detail administration, or a production service. The hardware page and featured landing-page products remain labeled examples.
 
+### Offline signed game artifact verification (local CLI; no distribution)
+
+`npm run verify:game-artifact -- --artifact <file> --manifest <file.json> --signature <file.sig>` now checks the **actual local file's SHA-256 and byte count** against an Ed25519-signed manifest using a pinned trusted publisher public key. The publisher trust registry is **empty** in this alpha because no verified publisher key has been provided; the command fails closed until a key is independently authenticated and explicitly pinned. It never downloads/executes software, changes API approval status, or enables purchases/licenses. See [offline verification procedure](docs/game-artifact-verification.md).
+
 ### Game release provenance records (local API only)
 
 Admin → **Game Assets** supports registering an exact game/build review, GitHub Release tag, asset filename, and operator-expected SHA-256 digest. The server compares these fields against GitHub's public asset metadata from the fixed `migtam628/dma_hub` repository. Versioned, auditable records are public only while the associated game review and product remain current, and the public API exposes **metadata only—no download URLs**. A GitHub digest match is not a downloaded-binary hash, publisher verification, malware scan, software compatibility certification or authorization to execute. The GitHub Pages preview has no connected local backend.

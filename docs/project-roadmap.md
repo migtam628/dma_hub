@@ -128,3 +128,10 @@ Payment provider, business terms, first supported production software/hardware c
 - Admin Game Assets queue uses versioned create/match/withdraw actions, immutable event history and strict RBAC.
 - Public pages show provenance facts only: no user download URLs, executable permission, signature validation, binary safety certification, entitlement, or actual game cheat integration.
 - Next: independent downloaded-byte verification plus publisher signature/provenance, release artifact QA, authorization and revocation design, and secure hosting. Distinguish these gates from a successful GitHub metadata match.
+
+### November 1 — offline artifact hash and publisher signature verifier
+
+- Added a strict offline CLI checking actual local file SHA-256/byte length and a detached Ed25519 manifest signature against an independently pinned publisher public key.
+- An empty trust registry explicitly blocks unverified publishers. Revoked/missing keys, tampering and manifest mismatches fail closed; synthetic test keys never become production trust anchors.
+- This does not change game-product API states, enable downloads, certify game compatibility or scan software for malware.
+- Next production gates: verified publisher key onboarding, independent platform/game hardware QA, signed release attestations, trusted hosting/access controls, and revocation/rollback testing.

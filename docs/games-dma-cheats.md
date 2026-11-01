@@ -65,3 +65,8 @@ This milestone adds metadata-only records bound to one operator-reviewed game/bu
 - Private operator identities and QA evidence links do not appear in public records.
 
 Before any production download can be enabled: independently hash the downloaded artifact, verify publisher ownership/signatures, check the build's approved QA matrix and current release provenance, design revocation/rollback and authentication, and independently review safety/legality. No cheat binaries or anti-cheat functionality are created by this milestone.
+
+## Offline local artifact signature and byte verification — Alpha 23
+
+The optional `npm run verify:game-artifact` CLI adds an **independent local-byte SHA-256 comparison** and Ed25519 detached manifest signature check against operator-pinned trusted public keys. Unlike the API's GitHub metadata digest comparison, this CLI hashes the actual artifact file on disk. It does not submit QA status to the API, publish downloads or execute software. The default publisher registry is empty: no real publisher trust is claimed. More details: [signed local artifact verification](game-artifact-verification.md).
+
