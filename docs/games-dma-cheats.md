@@ -96,3 +96,5 @@ Research and reference decisions are documented in [competitive-reference-resear
 ## First scoped game pilot: Call of Duty: Warzone PC — Alpha 29
 
 The user selected Call of Duty as the first pilot. `#/games/call-of-duty/pilot` now offers a non-executable PC readiness worksheet with official Activision requirements, an upcoming patch/build recheck window, strict local input validation and portable QA handoff exports. The Warzone edition is an initial scope choice, **not** a user-verified game build. No game-specific cheat software has been tested or approved. See [Call of Duty pilot research and testing gates](call-of-duty-warzone-pilot.md).
+
+The same November 6 recheck gate is enforced **server-side** on public Call of Duty compatibility, operator QA and metadata-only release records, not just in the browser worksheet. Pre-update reviewed records disappear after the announced date until manually reviewed again; current reviews still do not authorize execution/downloads.
