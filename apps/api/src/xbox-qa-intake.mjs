@@ -1,4 +1,5 @@
 import {createHash,randomUUID} from "node:crypto";
+import {compareXboxQASessions} from "./xbox-qa-compare.mjs";
 
 // Admin-only intake of self-reported Xbox QA export files, NOT certification.
 // No public endpoint, remote URL fetching, console interaction or entitlement.
@@ -94,6 +95,22 @@ export function createXboxQAIntake({db,clock,audit,readBody}){
     return result(201,{id,fingerprint,state:"submitted",version:1,
       operatorReportedOnly:true,independentlyCertified:false,downloadEnabled:false});
    });
+  }
+  const comparison=path.match(/^\/v1\/admin\/xbox-qa\/([a-f0-9-]{36})\/compare$/i);
+  if(comparison&&req.method==="GET"){
+   const parameters=new URL(req.url||"/","http://localhost").searchParams;
+   const withId=parameters.get("with");
+   if(!withId||!UUID.test(withId)||withId===comparison[1])
+    return result(422,{error:"invalid_comparison_pair"});
+   const baseline=get(comparison[1]),candidate=get(withId);
+   if(!baseline||!candidate)return result(404,{error:"not_found"});
+   let comparisonResult;
+   try{
+    comparisonResult=compareXboxQASessions(JSON.parse(baseline.payload_json),JSON.parse(candidate.payload_json));
+   }catch{return result(422,{error:"incompatible_xbox_qa_reports"})}
+   return result(200,{baselineId:baseline.id,candidateId:candidate.id,
+    baselineTestDate:baseline.test_date,candidateTestDate:candidate.test_date,
+    ...comparisonResult});
   }
   const match=path.match(/^\/v1\/admin\/xbox-qa\/([a-f0-9-]{36})$/i);
   if(!match)return null;
