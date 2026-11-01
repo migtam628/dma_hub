@@ -1,4 +1,4 @@
-# Offline game software artifact verification — Alpha 23
+# Offline game software artifact verification — Alpha 24
 
 **Purpose:** Verify artifact **bytes on disk** against the SHA-256 in an exactly signed manifest and confirm the manifest's detached **Ed25519 publisher signature** using a separately pinned, operator-trusted public key.
 
@@ -8,11 +8,19 @@ This workflow is intentionally offline. It does not download, install, inspect t
 
 `release/trusted-game-publishers.json` ships with `"publishers":[]`. **No real publisher is currently trusted.** Successful production verification therefore requires an authorized operator to authenticate a publisher's public key independently (for example, through a verified publisher-controlled channel), inspect its fingerprint, and submit a reviewed repository change to pin it. Do **not** accept a public key provided alongside the software under test as proof of publisher identity.
 
+The version-2 trusted registry requires an independently checked **SHA-256 fingerprint of the canonical Ed25519 SPKI DER public key** as well as the PEM. Inspect a candidate key *without adding it to trusted publishers*:
+
+```bash
+npm run inspect:publisher-key -- --key /path/to/publisher-public.pem
+```
+
+This prints a fingerprint and explicitly reports that no publisher identity has been authenticated and no registry change was made. Verify the fingerprint out of band with the actual software publisher through a trusted, separately verified communication channel. **Matching the fingerprint field to the PEM does not by itself prove the publisher owns the key.**
+
 The trusted registry supports entries structured as:
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "publishers": [
     {
       "id": "verified-publisher-id",
@@ -56,7 +64,7 @@ npm run verify:game-artifact -- \
   --signature /path/to/my-software.sig
 ```
 
-The CLI reads pinned publisher keys from the repository; there is **no command-line trust-store override**. A successful result means the local bytes match the signed manifest and the signature matches a locally trusted key. Missing keys, revoked keys, changed bytes, altered manifest, invalid signature, mismatched filename and size all cause a nonzero exit code. It never follows downloads or executes a file.
+The CLI reads pinned publisher keys from the repository; there is **no command-line trust-store override**. The result includes the matched publisher public-key fingerprint for operator review. A successful result means the local bytes match the signed manifest and the signature matches a locally trusted key. Missing keys, revoked keys, mismatched pinned fingerprints, duplicate key fingerprints, changed bytes, altered manifest, invalid signature, symlinks, mismatched filename and size all cause a nonzero exit code. It never follows downloads or executes a file. The local artifact is hashed from an already-opened regular file handle, with inode and before/after metadata consistency checks to reduce time-of-check/time-of-use risks. This is still a point-in-time check: preserve the verified bytes immutably before any later deployment.
 
 This verifies cryptographic byte integrity and signature correspondence **only**. It does not validate provenance of the pinned key unless the operator authenticated it independently, nor inspect malware, Windows Authenticode status, game publisher terms, hardware compatibility, runtime behavior, anti-cheat compliance, commercial eligibility or licensing.
 
