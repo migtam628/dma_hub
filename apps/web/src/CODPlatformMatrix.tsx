@@ -68,7 +68,7 @@ export function CODPlatformMatrix(){
      <div className="eyebrow"><Info size={14}/> Next test milestone</div>
      <h3>Record real game + platform evidence</h3>
      <p>For each title record the exact installed build, Xbox model, controller/peripherals, current game service status, test date, and only the features actually exercised. Don't mark any capability as verified from an official store listing alone.</p>
-     <a href="#/games/call-of-duty/pilot">Open the Windows Warzone pilot</a>
+     <div className="xbox-qa-links"><a href="#/games/call-of-duty/xbox-qa">Open Xbox physical-console QA workbook</a><a href="#/games/call-of-duty/pilot">Open the Windows Warzone pilot</a></div>
     </section>
    </aside>
   </div>
