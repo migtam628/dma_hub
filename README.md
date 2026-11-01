@@ -161,6 +161,7 @@ The landing page, public **Downloads** route (`#/releases`), customer Downloads,
 Versioned releases are triggered by changes to `release/version.json` on `main` or by manual workflow dispatch.
 
 - **v0.2.0-alpha.1** — initial tested static React preview ZIP, checksum and source archive.
+- **v0.2.0-alpha.31** — physical Xbox QA workbook for Series X/S and Xbox One variants: manual per-feature observations, local records, JSON/TXT/print exports and strict no-compatibility claims; no actual console QA yet.
 - **v0.2.0-alpha.30** — modern Call of Duty Xbox Series/Xbox One/PC platform matrix, official store references, Xbox capability boundaries and Warzone sunset tracking; no native Xbox installer or direct console game tools.
 - **v0.2.0-alpha.29** — Warzone PC first-game pilot, sourced requirements, secure-platform questionnaire, build-review exports, and Nov 6 server-side retest/old-evidence hiding; no supported cheats, real QA or software downloads.
 - **v0.2.0-alpha.28** — private Docker Compose staging API and verified SQLite backups, health checks, non-public loopback host, CI deployment smoke; no public API or production credentials.
