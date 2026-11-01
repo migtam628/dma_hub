@@ -1,23 +1,25 @@
-# DMA Hub v0.2.0-alpha.22
+# DMA Hub v0.2.0-alpha.23
 
-**Game software release provenance metadata alpha. No functional cheat binaries, binary verification, user downloads, or live licenses.**
+**Offline publisher-signed game artifact integrity verification. No trusted game-software publisher is yet enrolled and no game cheat downloads are enabled.**
 
-## New in alpha.22
+## New in alpha.23
 
-- Additive SQLite schema v15 introduces immutable, auditable game release asset records bound to exact operator-reviewed game/build compatibility records.
-- Admin **Game Assets** workspace: draft registration of exact GitHub Release tag, asset filename and expected SHA-256; deliberate metadata-match and withdrawal actions.
-- Server-side source is **pinned** to `migtam628/dma_hub`. It compares the expected hash with GitHub's uploaded release asset `digest`, and checks exact asset name, release tag, asset ID, uploaded state and positive size. Arbitrary operator URLs are never fetched.
-- All state changes use admin-only authorization, optimistic version guards, append-only event history and audit records.
-- Public `/v1/games/:gameId/release-records` and gaming product pages display only **current, matched metadata** when game review, product version and publication remain valid; withdrawn and stale records are hidden.
-- Public metadata responses have **no download links** and explicitly deny executable approval. Matching GitHub's digest does *not* hash or validate downloaded binary bytes, publisher signatures, authenticity, malware absence or game compatibility.
-- New regression tests, migration and backup verification, updated README, API specification and roadmap.
+- Added an offline, read-only file verifier: `npm run verify:game-artifact -- --artifact <file> --manifest <signed-manifest.json> --signature <manifest.sig>`.
+- Verifier independently streams the **actual local artifact bytes** through SHA-256, checks exact signed filename and file size, and validates a detached Ed25519 signature over the original manifest bytes.
+- Publisher public keys are loaded from the repository-pinned `release/trusted-game-publishers.json` file, **initially empty**. Missing, revoked, invalid and unverified keys fail closed. No demo/test publisher identity is shipped as a trusted production key.
+- The manifest must identify the fixed `migtam628/dma_hub` repository, a release tag, publisher ID, exact artifact filename, byte count and lowercase digest. Extra/unsupported fields are rejected.
+- Added regression tests using ephemeral synthetic keys and artifacts: success, changed file bytes, altered manifest, false signature, revoked/no trust, wrong algorithm, mismatched filename/size and schema validation.
+- Updated README, gaming architecture, API separation, roadmap, and detailed operator trust-bootstrap/verification instructions.
+
+## Still not implemented
+
+- No real publisher identity/key has been authenticated or registered. A success in synthetic tests is not evidence of any real software's provenance.
+- No game cheat executables, game memory manipulation, device impersonation, anti-cheat evasion, hardware test certifications, production game integrations, commercial payments or license fulfillment.
+- No automatic server-side binary verification, customer artifact downloads, or publication approvals. This CLI does **not** mutate the catalog API.
+- GitHub Pages remains a static UI and the Windows installer remains an **unsigned alpha preview**.
 
 ## Distribution
 
-The release workflow publishes web alpha ZIP and SHA-256 manifest. An **unsigned** Windows NSIS preview and its checksum will appear only after the Windows packaging/verification job completes.
+The release workflow publishes a static web ZIP/checksum, and after Windows packaging verification adds an unsigned NSIS installer and Windows checksum. This game artifact verifier is included in the repository source and is **not** a certified publisher signing service.
 
-## Production blockers
-
-No live hosted catalog API, signed/publisher-verified binary distribution, final game software builds, independent hardware/game compatibility tests, game integrations, production billing, license issuance, refund policies, or secure update rollout. Do not present planning games as compatible or metadata-matched records as download approvals.
-
-See [DMA Cheats architecture and release metadata](docs/games-dma-cheats.md).
+See [offline artifact verification](docs/game-artifact-verification.md) and [gaming DMA roadmap](docs/games-dma-cheats.md).
