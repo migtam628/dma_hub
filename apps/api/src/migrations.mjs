@@ -1,6 +1,6 @@
 import {DatabaseSync} from "node:sqlite";
 
-export const SCHEMA_VERSION=17;
+export const SCHEMA_VERSION=18;
 
 const BASE_SCHEMA=`CREATE TABLE IF NOT EXISTS users(
  id TEXT PRIMARY KEY,
@@ -481,6 +481,47 @@ export function migrateDatabase(db){
    version=17;
   }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
  }
+ if(version===17){
+  db.exec("BEGIN IMMEDIATE");
+  try{
+   db.exec(`CREATE TABLE xbox_qa_submissions(
+    id TEXT PRIMARY KEY,
+    fingerprint TEXT NOT NULL UNIQUE CHECK(length(fingerprint)=64),
+    submitted_by TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    console_model TEXT NOT NULL,
+    game_id TEXT NOT NULL,
+    game_build TEXT NOT NULL,
+    console_os TEXT NOT NULL,
+    test_date TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    submitted_at INTEGER NOT NULL
+   );
+   CREATE INDEX xbox_qa_submissions_recent ON xbox_qa_submissions(submitted_at DESC);
+   CREATE TRIGGER xbox_qa_submissions_no_update BEFORE UPDATE ON xbox_qa_submissions
+    BEGIN SELECT RAISE(ABORT,'immutable xbox QA submission'); END;
+   CREATE TRIGGER xbox_qa_submissions_no_delete BEFORE DELETE ON xbox_qa_submissions
+    BEGIN SELECT RAISE(ABORT,'immutable xbox QA submission'); END;
+   CREATE TABLE xbox_qa_triage_events(
+    id TEXT PRIMARY KEY,
+    submission_id TEXT NOT NULL REFERENCES xbox_qa_submissions(id) ON DELETE RESTRICT,
+    version INTEGER NOT NULL CHECK(version>=1),
+    state TEXT NOT NULL CHECK(state IN ('submitted','triaged','retest_required')),
+    note TEXT NOT NULL CHECK(length(note)<=1000),
+    actor_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    created_at INTEGER NOT NULL,
+    UNIQUE(submission_id,version)
+   );
+   CREATE INDEX xbox_qa_triage_latest ON xbox_qa_triage_events(submission_id,version DESC);
+   CREATE TRIGGER xbox_qa_triage_no_update BEFORE UPDATE ON xbox_qa_triage_events
+    BEGIN SELECT RAISE(ABORT,'immutable xbox QA triage event'); END;
+   CREATE TRIGGER xbox_qa_triage_no_delete BEFORE DELETE ON xbox_qa_triage_events
+    BEGIN SELECT RAISE(ABORT,'immutable xbox QA triage event'); END;`);
+   db.exec("PRAGMA user_version=18; COMMIT;");
+   version=18;
+  }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
+ }
+ requiredColumns(db,"xbox_qa_submissions",["id","fingerprint","submitted_by","console_model","game_id","game_build","console_os","test_date","payload_json","submitted_at"]);
+ requiredColumns(db,"xbox_qa_triage_events",["id","submission_id","version","state","note","actor_id","created_at"]);
  requiredColumns(db,"support_tickets",["id","customer_id","category","subject","state","version","created_at","updated_at"]);
  requiredColumns(db,"support_messages",["id","ticket_id","author_id","body","created_at"]);
  requiredColumns(db,"support_events",["id","ticket_id","version","from_state","to_state","actor_id","created_at"]);
