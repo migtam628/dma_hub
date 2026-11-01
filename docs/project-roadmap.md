@@ -186,3 +186,10 @@ Payment provider, business terms, first supported production software/hardware c
 - Public `#/games/call-of-duty/platforms` route compares a user-selected Xbox family, browser/customer services, PC launcher, normal Remote Play/capture, and prohibited/unsupported console game-memory/input changes. Source links and limitations included.
 - Xbox One Warzone's announced Season 1 retirement flags a post-window live status recheck. Modern Warfare 4 Xbox One is not listed; MW4 Play Anywhere only applies to the eligible Xbox/Windows digital game purchase, not DMA Hub software.
 - Still requires actual console model, exact game builds, Edge/web checks on hardware, optional capture/Remote Play QA and legitimate customer backend; no direct Xbox game tool, DMA memory access or game cheats supported.
+
+### November 1 — Alpha 31 Xbox device QA workbook
+
+- Added a model-neutral field-testing route for Xbox Series X/S, Xbox One, One S and One X. A local worksheet records exact game/build, Xbox OS version, controller/display, date and actual Edge/browser/optional companion-PC observations.
+- Strict versioned field validation; only explicit physical-console test declarations, exact model/build/OS/date, meaningful notes and at least one observed pass/fail/blocker permit saving a **local operator report**. Default answers are all untested.
+- Stores up to 25 operator observations only in browser localStorage, with optional HTTPS evidence references, TXT/JSON/clipboard/print handoffs, JSON draft import and local deletion. No API upload, no fabricated results, no trusted certification.
+- Real Xbox browser, title/service availability and controller testing remain user-owned hardware acceptance tasks; the Windows installer is not a native Xbox app. See `docs/xbox-device-qa-workbook.md`.
