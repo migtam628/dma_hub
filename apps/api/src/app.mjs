@@ -14,6 +14,7 @@ import {createStripeTestGateway} from "./stripe-test.mjs";
 import {createRateLimiter} from "./rate-limiter.mjs";
 import {createSecurityMonitor} from "./security-monitor.mjs";
 import {createSupportTickets} from "./support-tickets.mjs";
+import {createXboxQAIntake} from "./xbox-qa-intake.mjs";
 const MAX_BODY=64*1024,SESSION_MS=12*60*60*1000,VERIFY_MS=24*60*60*1000,RESET_MS=60*60*1000;
 const hashToken=t=>createHash("sha256").update(t).digest("hex");
 function response(res,status,payload,headers={}){res.writeHead(status,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff","Referrer-Policy":"no-referrer",...headers});res.end(JSON.stringify(payload))}
@@ -84,6 +85,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
  const gameCompatibility=createGameCompatibility({db,clock,audit,readBody:jsonBody});
  const gameQA=createGameQA({db,clock,audit,readBody:jsonBody});
  const support=createSupportTickets({db,clock,audit,readBody:jsonBody});
+ const xboxQAIntake=createXboxQAIntake({db,clock,audit,readBody:jsonBody});
  const gameReleaseAssets=createGameReleaseAssets({db,clock,audit,readBody:jsonBody,...(releaseLookup?{releaseLookup}:{})});
  const testWebhook=createSandboxWebhook({db,clock,audit,secret:sandboxWebhookSecret});
  const stripeGateway=createStripeTestGateway({db,clock,audit,...(stripeTest||{})});
@@ -286,6 +288,8 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
     if(stripePrivate){response(res,stripePrivate.status,stripePrivate.payload);return}
     const gameAssetResult=await gameReleaseAssets.authenticatedRoute(pathname,req,u);
     if(gameAssetResult){response(res,gameAssetResult.status,gameAssetResult.payload);return}
+    const xboxQAResult=await xboxQAIntake.route(pathname,req,u);
+    if(xboxQAResult){response(res,xboxQAResult.status,xboxQAResult.payload);return}
     const supportResult=await support.route(pathname,req,u);
     if(supportResult){response(res,supportResult.status,supportResult.payload);return}
     const gameQAResult=await gameQA.authenticatedRoute(pathname,req,u);
