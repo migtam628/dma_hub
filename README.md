@@ -402,6 +402,12 @@ Every meaningful implementation milestone should be tested, committed and pushed
 
 Admin operators can open idempotent, auditable **test-only** review cases for sandbox orders, transition them with optimistic version checks, and inspect immutable case-event history. Signed-in customers can see only their own sanitized case statuses. No provider secrets, live payment processing, financial settlement, order fulfillment or license issuance is involved. The review queue is a foundation for later provider-neutral reconciliation workflows, **not** a financial ledger. See [Commerce review cases](docs/commerce-reviews.md). The public Pages site has no hosted API or review console.
 
+### Authenticated Support Center (Alpha 27; local API)
+
+Customer **Support** and administrator **Support Tickets** now use a real SQLite-backed private ticket lifecycle rather than a static preview. Logged-in users can create categorized tickets, see their own history, and reply. Admins can see the global queue, reply and update status. The server enforces owner isolation, role-based access, per-ticket `If-Match` optimistic versions, input limits, and append-only message/status history with audit records.
+
+**Important:** GitHub Pages alone has no support backend. A deployed/configured API and valid account are required. No emails, Discord syncing, attachments, automatic resolution or response-time guarantee are currently configured. Never place passwords or signing keys in ticket messages. See [Support API](docs/api.md).
+
 ### Guided Setup Planner (Alpha 26)
 
 The [browser-local Setup Planner](https://dma.moobee.lol/#/setup) is an actual working client-side hardware inventory wizard: select a planning game category and exact build, identify both Windows machines, record a hardware model, answer a six-item checklist, and export a report as JSON, TXT, clipboard text, or print/PDF. It persists answers only in the **current browser's local storage**; there is no cloud upload, device scanning, installer, software download, license activation or external API interaction. All inventory answers are self-reported, and even 6/6 confirmed checklist entries **never** constitute game compatibility or publisher authorization.
