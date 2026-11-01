@@ -70,3 +70,6 @@ Before any production download can be enabled: independently hash the downloaded
 
 The optional `npm run verify:game-artifact` CLI adds an **independent local-byte SHA-256 comparison** and Ed25519 detached manifest signature check against operator-pinned trusted public keys. Unlike the API's GitHub metadata digest comparison, this CLI hashes the actual artifact file on disk. It does not submit QA status to the API, publish downloads or execute software. The default publisher registry is empty: no real publisher trust is claimed. More details: [signed local artifact verification](game-artifact-verification.md).
 
+## Alpha 24 trust onboarding safeguards
+
+Offline `npm run inspect:publisher-key -- --key <public.pem>` prints an Ed25519 SPKI SHA-256 fingerprint without importing the key. Publisher trust registry v2 requires the fingerprint to match the pinned key bytes; missing/revoked keys, duplicates, key replacement and private keys fail closed. This does not authenticate the publisher: human out-of-band verification and reviewed onboarding are required. The local file verifier now hashes an already-opened file descriptor and checks file metadata stability, but no software distribution or anti-cheat functionality is enabled. See [verification guide](game-artifact-verification.md).
