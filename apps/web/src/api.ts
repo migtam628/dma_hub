@@ -1,3 +1,12 @@
+export type XboxQAReviewState="submitted"|"triaged"|"retest_required";
+export type XboxQAIntakeItem={id:string;gameId:string;consoleModel:string;gameBuild:string;
+ consoleOS:string;testDate:string;fingerprint:string;version:number;state:XboxQAReviewState;
+ triageNote:string;submittedAt:number;reviewedAt:number;operatorReportedOnly:true;
+ independentlyCertified:false;downloadEnabled:false};
+export type XboxQAIntakeDetail=XboxQAIntakeItem&{
+ session:import("./xbox-qa-core.mjs").XboxQASession;
+ triageHistory:{version:number;state:XboxQAReviewState;note:string;at:number}[];
+};
 export type SupportCategory="setup"|"hardware"|"account"|"orders"|"other";
 export type SupportState="open"|"awaiting_staff"|"awaiting_customer"|"resolved"|"closed";
 export type SupportTicket={id:string;customerId:string;customerEmail?:string;category:SupportCategory;subject:string;state:SupportState;version:number;createdAt:number;updatedAt:number};
@@ -72,6 +81,10 @@ export const api={
  matchGameReleaseAsset:(token:string,item:GameReleaseAsset)=>request<{id:string;state:string;version:number}>("/v1/admin/game-release-assets/"+item.id+"/match","POST",{},token,item.version),
  withdrawGameReleaseAsset:(token:string,item:GameReleaseAsset)=>request<{id:string;state:string;version:number}>("/v1/admin/game-release-assets/"+item.id+"/withdraw","POST",{},token,item.version),
  gameQAStatus:(gameId:string)=>request<{gameId:string;items:PublicQAStatus[];operatorReportedOnly:true;independentlyCertified:false;downloadEnabled:false}>("/v1/games/"+encodeURIComponent(gameId)+"/qa-status"),
+ adminXboxQAReports:(token:string)=>request<{items:XboxQAIntakeItem[];operatorReportedOnly:true;publicResults:false}>("/v1/admin/xbox-qa","GET",undefined,token),
+ adminXboxQAReport:(token:string,id:string)=>request<XboxQAIntakeDetail>("/v1/admin/xbox-qa/"+id,"GET",undefined,token),
+ submitXboxQAReport:(token:string,session:import("./xbox-qa-core.mjs").XboxQASession)=>request<{id:string;fingerprint:string;state:"submitted";version:1;independentlyCertified:false;downloadEnabled:false}>("/v1/admin/xbox-qa","POST",{session},token),
+ triageXboxQAReport:(token:string,item:XboxQAIntakeItem,state:"triaged"|"retest_required",note:string)=>request<{id:string;version:number;state:XboxQAReviewState;independentlyCertified:false;downloadEnabled:false}>("/v1/admin/xbox-qa/"+item.id,"PATCH",{state,note},token,item.version),
  adminGameQAResults:(token:string)=>request<{items:AdminQAResult[];operatorReportedOnly:true}>("/v1/admin/game-qa-results","GET",undefined,token),
  createGameQAResult:(token:string,data:QADraft,reviewVersion:number)=>request<{id:string;outcome:QAOutcome;scope:QAScope;recordedAt:number;operatorReported:true;downloadEnabled:false}>("/v1/admin/game-qa-results","POST",data,token,reviewVersion),
  supportTickets:(token:string)=>request<{items:SupportTicket[];backend:string;notificationsConfigured:false}>("/v1/support/tickets","GET",undefined,token),
