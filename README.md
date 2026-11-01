@@ -161,6 +161,7 @@ The landing page, public **Downloads** route (`#/releases`), customer Downloads,
 Versioned releases are triggered by changes to `release/version.json` on `main` or by manual workflow dispatch.
 
 - **v0.2.0-alpha.1** — initial tested static React preview ZIP, checksum and source archive.
+- **v0.2.0-alpha.23** — offline actual-byte SHA-256 + pinned Ed25519 publisher signature verification CLI, empty real-world trust registry and synthetic tamper tests; no gaming executable or production download approval.
 - **v0.2.0-alpha.22** — schema v15 GitHub Release digest metadata matching for game software reviews, admin Game Assets queue, withdrawal and stale-version safety; no executable downloads or licensing.
 - **v0.2.0-alpha.21** — schema v14 operator-reviewed game-build/platform/hardware QA, immutable audit trail, private evidence references, and public fail-closed compatibility listing; no game executables or licenses.
 - **v0.2.0-alpha.20** — new game-specific DMA Cheats storefront, schema v13 game-to-product associations and admin editor integration; catalog foundation only, not working cheats or licenses.
