@@ -419,6 +419,12 @@ Customer **Support** and administrator **Support Tickets** now use a real SQLite
 
 **Important:** GitHub Pages alone has no support backend. A deployed/configured API and valid account are required. No emails, Discord syncing, attachments, automatic resolution or response-time guarantee are currently configured. Never place passwords or signing keys in ticket messages. See [Support API](docs/api.md).
 
+### Private Xbox QA intake and operator triage (Alpha 32)
+
+The **admin-only local API** now accepts an exported v1 Xbox field report, stores a canonical hash-deduplicated and immutable submission, and maintains a separate append-only operator triage history with `If-Match` version checks. **Admin → Xbox QA Intake** provides file preview, explicit import, private report inspection, and `triaged` / `retest_required` actions. The public site **does not upload reports automatically**.
+
+These are unauthenticated-origin operator observations, **not** publisher-approved hardware attestation, genuine tests performed by the project, software/game compatibility certificates, or download authorizations. The API remains private until deployment approvals. See [QA intake SOP and API contract](docs/xbox-qa-private-intake.md).
+
 ### Xbox field QA workbook (Alpha 31; manual console testing)
 
 The [Call of Duty Xbox QA workbook](https://dma.moobee.lol/#/games/call-of-duty/xbox-qa) is a browser-local, versioned manual test record for Xbox Series X, Series S, Xbox One, One S and One X. It captures the **actual** console, game/build, Xbox OS version, controller/display, test date, per-feature pass/fail/blocked/not-applicable status, and optional evidence link. Reports can be exported to TXT/JSON, copied or printed, and up to 25 operator-entered observations can be saved locally.

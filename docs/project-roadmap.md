@@ -193,3 +193,10 @@ Payment provider, business terms, first supported production software/hardware c
 - Strict versioned field validation; only explicit physical-console test declarations, exact model/build/OS/date, meaningful notes and at least one observed pass/fail/blocker permit saving a **local operator report**. Default answers are all untested.
 - Stores up to 25 operator observations only in browser localStorage, with optional HTTPS evidence references, TXT/JSON/clipboard/print handoffs, JSON draft import and local deletion. No API upload, no fabricated results, no trusted certification.
 - Real Xbox browser, title/service availability and controller testing remain user-owned hardware acceptance tasks; the Windows installer is not a native Xbox app. See `docs/xbox-device-qa-workbook.md`.
+
+### November 1 — Alpha 32 privileged Xbox QA evidence intake (schema v18)
+
+- Created private local API administrative Xbox test evidence ingestion from exported v1 JSON; strict server-side field validation, deterministic SHA-256 duplicate blocking, immutable source submissions and separate append-only `submitted → triaged / retest_required` event history.
+- Added administrator-only GET list/detail, POST import, PATCH review endpoints with `If-Match` optimistic versioning, RBAC enforcement, privacy exclusions and audit records. No public endpoint returns private field evidence or turns operator triage into compatibility approval.
+- Added **Admin → Xbox QA Intake** React screen with explicit file selection/preview/confirm import, private report review, note capture and versioned triage; updated backup integrity checks and v17→v18 migrations.
+- Still dependent on real physical console test evidence and trusted human review, separately hosted secure API, and policy for retention. This is not independent device certification and does not enable any third-party game software or downloads.
