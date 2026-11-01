@@ -1,26 +1,25 @@
-# DMA Hub v0.2.0-alpha.31
+# DMA Hub v0.2.0-alpha.32
 
-**Xbox physical-console testing workbook and local QA observation history. No physical Xbox has been tested by the project.**
+**Private Xbox QA evidence intake and operator triage — not game certification, public hosting or software delivery.**
 
-## New in Alpha 31
+## New in Alpha 32
 
-- Public `#/games/call-of-duty/xbox-qa` manual QA workbook linked from the Call of Duty Xbox/PC platform matrix.
-- Covers **Xbox Series X, Series S, Xbox One, One S and One X** with no assumed hardware model or test results.
-- Records exact installed Call of Duty edition/build, console OS version, test date, controller/display, and optional HTTPS evidence reference.
-- Captures individual **Not tested / Observed pass / Observed failure / Blocked / Not applicable** outcomes for Xbox Edge site opening/navigation, display readability, form inputs, browser storage, TXT export, printing/PDF, optional official Remote Play and ordinary authorized HDMI capture.
-- Draft and up to 25 explicitly saved field observations are stored **only in the browser**, never transmitted to DMA Hub or Xbox. Reports export to JSON/TXT, clipboard or print. Versioned JSON draft import and local deletion supported.
-- A saved observation requires a manually declared **real physical Xbox test**, specific model/game/build/OS/date, meaningful notes, and at least one observed positive/negative outcome. Defaults do **not** invent successful tests.
-- Input validation, sanitization and exported report messages make it clear that all observations are operator-reported, unaudited and not independently certified.
-- Added unit tests and a documented [physical console field QA procedure](docs/xbox-device-qa-workbook.md); updated README, Call of Duty matrix documentation and roadmap.
+- **Admin → Xbox QA Intake** now offers a real local-API-connected workflow: manually select a v1 Xbox field-report JSON, validate and preview it in the browser, then explicitly confirm importing into the authenticated private service.
+- Local Node API administrator-only `GET /v1/admin/xbox-qa`, `POST /v1/admin/xbox-qa`, `GET /v1/admin/xbox-qa/:id`, and version-bound `PATCH /v1/admin/xbox-qa/:id` routes. Unauthenticated access is rejected; customers cannot view private field evidence.
+- SQLite schema v18 adds **immutable operator-reported submission records** and **append-only, versioned triage events** with database triggers, audit history, and strict `If-Match` conflict checks.
+- Server validates console model, selected modern Call of Duty edition, exact self-reported build and console OS, test date, field responses, physical-test declaration and HTTPS evidence URL format. Canonical SHA-256 fingerprint rejects exact duplicate files; it is **not** an authenticity or Xbox attestation signature.
+- Administrators can mark imported files **operator-triaged** or **retest-required** with context; neither state certifies a test, approves publisher rights, establishes game compatibility or enables software downloads.
+- Automated test coverage for schema migration, backup integrity, strict validation, privileged-access boundaries, duplicate imports, immutable history and absence of public QA approval.
+- Updated README, API specification, Xbox field SOP, private intake runbook and project roadmap.
 
-## Technical and commercial limitations
+## Deployment and limitations
 
-No Xbox test console has been connected or measured. Browser localStorage is not a tamper-resistant audit database. Some Xbox Edge browser download, clipboard or print features may be unavailable; they require manual testing.
+The customer site at [dma.moobee.lol](https://dma.moobee.lol) remains static GitHub Pages. **Xbox QA intake is not deployed to a public backend.** To use the admin intake, connect to the separately configured private local API and authenticate as an administrator.
 
-This does **not** produce a native Xbox app, install the unsigned Windows launcher onto a console, enable DMA game memory access, alter controller inputs, evade anti-cheat, or approve game cheats. The public Pages site remains a static preview without a deployed customer account/API service.
+No physical console QA was conducted by the repository. Reports are operator-supplied and may be inaccurate; no independently verified source, secure external evidence storage, real publisher rights or commercial software download exists. No Xbox game manipulation, DMA game-memory access, unauthorized input automation or anti-cheat circumvention is implemented.
 
-## Release assets
+## Distribution
 
-GitHub publishes the static web ZIP and SHA256 checksum, and a separate workflow publishes a preview **unsigned** Windows NSIS installer and SHA256 checksum after its packaging job succeeds.
+The release workflow publishes a web ZIP and SHA-256 checksum. A separate Windows packaging workflow may attach the **unsigned** NSIS installer and its checksum only when the build completes successfully.
 
-See [Console QA workbook](https://dma.moobee.lol/#/games/call-of-duty/xbox-qa), [Xbox/PC matrix](https://dma.moobee.lol/#/games/call-of-duty/platforms), [field procedure](docs/xbox-device-qa-workbook.md) and [project roadmap](docs/project-roadmap.md).
+See [private Xbox QA intake SOP](docs/xbox-qa-private-intake.md), [Xbox field workbook](https://dma.moobee.lol/#/games/call-of-duty/xbox-qa), and [roadmap](docs/project-roadmap.md).
