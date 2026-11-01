@@ -142,3 +142,10 @@ Payment provider, business terms, first supported production software/hardware c
 - Publisher trust registry v2 requires the canonical SPKI SHA-256 fingerprint to match the pinned public key, rejects duplicate trust anchors, private PEM, invalid algorithms and unknown fields.
 - Artifact hashing uses a regular file handle and before/after file metadata checks to reduce path-replacement/time-of-check risks. This only validates a point-in-time local file snapshot.
 - Real publisher identity onboarding remains blocked without independently verified key material and human review; no automatic license, download or game-cheat execution is enabled.
+
+### November 1 — Alpha 25 game/hardware QA evidence journal (schema v16)
+
+- Added versioned, append-only manual QA observations for exact game build, Windows build, hardware/firmware and three test scopes.
+- Admin QA Lab records pass, fail, or retest required with authorization declaration, private evidence and notes; the public game page shows current operator-reported status only and warns that nothing is independently certified.
+- New results supersede prior results within a scope, and old review/product versions are automatically omitted from public status responses. API tests cover stale invalidation, role restrictions, negative outcome precedence and immutable records.
+- Next gates: independent test infrastructure, real owner/publisher permissions, patch detection, verified real hardware/software data, signed binary distribution policy, and production hosting. No game cheat executable is implemented.
