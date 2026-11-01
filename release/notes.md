@@ -1,24 +1,26 @@
-# DMA Hub v0.2.0-alpha.30
+# DMA Hub v0.2.0-alpha.31
 
-**Modern Call of Duty Xbox and PC game-platform matrix. Game availability does NOT mean DMA Hub game tool compatibility.**
+**Xbox physical-console testing workbook and local QA observation history. No physical Xbox has been tested by the project.**
 
-## New in Alpha 30
+## New in Alpha 31
 
-- A new public `#/games/call-of-duty/platforms` experience compares official game listings for Warzone, Modern Warfare II, Modern Warfare III, Modern Warfare 4, Black Ops 6 and Black Ops 7 across Windows PC, Xbox Series X|S and Xbox One.
-- Select Xbox Series X|S or Xbox One to inspect DMA Hub service boundaries: Xbox Edge website and browser-local planning, customer support/accounts after separate secure API hosting, optional ordinary capture/Remote Play, and **no direct console installation of the Windows launcher**.
-- Official Xbox and Activision source links are provided for each game. Only Modern Warfare 4 is marked Xbox Play Anywhere where official listing directly supports the claim; other editions are unverified for that specific purchase entitlement.
-- Xbox One Warzone is clearly marked as **end-of-service announced** ahead of MW4 Season 1. After the announced November 6, 2026 integration window, the website reports that service shutdown must be independently verified; it never claims real-time service checking.
-- Modern Warfare 4 is documented as unavailable for Xbox One, while modern Xbox Series X|S is the default console target.
-- Direct Xbox game-memory DMA, cheating tools, unapproved controller-input modification, hardware spoofing and anti-cheat bypass remain **unsupported**, regardless of official game listing.
-- Unit tests assert version/platform validation, sunset handling, Windows/Xbox boundary, and that the project does not claim a published Xbox app, running public account backend, game compatibility certification or approved cheat software.
-- Added source-backed [Xbox/PC platform test runbook](docs/call-of-duty-xbox-pc-matrix.md), and updated README, games guide and roadmap.
+- Public `#/games/call-of-duty/xbox-qa` manual QA workbook linked from the Call of Duty Xbox/PC platform matrix.
+- Covers **Xbox Series X, Series S, Xbox One, One S and One X** with no assumed hardware model or test results.
+- Records exact installed Call of Duty edition/build, console OS version, test date, controller/display, and optional HTTPS evidence reference.
+- Captures individual **Not tested / Observed pass / Observed failure / Blocked / Not applicable** outcomes for Xbox Edge site opening/navigation, display readability, form inputs, browser storage, TXT export, printing/PDF, optional official Remote Play and ordinary authorized HDMI capture.
+- Draft and up to 25 explicitly saved field observations are stored **only in the browser**, never transmitted to DMA Hub or Xbox. Reports export to JSON/TXT, clipboard or print. Versioned JSON draft import and local deletion supported.
+- A saved observation requires a manually declared **real physical Xbox test**, specific model/game/build/OS/date, meaningful notes, and at least one observed positive/negative outcome. Defaults do **not** invent successful tests.
+- Input validation, sanitization and exported report messages make it clear that all observations are operator-reported, unaudited and not independently certified.
+- Added unit tests and a documented [physical console field QA procedure](docs/xbox-device-qa-workbook.md); updated README, Call of Duty matrix documentation and roadmap.
 
-## What remains unverified
+## Technical and commercial limitations
 
-No physical Xbox has been connected or tested. Xbox Edge rendering, customer account flows, exact installed game builds, individual video capture/accessory compatibility, authorized hardware/software QA, and real customer operation need actual evidence. Static GitHub Pages has no production account backend. The existing Windows NSIS preview is **unsigned** and does not run as a native retail Xbox app.
+No Xbox test console has been connected or measured. Browser localStorage is not a tamper-resistant audit database. Some Xbox Edge browser download, clipboard or print features may be unavailable; they require manual testing.
 
-## Release artifacts
+This does **not** produce a native Xbox app, install the unsigned Windows launcher onto a console, enable DMA game memory access, alter controller inputs, evade anti-cheat, or approve game cheats. The public Pages site remains a static preview without a deployed customer account/API service.
 
-GitHub publishes the static web ZIP and checksum. A separate Windows release job publishes the unsigned NSIS installer and checksum after packaging validation.
+## Release assets
 
-**Sources:** [Official Xbox Modern Warfare 4](https://www.xbox.com/en-US/games/call-of-duty-modern-warfare-4), [Activision Warzone platform update](https://support.activision.com/warzone-2/articles/warzone-platform-update), [Xbox Edge browser](https://www.microsoft.com/en-us/edge/learning-center/how-to-use-microsoft-edge-on-xbox), [Activision enforcement policy](https://support.activision.com/articles/call-of-duty-security-and-enforcement-policy).
+GitHub publishes the static web ZIP and SHA256 checksum, and a separate workflow publishes a preview **unsigned** Windows NSIS installer and SHA256 checksum after its packaging job succeeds.
+
+See [Console QA workbook](https://dma.moobee.lol/#/games/call-of-duty/xbox-qa), [Xbox/PC matrix](https://dma.moobee.lol/#/games/call-of-duty/platforms), [field procedure](docs/xbox-device-qa-workbook.md) and [project roadmap](docs/project-roadmap.md).
