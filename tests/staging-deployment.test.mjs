@@ -12,7 +12,7 @@ test("private staging Compose binds only to localhost with persistent data and n
  assert.match(compose,/read_only: true/);
  assert.match(compose,/no-new-privileges:true/);
  assert.match(compose,/cap_drop:/);
- assert.match(compose,/^\\s+- ALL$/m);
+ assert.match(compose,/^\s+- ALL$/m);
  assert.match(compose,/volumes:/);
  assert.match(compose,/api_data:\s*\/var\/lib\/dmahub/);
  assert.match(compose,/healthcheck:/);
