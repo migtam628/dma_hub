@@ -1,25 +1,24 @@
-# DMA Hub v0.2.0-alpha.32
+# DMA Hub v0.2.0-alpha.33
 
-**Private Xbox QA evidence intake and operator triage — not game certification, public hosting or software delivery.**
+**Private Xbox QA regression comparison across game and console OS builds. No independent console/game certification.**
 
-## New in Alpha 32
+## Added in Alpha 33
 
-- **Admin → Xbox QA Intake** now offers a real local-API-connected workflow: manually select a v1 Xbox field-report JSON, validate and preview it in the browser, then explicitly confirm importing into the authenticated private service.
-- Local Node API administrator-only `GET /v1/admin/xbox-qa`, `POST /v1/admin/xbox-qa`, `GET /v1/admin/xbox-qa/:id`, and version-bound `PATCH /v1/admin/xbox-qa/:id` routes. Unauthenticated access is rejected; customers cannot view private field evidence.
-- SQLite schema v18 adds **immutable operator-reported submission records** and **append-only, versioned triage events** with database triggers, audit history, and strict `If-Match` conflict checks.
-- Server validates console model, selected modern Call of Duty edition, exact self-reported build and console OS, test date, field responses, physical-test declaration and HTTPS evidence URL format. Canonical SHA-256 fingerprint rejects exact duplicate files; it is **not** an authenticity or Xbox attestation signature.
-- Administrators can mark imported files **operator-triaged** or **retest-required** with context; neither state certifies a test, approves publisher rights, establishes game compatibility or enables software downloads.
-- Automated test coverage for schema migration, backup integrity, strict validation, privileged-access boundaries, duplicate imports, immutable history and absence of public QA approval.
-- Updated README, API specification, Xbox field SOP, private intake runbook and project roadmap.
+- Admin → Xbox QA Intake can compare any two **previously imported immutable operator-reported** QA files for the **same Call of Duty edition and Xbox model**.
+- Private, administrator-only `GET /v1/admin/xbox-qa/:id/compare?with=:otherId` returns per-check status changes, counts of reported pass-to-failure/blocked regressions and failure/blocked-to-pass improvements, and whether the game or Xbox OS build changed.
+- Changed build, changed console OS or reported regressions trigger **manual retest indicated**. A checked box is not measured hardware telemetry, a certified compatibility result, proof a patch shipped, or software download approval.
+- The UI includes a comparison report picker, readable per-check table and explicit interpretation notes. The comparison endpoint returns no full QA notes, private evidence URLs, publisher credentials or public QA status.
+- Unit/API tests cover comparison classification, cross-model/title restrictions, unauthenticated/customer RBAC, missing/same IDs, privacy and fail-closed compatibility/download claims.
+- README, API contract, private intake SOP and roadmap updated.
 
-## Deployment and limitations
+## Current product limitations
 
-The customer site at [dma.moobee.lol](https://dma.moobee.lol) remains static GitHub Pages. **Xbox QA intake is not deployed to a public backend.** To use the admin intake, connect to the separately configured private local API and authenticate as an administrator.
+Xbox observations remain voluntary, unauthenticated-origin operator reports. **No physical Xbox was used or measured**, and the project has not verified any cheat software, real game build, publisher rights, trusted launch artifact or Xbox app. There is no public production API, live customer login, real payment settlement, licensed gaming module or 24/7 staffed support.
 
-No physical console QA was conducted by the repository. Reports are operator-supplied and may be inaccurate; no independently verified source, secure external evidence storage, real publisher rights or commercial software download exists. No Xbox game manipulation, DMA game-memory access, unauthorized input automation or anti-cheat circumvention is implemented.
+The GitHub Pages website is a static public preview; the API comparison/triage workspace requires administrator access to a separately configured **private local API**.
 
 ## Distribution
 
-The release workflow publishes a web ZIP and SHA-256 checksum. A separate Windows packaging workflow may attach the **unsigned** NSIS installer and its checksum only when the build completes successfully.
+Release web ZIP and SHA-256 checksum publish through GitHub Actions. An **unsigned** Windows NSIS preview installer and checksum are attached only after the separate Windows packaging workflow passes.
 
-See [private Xbox QA intake SOP](docs/xbox-qa-private-intake.md), [Xbox field workbook](https://dma.moobee.lol/#/games/call-of-duty/xbox-qa), and [roadmap](docs/project-roadmap.md).
+Documentation: [private Xbox QA intake](docs/xbox-qa-private-intake.md), [manual Xbox field QA](docs/xbox-device-qa-workbook.md), [roadmap](docs/project-roadmap.md).
