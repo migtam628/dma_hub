@@ -32,3 +32,7 @@ No copied competitor product listings or prices in the local demo as if purchasa
 
 ## Project status methodology
 “100%” is not a fixed number without production acceptance criteria. Keep a release gate list with code coverage, deployability, security, payments, real vendor permission, device QA and support readiness; distinguish implemented features from independently tested integrations.
+
+## Additional implementation milestone — Alpha 27
+
+Implemented a local SQLite-backed authenticated customer support ticket lifecycle (create, list, private thread, replies) and administrator queue with audited state changes. This addresses the **support experience pattern** observed across CamUnlocks, OverDMA and Blurred without copying their interface or promising their advertised support coverage. Public GitHub Pages still cannot submit tickets without a separately hosted authenticated backend.

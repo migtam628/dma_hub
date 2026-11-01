@@ -1,6 +1,6 @@
 import {DatabaseSync} from "node:sqlite";
 
-export const SCHEMA_VERSION=16;
+export const SCHEMA_VERSION=17;
 
 const BASE_SCHEMA=`CREATE TABLE IF NOT EXISTS users(
  id TEXT PRIMARY KEY,
@@ -436,6 +436,54 @@ export function migrateDatabase(db){
    version=16;
   }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
  }
+ if(version===16){
+  db.exec("BEGIN IMMEDIATE");
+  try{
+   db.exec(`CREATE TABLE support_tickets(
+    id TEXT PRIMARY KEY,
+    customer_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    category TEXT NOT NULL CHECK(category IN ('setup','hardware','account','orders','other')),
+    subject TEXT NOT NULL CHECK(length(subject) BETWEEN 5 AND 140),
+    state TEXT NOT NULL CHECK(state IN ('open','awaiting_staff','awaiting_customer','resolved','closed')),
+    version INTEGER NOT NULL CHECK(version>=1),
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+   );
+   CREATE INDEX support_by_customer ON support_tickets(customer_id,updated_at DESC);
+   CREATE INDEX support_by_state ON support_tickets(state,updated_at DESC);
+   CREATE TABLE support_messages(
+    id TEXT PRIMARY KEY,
+    ticket_id TEXT NOT NULL REFERENCES support_tickets(id) ON DELETE RESTRICT,
+    author_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    body TEXT NOT NULL CHECK(length(body) BETWEEN 5 AND 4000),
+    created_at INTEGER NOT NULL
+   );
+   CREATE INDEX support_messages_ticket ON support_messages(ticket_id,created_at,id);
+   CREATE TRIGGER support_messages_no_update BEFORE UPDATE ON support_messages
+    BEGIN SELECT RAISE(ABORT,'immutable support message'); END;
+   CREATE TRIGGER support_messages_no_delete BEFORE DELETE ON support_messages
+    BEGIN SELECT RAISE(ABORT,'immutable support message'); END;
+   CREATE TABLE support_events(
+    id TEXT PRIMARY KEY,
+    ticket_id TEXT NOT NULL REFERENCES support_tickets(id) ON DELETE RESTRICT,
+    version INTEGER NOT NULL CHECK(version>=1),
+    from_state TEXT,
+    to_state TEXT NOT NULL CHECK(to_state IN ('open','awaiting_staff','awaiting_customer','resolved','closed')),
+    actor_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    created_at INTEGER NOT NULL,
+    UNIQUE(ticket_id,version)
+   );
+   CREATE TRIGGER support_events_no_update BEFORE UPDATE ON support_events
+    BEGIN SELECT RAISE(ABORT,'immutable support event'); END;
+   CREATE TRIGGER support_events_no_delete BEFORE DELETE ON support_events
+    BEGIN SELECT RAISE(ABORT,'immutable support event'); END;`);
+   db.exec("PRAGMA user_version=17; COMMIT;");
+   version=17;
+  }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
+ }
+ requiredColumns(db,"support_tickets",["id","customer_id","category","subject","state","version","created_at","updated_at"]);
+ requiredColumns(db,"support_messages",["id","ticket_id","author_id","body","created_at"]);
+ requiredColumns(db,"support_events",["id","ticket_id","version","from_state","to_state","actor_id","created_at"]);
  requiredColumns(db,"game_qa_results",["id","review_id","review_version","product_version","test_scope","outcome","os_build","firmware","evidence_ref","notes","rights_confirmed","actor_id","recorded_at"]);
  requiredColumns(db,"game_release_artifacts",["id","review_id","release_tag","asset_name","expected_sha256","state","version","review_version","github_asset_id","asset_bytes","matched_at","created_by","matched_by","created_at","updated_at"]);
  requiredColumns(db,"game_release_artifact_events",["id","artifact_id","version","from_state","to_state","actor_id","created_at"]);

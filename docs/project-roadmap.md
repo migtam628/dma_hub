@@ -156,3 +156,10 @@ Payment provider, business terms, first supported production software/hardware c
 - Added responsive, browser-local three-stage customer Setup Planner with versioned/sanitized local inventory state, OS/model/game-build identification, six-item checklist, hardcoded non-approval gates and actionable follow-ups.
 - Export JSON, text, copy and browser Print/PDF without backend, license issuance, unsupported hardware connection claims or automatic download; unit tests cover unknown/missing status and fail-closed compatibility.
 - Follow-up priorities: authenticated support ticket operations, production hosting, payment onboarding, permissions, real software/game/hardware QA, signed fulfillment, audit and monitoring. None should claim full production readiness until independently verified.
+
+### November 1 — Alpha 27 authenticated support ticket lifecycle (schema v17)
+
+- Implemented real private tickets, initial messages, owner-only views, staff queue, staff/customer replies, and ticket status transitions.
+- Server-side customer authorization and role restrictions, per-ticket If-Match conflict guards, active ticket/message limits, append-only communication and event audit.
+- Updated customer Support and Admin Support Tickets UI with local API lifecycle and explicit no-email/no-SLA disclaimers. Tests cover privacy, closure, status audit and optimistic conflicts.
+- External gates: deploy production API with secure authentication, configure real email and notification provider, staffing/SLA policies, moderation and retention/compliance, and support analytics. Do not market 24/7 support until staffed.

@@ -131,3 +131,14 @@ The CLI in `scripts/verify-game-artifact.mjs` checks a local artifact against a 
 - `GET /v1/admin/game-qa-results`: administrator-only chronological QA journal, with stale flags and private evidence reference for authorized operators.
 - `POST /v1/admin/game-qa-results`: administrator-only append-only observation `{reviewId,scope,outcome,osBuild,firmware,evidenceRef,notes,rightsConfirmed}`; requires `If-Match: <reviewVersion>`. Scope is one of `hardware_setup`, `install_validation`, `functional_smoke`; outcome one of `passed`, `failed`, `retest_required`. Pass/fail require HTTPS evidence and meaningful notes; pass requires explicit authorization attestation. No record can be submitted for stale/unpublished/unreviewed products.
 - Observations are never edited or deleted; later outcomes supersede earlier outcomes within each review/scope. `passed` records are **operator reports only**, not independent QA certification or a license/download approval.
+
+## Customer support tickets (schema v17; authenticated local API)
+
+- `GET /v1/support/tickets` returns only tickets owned by the signed-in user, most recently updated first (max 100).
+- `POST /v1/support/tickets` creates a real persisted ticket and initial message from `{category,subject,message}` with validated length and a maximum of 10 active customer tickets. Categories: `setup`, `hardware`, `account`, `orders`, `other`.
+- `GET /v1/support/tickets/:id` returns the private conversation to the owner or an authenticated admin; other customers receive 404, not the ticket contents.
+- `POST /v1/support/tickets/:id/replies` requires `If-Match: <ticketVersion>`; customer reply changes state to `awaiting_staff`, staff reply to `awaiting_customer`. Closed tickets cannot be replied to until reopened. Maximum 200 messages per ticket.
+- `GET /v1/admin/support/tickets` lists the operator queue including account emails; admin-only. Never expose this data in public endpoints.
+- `PATCH /v1/admin/support/tickets/:id` admin-only with `If-Match` and `{state}` supporting `awaiting_staff`, `awaiting_customer`, `resolved`, `closed`. All transitions are audited and versioned.
+- SQLite v17 adds `support_tickets`, `support_messages` and immutable `support_events`; update/delete triggers prevent alteration of historic messages/events. Browser renders plain text, not trusted HTML.
+- No notification transport, email receipt, webhooks, file uploads, staff SLA, hosted public API or guaranteed 24/7 availability is implemented. API responses indicate `notificationsConfigured:false`.
