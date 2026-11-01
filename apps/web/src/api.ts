@@ -1,3 +1,10 @@
+export type XboxQAComparison={baselineId:string;candidateId:string;baselineTestDate:string;candidateTestDate:string;
+ gameId:string;consoleModel:string;baselineBuild:string;candidateBuild:string;baselineOS:string;candidateOS:string;
+ gameBuildChanged:boolean;consoleOSChanged:boolean;regressions:number;improvements:number;changedChecks:number;
+ requiresManualRetest:boolean;operatorReportedOnly:true;independentlyVerified:false;
+ gameCompatibilityVerified:false;downloadEnabled:false;
+ changes:Array<{id:string;label:string;baseline:string;candidate:string;
+ change:"unchanged"|"reported_regression"|"reported_improvement"|"changed_or_unverified"}>};
 export type XboxQAReviewState="submitted"|"triaged"|"retest_required";
 export type XboxQAIntakeItem={id:string;gameId:string;consoleModel:string;gameBuild:string;
  consoleOS:string;testDate:string;fingerprint:string;version:number;state:XboxQAReviewState;
@@ -82,6 +89,7 @@ export const api={
  withdrawGameReleaseAsset:(token:string,item:GameReleaseAsset)=>request<{id:string;state:string;version:number}>("/v1/admin/game-release-assets/"+item.id+"/withdraw","POST",{},token,item.version),
  gameQAStatus:(gameId:string)=>request<{gameId:string;items:PublicQAStatus[];operatorReportedOnly:true;independentlyCertified:false;downloadEnabled:false}>("/v1/games/"+encodeURIComponent(gameId)+"/qa-status"),
  adminXboxQAReports:(token:string)=>request<{items:XboxQAIntakeItem[];operatorReportedOnly:true;publicResults:false}>("/v1/admin/xbox-qa","GET",undefined,token),
+ compareXboxQAReports:(token:string,baselineId:string,candidateId:string)=>request<XboxQAComparison>("/v1/admin/xbox-qa/"+encodeURIComponent(baselineId)+"/compare?with="+encodeURIComponent(candidateId),"GET",undefined,token),
  adminXboxQAReport:(token:string,id:string)=>request<XboxQAIntakeDetail>("/v1/admin/xbox-qa/"+id,"GET",undefined,token),
  submitXboxQAReport:(token:string,session:import("./xbox-qa-core.mjs").XboxQASession)=>request<{id:string;fingerprint:string;state:"submitted";version:1;independentlyCertified:false;downloadEnabled:false}>("/v1/admin/xbox-qa","POST",{session},token),
  triageXboxQAReport:(token:string,item:XboxQAIntakeItem,state:"triaged"|"retest_required",note:string)=>request<{id:string;version:number;state:XboxQAReviewState;independentlyCertified:false;downloadEnabled:false}>("/v1/admin/xbox-qa/"+item.id,"PATCH",{state,note},token,item.version),
