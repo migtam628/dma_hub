@@ -102,3 +102,7 @@ The same November 6 recheck gate is enforced **server-side** on public Call of D
 ## Multi-title Xbox/PC platform expansion — Alpha 30
 
 The user plans to test several modern Call of Duty editions and asked whether Xbox can use DMA Hub services. A new [official-source Xbox and PC availability matrix](call-of-duty-xbox-pc-matrix.md) documents Warzone, Modern Warfare II–IV and Black Ops 6–7 with a Series X|S / Xbox One choice and separate web-vs-native capability status. Xbox One Warzone sunset and MW4 Xbox One exclusion are explicitly flagged. No native Xbox software, direct game-memory features, unapproved input manipulation, automated console diagnostics or Xbox compatibility certification is implemented.
+
+## Xbox physical console QA log (Alpha 31)
+
+A new [Xbox field QA workbook](xbox-device-qa-workbook.md) prepares a genuine operator report for Xbox console Edge browsing and optional ordinary capture/Remote Play. It requires self-declared physical tests and records no seeded pass results. Data is local browser storage only; this does not enable Xbox game-memory DMA, input modifications, cheat execution, customer licensing or certification.
