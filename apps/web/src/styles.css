@@ -90,3 +90,14 @@
 .game-review-public{margin:15px 0;padding:12px 14px;display:flex;flex-direction:column;gap:6px;background:#0d2840;border-left:3px solid #25c2d7;border-radius:4px}
 .game-review-public strong{font-size:12px;color:#e7f6ff}
 .game-review-public small{font-size:11px;color:#a8c4d6;overflow-wrap:anywhere;line-height:1.6}
+
+/* Reviewed GitHub release metadata - not a binary download UI */
+.game-asset-form{max-width:790px}
+.game-asset-form .field select,.game-asset-form .field input{background:#0a1726;color:#e9f4fd;border:1px solid #375268;border-radius:8px;padding:11px 12px;width:100%;outline:0;font:inherit}
+.game-asset-form .field input:focus-visible,.game-asset-form .field select:focus-visible{border-color:#25c2d7}
+.game-asset-list{display:grid;gap:13px}
+.game-asset-item{display:flex;flex-direction:column;gap:9px;border:1px solid #325066;background:#102437;border-radius:12px;padding:18px}
+.game-asset-item p{font-size:12px;color:#c5deee;margin:0}
+.game-asset-item small{font-size:11px;color:#acc5d7;overflow-wrap:anywhere}
+.game-asset-item code,.game-review-public code{font-size:11px;word-break:break-all;color:#a6e2f6}
+.game-asset-item .form-actions{margin-top:8px}
