@@ -161,6 +161,7 @@ The landing page, public **Downloads** route (`#/releases`), customer Downloads,
 Versioned releases are triggered by changes to `release/version.json` on `main` or by manual workflow dispatch.
 
 - **v0.2.0-alpha.1** — initial tested static React preview ZIP, checksum and source archive.
+- **v0.2.0-alpha.33** — admin-only Xbox QA baseline/candidate comparison, reported regressions, patch/OS-build retest indicators, no private-data leaks or compatibility certification.
 - **v0.2.0-alpha.32** — private admin Xbox QA JSON import, strict schema v18 server validation, immutable report fingerprints, append-only versioned triage and no public compatibility claims.
 - **v0.2.0-alpha.31** — physical Xbox QA workbook for Series X/S and Xbox One variants: manual per-feature observations, local records, JSON/TXT/print exports and strict no-compatibility claims; no actual console QA yet.
 - **v0.2.0-alpha.30** — modern Call of Duty Xbox Series/Xbox One/PC platform matrix, official store references, Xbox capability boundaries and Warzone sunset tracking; no native Xbox installer or direct console game tools.
