@@ -250,3 +250,46 @@
 @media(max-width:1040px){.cod-pilot-grid{grid-template-columns:1fr}.cod-pilot-side{grid-template-columns:repeat(2,minmax(0,1fr))}.cod-pilot-side .cod-pilot-status{grid-column:span 2}}
 @media(max-width:670px){.cod-pilot-fields,.cod-pilot-spec-comparison,.cod-pilot-side{grid-template-columns:1fr}.cod-pilot-fields .cod-pilot-wide,.cod-pilot-side .cod-pilot-status{grid-column:auto}.cod-pilot-check [role=group]{width:100%}}
 @media print{.topbar,.footer,.cod-pilot-actions,.demo-banner,.cod-pilot-page>.text-link{display:none!important}.cod-pilot-grid{display:block}.cod-pilot-panel,.cod-pilot-hero{background:#fff;color:#111;border:1px solid #bbb;break-inside:avoid}.cod-pilot-side{display:block}.cod-pilot-side>.cod-pilot-panel{margin-top:14px}.cod-pilot-hero>p,.cod-pilot-side p,.cod-pilot-panel-head p{color:#333}}
+
+/* Alpha 30: independent CoD game-platform and Xbox web-service readiness matrix */
+.cod-platform-page{padding-top:30px;padding-bottom:70px}
+.cod-platform-page>.text-link{display:inline-flex;align-items:center;gap:8px;font-size:12px;margin-bottom:20px}
+.cod-platform-hero{padding:clamp(24px,4vw,45px);background:linear-gradient(115deg,#133b4b,#092137 62%,#1a213d);border:1px solid #315267;border-radius:18px;margin-bottom:22px}
+.cod-platform-hero .eyebrow,.cod-platform-panel .eyebrow{display:flex;align-items:center;gap:9px;color:#79dbeb;font-size:10px;letter-spacing:.1em;font-weight:750}
+.cod-platform-hero h1{font-size:clamp(28px,4vw,44px);margin:17px 0}
+.cod-platform-hero p{max-width:810px;font-size:12px;color:#b4ccdc;line-height:1.8}
+.cod-platform-hero-points{display:flex;flex-wrap:wrap;gap:15px;margin-top:20px}
+.cod-platform-hero-points span{display:flex;gap:7px;align-items:center;color:#a4d8e5;font-size:10px}
+.cod-platform-panel{background:#0e2032;border:1px solid #2d4c60;border-radius:15px;padding:clamp(17px,2.5vw,25px);min-width:0}
+.cod-platform-head{display:flex;justify-content:space-between;gap:13px;border-bottom:1px solid #2b4657;padding-bottom:17px;margin-bottom:18px}
+.cod-platform-head h2{font-size:20px;margin:0 0 7px}
+.cod-platform-head p{color:#aac0d2;font-size:11px;margin:0;max-width:800px}
+.cod-platform-scroll{overflow-x:auto}
+.cod-platform-table{border-collapse:collapse;width:100%;min-width:820px;font-size:11px}
+.cod-platform-table th{color:#97b8ce;text-align:left;white-space:nowrap;background:#0a1827;font-size:10px;letter-spacing:.035em}
+.cod-platform-table th,.cod-platform-table td{padding:13px 12px;border-bottom:1px solid #2a4558;vertical-align:middle}
+.cod-platform-table td strong{font-size:11px;color:#e0eef6;display:block}
+.cod-platform-table td small{font-size:10px;color:#8dadc1}
+.cod-platform-table a{display:inline-flex;gap:7px;align-items:center;color:#76ddec;text-decoration:none;white-space:nowrap}
+.cod-platform-table a:hover,.cod-platform-side a:hover{text-decoration:underline}
+.cod-platform-table-note{font-size:11px;color:#b6c7d7;margin:15px 0 0}
+.cod-platform-layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(260px,.9fr);gap:20px;margin-top:20px;align-items:start}
+.cod-platform-select{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.cod-platform-select button{background:#10283e;border:1px solid #3a5669;border-radius:8px;color:#b9d5e4;font-size:12px;padding:12px 17px}
+.cod-platform-select button.selected{border-color:#37c9db;background:#16465a;color:#edffff}
+.cod-platform-capabilities{display:grid;gap:9px}
+.cod-platform-capabilities article{display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:12px;border:1px solid #2d4b60;border-radius:10px;padding:14px}
+.cod-platform-capabilities article>div{flex:1;min-width:180px}
+.cod-platform-capabilities strong{display:block;font-size:12px;color:#d8eaf5}
+.cod-platform-capabilities small{display:block;color:#a7becc;font-size:11px;line-height:1.65;margin-top:7px}
+.cod-platform-side{display:grid;gap:15px;min-width:0}
+.cod-platform-side h3{font-size:15px;margin:14px 0 10px}
+.cod-platform-side p{font-size:11px;color:#acc2d1;line-height:1.8}
+.cod-platform-side a{display:inline-flex;align-items:center;gap:9px;color:#83dded;font-size:11px;text-decoration:none}
+.cod-platform-diagram{display:flex;align-items:center;gap:10px;margin:11px 0}
+.cod-platform-diagram>div{background:#091a2a;border:1px solid #375066;border-radius:9px;padding:11px;min-width:0;flex:1;font-size:11px;color:#d3eaf4}
+.cod-platform-diagram>span{color:#67dcf0;font-size:22px}
+.cod-platform-diagram small{color:#9fbdcc;font-size:10px;display:block;margin-top:5px}
+.cod-platform-warning{border-color:#675137}
+@media(max-width:1040px){.cod-platform-layout{grid-template-columns:1fr}.cod-platform-side{grid-template-columns:repeat(2,minmax(0,1fr))}.cod-platform-side .cod-platform-warning{grid-column:span 2}}
+@media(max-width:650px){.cod-platform-side{grid-template-columns:1fr}.cod-platform-side .cod-platform-warning{grid-column:auto}}
