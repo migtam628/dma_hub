@@ -417,6 +417,12 @@ Customer **Support** and administrator **Support Tickets** now use a real SQLite
 
 **Important:** GitHub Pages alone has no support backend. A deployed/configured API and valid account are required. No emails, Discord syncing, attachments, automatic resolution or response-time guarantee are currently configured. Never place passwords or signing keys in ticket messages. See [Support API](docs/api.md).
 
+### Call of Duty across PC and Xbox (Alpha 30)
+
+The [Call of Duty Xbox/PC platform matrix](https://dma.moobee.lol/#/games/call-of-duty/platforms) tracks official game availability for Warzone, Modern Warfare II–IV and Black Ops 6–7. Users can switch between **Xbox Series X|S** and **Xbox One** to see which DMA Hub workflows are viable on a browser or optional companion PC. Xbox One Warzone's announced Season 1 retirement is flagged, and Modern Warfare 4 is not listed as Xbox One-compatible.
+
+**Game availability is not DMA Hub software compatibility.** The Windows launcher cannot run as an Xbox console app; no direct console DMA memory interaction, input modification, bypass, third-party game cheat or game-level automation is supported. Website setup planning may work in Xbox Edge, with real console testing pending; customer accounts/support require secure backend hosting first. See [officially sourced Xbox/PC matrix](docs/call-of-duty-xbox-pc-matrix.md).
+
 ### Call of Duty / Warzone PC pilot (Alpha 29)
 
 Call of Duty is the first named game pilot. The [Warzone PC pilot](https://dma.moobee.lol/#/games/call-of-duty/pilot) is a source-backed, read-only browser questionnaire based on Activision's published Warzone requirements, including RAM, GPU memory, SSD space, TPM 2.0, Secure Boot, DirectX 12 and a compatible CPU. It captures the **self-reported** launcher, exact installed game build, Windows version, CPU/GPU details, and an explicitly unverified QA checklist. It exports JSON/TXT/print-ready handoffs; no game software or hardware drivers are accessed.
