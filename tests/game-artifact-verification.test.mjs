@@ -1,10 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {generateKeyPairSync,createHash,sign} from "node:crypto";
-import {mkdtemp,rm,writeFile,readFile} from "node:fs/promises";
+import {mkdtemp,rm,writeFile,readFile,symlink} from "node:fs/promises";
 import {tmpdir} from "node:os";
 import {join} from "node:path";
 import {verifyGameArtifact} from "../scripts/game-artifact-verification.mjs";
+import {inspectPublisherPublicKey,validatePublisherTrustRegistry} from "../scripts/publisher-trust.mjs";
 
 const sha=data=>createHash("sha256").update(data).digest("hex");
 async function withFixture(fn){
@@ -19,7 +20,9 @@ async function withFixture(fn){
  const manifest={schemaVersion:1,repository:"migtam628/dma_hub",publisherId:"dma-publisher",
   releaseTag:"v0.2.0-alpha.23",assetName:"software-review.zip",sizeBytes:bytes.length,sha256:sha(bytes)};
  const trust=(key=publicKey,status="trusted")=>({
-  schemaVersion:1,publishers:[{id:"dma-publisher",status,publicKeyPem:key.export({format:"pem",type:"spki"}).toString()}]
+  schemaVersion:2,publishers:[{id:"dma-publisher",status,
+   publicKeyPem:key.export({format:"pem",type:"spki"}).toString(),
+   fingerprintSha256:sha(key.export({format:"der",type:"spki"}))}]
  });
  const setManifest=async(value,key=privateKey)=>{
   const content=Buffer.from(JSON.stringify(value,null,2)+"\n");
@@ -43,6 +46,7 @@ test("signed local artifact passes independent byte hash with pinned publisher k
  assert.equal(result.sha256,sha(f.bytes));
  assert.equal(result.downloadEnabled,false);
  assert.equal(result.assetName,"software-review.zip");
+ assert.equal(result.publisherKeyFingerprintSha256,f.trust().publishers[0].fingerprintSha256);
 }));
 test("modified binary bytes fail even with a correct signed manifest and trusted publisher",async()=>withFixture(async f=>{
  await writeFile(f.artifactPath,Buffer.from(f.bytes.toString().replace("only","0nly")));
@@ -59,7 +63,7 @@ test("signature from another key fails even when manifest fields remain the same
  await assert.rejects(verify(f),/publisher signature failed/i);
 }));
 test("no trusted key and revoked keys fail closed",async()=>withFixture(async f=>{
- await writeFile(f.trustStorePath,JSON.stringify({schemaVersion:1,publishers:[]}));
+ await writeFile(f.trustStorePath,JSON.stringify({schemaVersion:2,publishers:[]}));
  await assert.rejects(verify(f),/not independently trusted/i);
  await writeFile(f.trustStorePath,JSON.stringify(f.trust(undefined,"revoked")));
  await assert.rejects(verify(f),/not independently trusted/i);
@@ -67,7 +71,7 @@ test("no trusted key and revoked keys fail closed",async()=>withFixture(async f=
 test("trusted key must be Ed25519, not a random key embedded in the manifest",async()=>withFixture(async f=>{
  const other=generateKeyPairSync("rsa",{modulusLength:2048});
  await writeFile(f.trustStorePath,JSON.stringify(f.trust(other.publicKey)));
- await assert.rejects(verify(f),/Only pinned Ed25519 public keys/i);
+ await assert.rejects(verify(f),/Only Ed25519 SPKI public keys/i);
 }));
 test("file name, declared size, schema, repository and extra fields are enforced",async()=>withFixture(async f=>{
  await f.setManifest({...f.manifest,assetName:"another.zip"});
@@ -81,6 +85,46 @@ test("file name, declared size, schema, repository and extra fields are enforced
 }));
 test("checked-in publisher registry starts empty; test-only keys never become production keys",async()=>{
  const registry=JSON.parse(await readFile(new URL("../release/trusted-game-publishers.json",import.meta.url),"utf8"));
- assert.equal(registry.schemaVersion,1);
+ assert.equal(registry.schemaVersion,2);
  assert.deepEqual(registry.publishers,[]);
 });
+
+test("fingerprints bind real DER bytes and detect silent public-key replacement",async()=>withFixture(async f=>{
+ const good=f.trust();
+ const oldFingerprint=good.publishers[0].fingerprintSha256;
+ assert.equal(inspectPublisherPublicKey(good.publishers[0].publicKeyPem).fingerprintSha256,oldFingerprint);
+ good.publishers[0].publicKeyPem=f.other.publicKey.export({format:"pem",type:"spki"}).toString();
+ await writeFile(f.trustStorePath,JSON.stringify(good));
+ await assert.rejects(verify(f),/fingerprint does not match key/i);
+}));
+test("duplicate key fingerprints and unknown registry schema are rejected",async()=>withFixture(async f=>{
+ const first=f.trust();
+ const second={...first.publishers[0],id:"other-publisher"};
+ first.publishers.push(second);
+ await writeFile(f.trustStorePath,JSON.stringify(first));
+ await assert.rejects(verify(f),/Duplicate publisher public key fingerprint/i);
+ const legacy={...f.trust(),schemaVersion:1};
+ await writeFile(f.trustStorePath,JSON.stringify(legacy));
+ await assert.rejects(verify(f),/registry v2/i);
+}));
+test("private keys are never accepted as trust anchors or inspected as public keys",async()=>withFixture(async f=>{
+ const secret=generateKeyPairSync("ed25519").privateKey.export({format:"pem",type:"pkcs8"}).toString();
+ assert.throws(()=>inspectPublisherPublicKey(secret),/not private material/i);
+ const swapped=f.trust();
+ swapped.publishers[0].publicKeyPem=secret;
+ await writeFile(f.trustStorePath,JSON.stringify(swapped));
+ await assert.rejects(verify(f),/not private material/i);
+}));
+test("symlinked artifacts and manifest files fail before verification",async()=>withFixture(async f=>{
+ const linked=join(f.artifactPath+"-link");
+ await symlink(f.artifactPath,linked);
+ await assert.rejects(verify({...f,artifactPath:linked}),/filename differs|regular file/i);
+ const manifestLink=f.manifestPath+"-link";
+ await symlink(f.manifestPath,manifestLink);
+ await assert.rejects(verify({...f,manifestPath:manifestLink}),/regular file/i);
+}));
+test("trust validator rejects unexpected fields and non-public keys",async()=>withFixture(async f=>{
+ assert.equal(validatePublisherTrustRegistry(f.trust()).get("dma-publisher").status,"trusted");
+ const extra=f.trust();extra.publishers[0].approvedBy="self";
+ assert.throws(()=>validatePublisherTrustRegistry(extra),/invalid trusted publisher/i);
+}));
