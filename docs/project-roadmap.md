@@ -170,3 +170,10 @@ Payment provider, business terms, first supported production software/hardware c
 - Explicit staging.env setup (never committed), deploy and verify scripts, SQLite online snapshot verification/export script with file-mode protections and off-host encryption warning.
 - GitHub Actions private Compose smoke boots API and verifies health, then destroys disposable CI storage. Node tests assert safe network defaults.
 - No DNS, TLS/proxy exposure, email provider, user-hosted production API or public payment service has been deployed. Production API access requires security review and external user-owned environment configuration.
+
+### November 1 — Alpha 29 first game pilot: Call of Duty / Warzone PC
+
+- Selected Warzone PC as the first concrete Call of Duty pilot edition, pending confirmation of the user's actual game client and installed build. Official Activision requirements and enforcement policy linked in `docs/call-of-duty-warzone-pilot.md`.
+- Created a live, local browser questionnaire, fail-closed RAM/VRAM/SSD and TPM/Secure Boot/DirectX12/AVX/broadband readiness review, versioned input validation, and JSON/TXT/clipboard/print reports.
+- Activision's **November 6, 2026** Warzone/MW4 Season 1 update window triggers a new exact-build review; no assumption a scheduled update actually shipped, no automatic compatibility claims.
+- Still blocked: authorized real Windows PC hardware/build evidence, game publisher/software rights, independent QA, real signed software artifact and commercial delivery. No game-modification or anti-cheat bypass code is included.
