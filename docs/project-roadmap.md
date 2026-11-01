@@ -149,3 +149,10 @@ Payment provider, business terms, first supported production software/hardware c
 - Admin QA Lab records pass, fail, or retest required with authorization declaration, private evidence and notes; the public game page shows current operator-reported status only and warns that nothing is independently certified.
 - New results supersede prior results within a scope, and old review/product versions are automatically omitted from public status responses. API tests cover stale invalidation, role restrictions, negative outcome precedence and immutable records.
 - Next gates: independent test infrastructure, real owner/publisher permissions, patch detection, verified real hardware/software data, signed binary distribution policy, and production hosting. No game cheat executable is implemented.
+
+### November 1 — Alpha 26 buyer setup/requirements workflow
+
+- Completed research of OverDMA, CamUnlocks, and Blurred public product/support experiences. SSZ was inaccessible and no feature claims were inferred. See `docs/competitive-reference-research.md`.
+- Added responsive, browser-local three-stage customer Setup Planner with versioned/sanitized local inventory state, OS/model/game-build identification, six-item checklist, hardcoded non-approval gates and actionable follow-ups.
+- Export JSON, text, copy and browser Print/PDF without backend, license issuance, unsupported hardware connection claims or automatic download; unit tests cover unknown/missing status and fail-closed compatibility.
+- Follow-up priorities: authenticated support ticket operations, production hosting, payment onboarding, permissions, real software/game/hardware QA, signed fulfillment, audit and monitoring. None should claim full production readiness until independently verified.
