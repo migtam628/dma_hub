@@ -1,4 +1,5 @@
 import {randomUUID} from "node:crypto";
+import {codReviewCurrentForPublic} from "./cod-patch-gate.mjs";
 
 // Operator-declared manual QA only: not independent lab certification and
 // never a source of download, anti-cheat, or license approval.
@@ -17,7 +18,7 @@ function transaction(db,fn){
  try{const value=fn();db.exec("COMMIT");return value}
  catch(e){if(db.isTransaction)db.exec("ROLLBACK");throw e}
 }
-const join=`SELECT q.*,r.game_id,r.game_build,r.platform,r.hardware,r.state AS review_state,
+const join=`SELECT q.*,r.game_id,r.game_build,r.platform,r.hardware,r.reviewed_at AS review_approved_at,r.state AS review_state,
  r.version AS current_review_version,r.product_version AS review_product_version,
  p.status AS product_status,p.category,p.version AS current_product_version,p.game_ids_json,p.name AS product_name
  FROM game_qa_results q JOIN game_compatibility_reviews r ON r.id=q.review_id
@@ -52,7 +53,7 @@ export function createGameQA({db,clock,audit,readBody}){
    SELECT MAX(inner_q.rowid) FROM game_qa_results inner_q
    WHERE inner_q.review_id=q.review_id AND inner_q.test_scope=q.test_scope)
    ORDER BY q.recorded_at DESC LIMIT 200`).all(gameId);
-  return result(200,{gameId,items:rows.filter(currentResult).map(publicRow),
+  return result(200,{gameId,items:rows.filter(row=>currentResult(row)&&codReviewCurrentForPublic(gameId,row.review_approved_at,clock())).map(publicRow),
    operatorReportedOnly:true,independentlyCertified:false,downloadEnabled:false});
  }
  async function authenticatedRoute(path,req,user){
