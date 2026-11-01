@@ -159,3 +159,7 @@ Administrator-only manual evidence workflow. See [Xbox QA intake SOP](xbox-qa-pr
 - `PATCH /v1/admin/xbox-qa/:id` with `If-Match` and `{state:"triaged"|"retest_required",note:"at least 10 characters"}`: append immutable triage event; 409 stale/already state, 428 missing valid If-Match.
 - SQLite v18 tables: `xbox_qa_submissions` and `xbox_qa_triage_events`, write-protected by immutable SQL triggers; backups must include both.
 - No public publication, no physical Xbox attestation, no real software QA pass, no independent certification, game download, payment, entitlement or licensed integration results from import/triage.
+
+### Xbox QA report comparison (Alpha 33)
+
+`GET /v1/admin/xbox-qa/:id/compare?with=<UUID>`: admin-only. Compare two immutable imported Xbox field reports of the **same title and console model**. Response includes reported per-check changes, pass-to-fail regression count, fail-to-pass improvement count, game build/console OS changes and a manual retest recommendation. Different title/model pairs return 422; other users receive 403 and unauthenticated users 401. No private evidence, publisher certification, game compatibility approval, download, payment or entitlement is returned.
