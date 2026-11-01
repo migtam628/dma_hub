@@ -200,3 +200,9 @@ Payment provider, business terms, first supported production software/hardware c
 - Added administrator-only GET list/detail, POST import, PATCH review endpoints with `If-Match` optimistic versioning, RBAC enforcement, privacy exclusions and audit records. No public endpoint returns private field evidence or turns operator triage into compatibility approval.
 - Added **Admin → Xbox QA Intake** React screen with explicit file selection/preview/confirm import, private report review, note capture and versioned triage; updated backup integrity checks and v17→v18 migrations.
 - Still dependent on real physical console test evidence and trusted human review, separately hosted secure API, and policy for retention. This is not independent device certification and does not enable any third-party game software or downloads.
+
+### November 1 — Alpha 33 admin Xbox QA regression comparison
+
+- Implemented private admin-only comparison between two immutable imported Xbox QA reports for the exact same model and game edition; flags reported pass-to-fail regressions, fail-to-pass improvements, unknown-to-known changes, Xbox OS and game build differences.
+- Admin screen now includes a report picker and per-check comparison table; API and unit tests enforce access restrictions, invalid pair rejection and no downstream compatibility/download approvals.
+- This is a triage signal from **self-reported evidence**, not real device automation or independent compatibility certification.
