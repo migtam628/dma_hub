@@ -416,6 +416,12 @@ Customer **Support** and administrator **Support Tickets** now use a real SQLite
 
 **Important:** GitHub Pages alone has no support backend. A deployed/configured API and valid account are required. No emails, Discord syncing, attachments, automatic resolution or response-time guarantee are currently configured. Never place passwords or signing keys in ticket messages. See [Support API](docs/api.md).
 
+### Call of Duty / Warzone PC pilot (Alpha 29)
+
+Call of Duty is the first named game pilot. The [Warzone PC pilot](https://dma.moobee.lol/#/games/call-of-duty/pilot) is a source-backed, read-only browser questionnaire based on Activision's published Warzone requirements, including RAM, GPU memory, SSD space, TPM 2.0, Secure Boot, DirectX 12 and a compatible CPU. It captures the **self-reported** launcher, exact installed game build, Windows version, CPU/GPU details, and an explicitly unverified QA checklist. It exports JSON/TXT/print-ready handoffs; no game software or hardware drivers are accessed.
+
+The official announcement schedules the next Warzone/MW4 integration for **November 6, 2026**. From that date, the local API also hides Call of Duty compatibility, operator QA, and release metadata that depend on pre-window reviews, until a new operator re-review; other game categories are unaffected. After that window the pilot flags a mandatory source/build recheck instead of assuming earlier compatibility remains valid. Even a fully completed survey does **not** certify game compatibility, authorize downloads, validate publisher rights, or deliver cheat software. See [first-game pilot and source evidence](docs/call-of-duty-warzone-pilot.md).
+
 ### Guided Setup Planner (Alpha 26)
 
 The [browser-local Setup Planner](https://dma.moobee.lol/#/setup) is an actual working client-side hardware inventory wizard: select a planning game category and exact build, identify both Windows machines, record a hardware model, answer a six-item checklist, and export a report as JSON, TXT, clipboard text, or print/PDF. It persists answers only in the **current browser's local storage**; there is no cloud upload, device scanning, installer, software download, license activation or external API interaction. All inventory answers are self-reported, and even 6/6 confirmed checklist entries **never** constitute game compatibility or publisher authorization.

@@ -73,6 +73,7 @@ export function SetupPlanner(){
        <option value="evaluation">Research and evaluation</option><option value="personal_inventory">Personal hardware inventory</option><option value="authorized_lab">Authorized laboratory testing</option>
       </select></label>
      </div>
+     {selectedGame?.id==="call-of-duty"?<p className="setup-context"><a className="text-link" href="#/games/call-of-duty/pilot">Call of Duty: open the Warzone PC pilot requirements and build-check worksheet <ArrowRight size={13}/></a></p>:null}
      {selectedGame?<p className="setup-context">Selected: <strong>{selectedGame.name}</strong> is a catalog planning category. No software support or compatibility is implied.</p>:null}
      <div className="setup-actions"><Button onClick={()=>setTab("hardware")}>Continue to checklist <ArrowRight size={15}/></Button></div>
     </section>:null}

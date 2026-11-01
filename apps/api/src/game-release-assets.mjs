@@ -1,4 +1,5 @@
 import {randomUUID} from "node:crypto";
+import {codReviewCurrentForPublic} from "./cod-patch-gate.mjs";
 
 // Only DMA Hub's GitHub repository is supported. An operator-supplied URL is
 // NEVER fetched. Matching a GitHub API digest is metadata provenance, NOT a
@@ -36,7 +37,7 @@ export async function githubReleaseAssetLookup({tag,assetName}){
 }
 const reviewQuery=`SELECT r.*,p.status AS product_status,p.category,p.version AS current_product_version,p.game_ids_json
  FROM game_compatibility_reviews r JOIN catalog_products p ON p.id=r.product_id`;
-const assetQuery=`SELECT a.*,r.product_id,r.game_id,r.game_build,r.platform,r.state AS review_state,
+const assetQuery=`SELECT a.*,r.product_id,r.game_id,r.game_build,r.platform,r.reviewed_at AS review_approved_at,r.state AS review_state,
  r.version AS current_review_version,r.product_version,p.status AS product_status,p.category,
  p.version AS current_product_version,p.game_ids_json,p.name AS product_name
  FROM game_release_artifacts a
@@ -72,7 +73,7 @@ export function createGameReleaseAssets({db,clock,audit,readBody,releaseLookup=g
   if(!match||req.method!=="GET")return null;
   const gameId=match[1];
   const rows=db.prepare(assetQuery+" WHERE r.game_id=? AND a.state='metadata_matched' ORDER BY a.matched_at DESC LIMIT 100").all(gameId);
-  return result(200,{gameId,items:rows.filter(currentAsset).map(publicRow),
+  return result(200,{gameId,items:rows.filter(row=>currentAsset(row)&&codReviewCurrentForPublic(gameId,row.review_approved_at,clock())).map(publicRow),
    metadataOnly:true,noDownloadLinks:true,notBinaryVerified:true});
  }
  async function authenticatedRoute(path,req,user){
