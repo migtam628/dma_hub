@@ -34,3 +34,11 @@ Other authenticated roles receive **403**, unauthenticated calls receive **401**
 ## Code acceptance
 
 Node/API tests cover admin-only access, malformed data rejection, duplicate import, immutable submission/event history, valid version progression, unauthorized customer reads and the absence of public compatibility results. The CI container and backup tests exercise schema v18 migrations. **None substitutes physical console QA.**
+
+## Optional regression comparison (Alpha 33)
+
+After importing at least two genuine field reports for the **same Call of Duty edition and physical console model**, open one in Admin → Xbox QA Intake and use **Compare with another operator report**. The selected report is the baseline; the second is the candidate. The comparison shows changes in each checkbox and highlights an operator-reported pass-to-fail/blocked regression or fail-to-pass improvement, plus distinct build/console OS versions.
+
+The private `GET /v1/admin/xbox-qa/:id/compare?with=:otherId` endpoint requires an administrator. Different games, different Xbox model families/versions, missing IDs or the same report twice are rejected. Only per-check statuses and minimal non-sensitive metadata are returned; private evidence URLs and full notes are not leaked by this endpoint.
+
+Changing the installed game build, changing the Xbox OS version, or reporting a regression triggers **manual retest indicated**. This does not assert any game update actually shipped, validate test data authenticity, confirm accessory compatibility, or approve downloads. All raw reports remain immutable.

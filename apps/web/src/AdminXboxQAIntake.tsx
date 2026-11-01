@@ -3,7 +3,7 @@ import type {ChangeEvent} from "react";
 import {ClipboardCheck,FileUp,RefreshCcw,ShieldAlert} from "lucide-react";
 import {Button,Card,Empty,Pill} from "@dma-hub/ui";
 import {api,ApiError} from "./api";
-import type {Session,XboxQAIntakeItem,XboxQAIntakeDetail} from "./api";
+import type {Session,XboxQAIntakeItem,XboxQAIntakeDetail,XboxQAComparison} from "./api";
 import {sanitizeXboxQASession,evaluateXboxQASession,xboxQAMarkdown,XBOX_MODELS} from "./xbox-qa-core.mjs";
 import type {XboxQASession} from "./xbox-qa-core.mjs";
 import {COD_TITLE_PLATFORMS} from "./cod-platform-matrix.mjs";
@@ -24,6 +24,8 @@ export function AdminXboxQAIntake({session}:{session:Session|null}){
  const [preview,setPreview]=useState<XboxQASession|null>(null);
  const [detail,setDetail]=useState<XboxQAIntakeDetail|null>(null);
  const [reviewNote,setReviewNote]=useState("");
+ const [compareWith,setCompareWith]=useState("");
+ const [comparison,setComparison]=useState<XboxQAComparison|null>(null);
  const [loading,setLoading]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
  const previewAssessment=preview?evaluateXboxQASession(preview):null;
  async function refresh(id=detail?.id){
@@ -65,7 +67,7 @@ export function AdminXboxQAIntake({session}:{session:Session|null}){
   finally{setBusy(false)}
  }
  async function select(id:string){
-  setLoading(true);setMessage("");
+  setLoading(true);setMessage("");setComparison(null);setCompareWith("");
   try{setDetail(await api.adminXboxQAReport(token,id))}
   catch(error){setDetail(null);setMessage(errorMessage(error))}
   finally{setLoading(false)}
@@ -80,6 +82,13 @@ export function AdminXboxQAIntake({session}:{session:Session|null}){
    await refresh(detail.id);
    setMessage("Operator triage event recorded. No software access or compatibility approval granted.");
   }catch(error){setMessage(errorMessage(error))}
+  finally{setBusy(false)}
+ }
+ async function compare(){
+  if(!detail||!compareWith||busy)return;
+  setBusy(true);setComparison(null);setMessage("");
+  try{setComparison(await api.compareXboxQAReports(token,detail.id,compareWith))}
+  catch(error){setMessage(errorMessage(error))}
   finally{setBusy(false)}
  }
  const modelName=(id:string)=>XBOX_MODELS.find(m=>m.id===id)?.label||id;
@@ -126,6 +135,27 @@ export function AdminXboxQAIntake({session}:{session:Session|null}){
         <details><summary>Full reported checklist</summary>
          <pre className="admin-xbox-report">{xboxQAMarkdown(detail.session)}</pre>
         </details>
+        <section className="admin-xbox-compare">
+         <h4>Compare with another operator report</h4>
+         <p>Choose a report for the same console model and game. The selected report is the baseline; the other report is the candidate. Comparison is based on self-reported outcomes, not measured device behavior.</p>
+         <div className="admin-xbox-actions">
+          <select aria-label="Select comparison report" value={compareWith} onChange={e=>{setCompareWith(e.target.value);setComparison(null)}}>
+           <option value="">Choose report</option>
+           {items.filter(item=>item.id!==detail.id&&item.consoleModel===detail.consoleModel&&item.gameId===detail.gameId).map(item=>
+            <option value={item.id} key={item.id}>{item.testDate} · {item.gameBuild} · {item.id.slice(0,8)}</option>)}
+          </select>
+          <Button disabled={busy||!compareWith} onClick={()=>void compare()}>Compare reported outcomes</Button>
+         </div>
+         {comparison?<div className="admin-xbox-comparison" role="status">
+          <p>Reported changes: {comparison.changedChecks} checks; {comparison.regressions} regressions; {comparison.improvements} improvements.</p>
+          <p>Game build changed: {comparison.gameBuildChanged?"Yes":"No"} · Console OS changed: {comparison.consoleOSChanged?"Yes":"No"}.</p>
+          <Pill tone={comparison.requiresManualRetest?"warning":"neutral"}>{comparison.requiresManualRetest?"Manual retest indicated":"No new trigger inferred — still unverified"}</Pill>
+          <table><thead><tr><th>Check</th><th>Baseline</th><th>Candidate</th><th>Reported change</th></tr></thead>
+           <tbody>{comparison.changes.map(row=><tr key={row.id}><td>{row.label}</td><td>{row.baseline.replaceAll("_"," ")}</td><td>{row.candidate.replaceAll("_"," ")}</td><td>{row.change.replaceAll("_"," ")}</td></tr>)}</tbody>
+          </table>
+          <small>Not independently verified. No game compatibility or software download is approved.</small>
+         </div>:null}
+        </section>
         <h4>Triage history</h4>
         <div className="admin-xbox-history">{detail.triageHistory.map(event=><div key={event.version}>
          <strong>v{event.version} · {event.state.replaceAll("_"," ")}</strong>
