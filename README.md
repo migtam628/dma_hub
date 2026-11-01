@@ -418,6 +418,12 @@ Customer **Support** and administrator **Support Tickets** now use a real SQLite
 
 **Important:** GitHub Pages alone has no support backend. A deployed/configured API and valid account are required. No emails, Discord syncing, attachments, automatic resolution or response-time guarantee are currently configured. Never place passwords or signing keys in ticket messages. See [Support API](docs/api.md).
 
+### Xbox field QA workbook (Alpha 31; manual console testing)
+
+The [Call of Duty Xbox QA workbook](https://dma.moobee.lol/#/games/call-of-duty/xbox-qa) is a browser-local, versioned manual test record for Xbox Series X, Series S, Xbox One, One S and One X. It captures the **actual** console, game/build, Xbox OS version, controller/display, test date, per-feature pass/fail/blocked/not-applicable status, and optional evidence link. Reports can be exported to TXT/JSON, copied or printed, and up to 25 operator-entered observations can be saved locally.
+
+All observations are self-reported: no physical Xbox has been tested by this repository; no console memory access, game modifications, entitlement or native Xbox app exists. Saving an observation requires a manual physical-test declaration and meaningful environment details. Browser storage is not a tamper-resistant audit log. See the [Xbox QA field procedure](docs/xbox-device-qa-workbook.md).
+
 ### Call of Duty across PC and Xbox (Alpha 30)
 
 The [Call of Duty Xbox/PC platform matrix](https://dma.moobee.lol/#/games/call-of-duty/platforms) tracks official game availability for Warzone, Modern Warfare II–IV and Black Ops 6–7. Users can switch between **Xbox Series X|S** and **Xbox One** to see which DMA Hub workflows are viable on a browser or optional companion PC. Xbox One Warzone's announced Season 1 retirement is flagged, and Modern Warfare 4 is not listed as Xbox One-compatible.
