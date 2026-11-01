@@ -195,3 +195,58 @@
 .support-state-actions button{font-size:11px}
 .support-reply{margin-top:20px}
 @media(max-width:850px){.support-grid{grid-template-columns:1fr}}
+
+/* Alpha 29 — sourced Call of Duty Warzone PC pilot, self-reported only */
+.cod-pilot-page{padding-top:32px;padding-bottom:70px}
+.cod-pilot-page>.text-link{display:inline-flex;align-items:center;gap:9px;font-size:12px;margin-bottom:20px}
+.cod-pilot-hero{padding:clamp(25px,4vw,48px);background:linear-gradient(120deg,#10394b,#0b2439 62%,#191c3a);border:1px solid #2e5165;border-radius:18px;margin-bottom:24px}
+.cod-pilot-hero .eyebrow,.cod-pilot-panel .eyebrow{display:flex;align-items:center;gap:9px;color:#71dcdf;font-size:10px;font-weight:750;letter-spacing:.12em}
+.cod-pilot-hero h1{max-width:860px;font-size:clamp(28px,4.2vw,51px);line-height:1.12;margin:19px 0}
+.cod-pilot-hero h1 span{color:#6bd9e7}
+.cod-pilot-hero>p{max-width:780px;font-size:13px;color:#c0d4e0;line-height:1.75}
+.cod-pilot-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.cod-pilot-tags span{padding:8px 10px;border:1px solid #3b6070;border-radius:7px;font-size:10px;background:#132c42;color:#b6d8e8}
+.cod-pilot-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(270px,.85fr);gap:20px;align-items:start}
+.cod-pilot-main,.cod-pilot-side{display:grid;gap:18px;min-width:0}
+.cod-pilot-panel{background:#0d2133;border:1px solid #2c4b5c;border-radius:15px;padding:clamp(17px,2.5vw,26px);min-width:0}
+.cod-pilot-panel-head{display:flex;align-items:flex-start;gap:13px;padding-bottom:17px;border-bottom:1px solid #264457;margin-bottom:22px}
+.cod-pilot-panel-head>svg{color:#52dce6;flex:none}
+.cod-pilot-panel-head h2{font-size:17px;margin:0 0 7px}
+.cod-pilot-panel-head p{font-size:11px;color:#a9c1d0;margin:0}
+.cod-pilot-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.cod-pilot-fields label,.cod-pilot-notes{display:flex;flex-direction:column;gap:8px;font-size:11px;font-weight:650;color:#d4e1eb;min-width:0}
+.cod-pilot-fields .cod-pilot-wide{grid-column:span 2}
+.cod-pilot-fields input,.cod-pilot-fields select,.cod-pilot-notes textarea{width:100%;min-width:0;border:1px solid #386075;border-radius:9px;background:#081a2a;color:#e9f6fa;padding:11px 12px;font-size:12px;font-family:inherit}
+.cod-pilot-fields small{font-size:10px;font-weight:450;color:#9cb8c9}
+.cod-pilot-spec-comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:19px}
+.cod-pilot-spec-comparison>div{background:#0a1929;border:1px solid #304b60;border-radius:12px;padding:17px;min-width:0}
+.cod-pilot-spec-comparison strong{font-size:12px;color:#c5edf4}
+.cod-pilot-spec-comparison p{font-size:12px;color:#c0d2e1;margin:12px 0}
+.cod-pilot-spec-comparison small{display:block;font-size:10px;color:#94b1c5;line-height:1.7;margin:5px 0}
+.cod-pilot-checks{display:grid;gap:9px}
+.cod-pilot-check{display:flex;justify-content:space-between;align-items:center;gap:13px;flex-wrap:wrap;padding:13px 15px;border:1px solid #304c61;border-radius:10px}
+.cod-pilot-check strong{font-size:12px;color:#d9eaf4}
+.cod-pilot-check [role=group]{display:flex;flex-wrap:wrap;gap:6px}
+.cod-pilot-check button{padding:8px 9px;font-size:10px;color:#b6ccdc;background:#12283d;border:1px solid #3a5063;border-radius:7px}
+.cod-pilot-check button.selected{border-color:#27cfe2;background:#1a4b5b;color:#eefbff}
+.cod-pilot-notes{margin-top:20px}
+.cod-pilot-notes textarea{resize:vertical;min-height:85px}
+.cod-pilot-actions{display:flex;gap:9px;flex-wrap:wrap}
+.cod-pilot-status h2{margin:15px 0;font-size:21px;line-height:1.25}
+.cod-pilot-status>p,.cod-pilot-side p{color:#a8c4d2;font-size:11px;line-height:1.8;margin:15px 0}
+.cod-pilot-side h3{font-size:13px;margin:16px 0 9px}
+.cod-pilot-side ul{padding-left:18px;margin:8px 0;color:#aec7d4;font-size:11px;line-height:1.65}
+.cod-pilot-side li{margin:7px 0;overflow-wrap:anywhere}
+.cod-pilot-side small{font-size:10px;color:#a7c1d2;line-height:1.6}
+.cod-pilot-lock{display:flex;align-items:flex-start;gap:9px;background:#2c271e;border-left:3px solid #d4a85a;padding:12px;font-size:11px;line-height:1.6;color:#edcf93;border-radius:5px;margin-top:18px}
+.cod-pilot-lock svg{flex:none}
+.cod-pilot-resources a{display:flex;justify-content:space-between;align-items:center;gap:14px;text-decoration:none;border-bottom:1px solid #2b485c;padding:12px 0;color:#69d9ec;font-size:11px}
+.cod-pilot-resources a:hover{text-decoration:underline}
+.cod-pilot-resources svg{flex:none}
+.cod-pilot-notice{font-size:11px;color:#8adbe9;margin:16px 0 0}
+.cod-pilot-hero-link{margin:20px 0 12px;background:#11354b;border:1px solid #356b77;padding:14px 17px;border-radius:12px}
+.cod-pilot-hero-link a{display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:700;color:#7de4f1}
+.cod-pilot-hero-link p{font-size:11px;color:#bbcad7;margin:7px 0 0}
+@media(max-width:1040px){.cod-pilot-grid{grid-template-columns:1fr}.cod-pilot-side{grid-template-columns:repeat(2,minmax(0,1fr))}.cod-pilot-side .cod-pilot-status{grid-column:span 2}}
+@media(max-width:670px){.cod-pilot-fields,.cod-pilot-spec-comparison,.cod-pilot-side{grid-template-columns:1fr}.cod-pilot-fields .cod-pilot-wide,.cod-pilot-side .cod-pilot-status{grid-column:auto}.cod-pilot-check [role=group]{width:100%}}
+@media print{.topbar,.footer,.cod-pilot-actions,.demo-banner,.cod-pilot-page>.text-link{display:none!important}.cod-pilot-grid{display:block}.cod-pilot-panel,.cod-pilot-hero{background:#fff;color:#111;border:1px solid #bbb;break-inside:avoid}.cod-pilot-side{display:block}.cod-pilot-side>.cod-pilot-panel{margin-top:14px}.cod-pilot-hero>p,.cod-pilot-side p,.cod-pilot-panel-head p{color:#333}}
