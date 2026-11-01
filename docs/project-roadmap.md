@@ -135,3 +135,10 @@ Payment provider, business terms, first supported production software/hardware c
 - An empty trust registry explicitly blocks unverified publishers. Revoked/missing keys, tampering and manifest mismatches fail closed; synthetic test keys never become production trust anchors.
 - This does not change game-product API states, enable downloads, certify game compatibility or scan software for malware.
 - Next production gates: verified publisher key onboarding, independent platform/game hardware QA, signed release attestations, trusted hosting/access controls, and revocation/rollback testing.
+
+### November 1 — Alpha 24 publisher trust fingerprint and verification hardening
+
+- Added offline Ed25519 public-key fingerprint inspection; the command does not mutate the trust registry or claim identity verification.
+- Publisher trust registry v2 requires the canonical SPKI SHA-256 fingerprint to match the pinned public key, rejects duplicate trust anchors, private PEM, invalid algorithms and unknown fields.
+- Artifact hashing uses a regular file handle and before/after file metadata checks to reduce path-replacement/time-of-check risks. This only validates a point-in-time local file snapshot.
+- Real publisher identity onboarding remains blocked without independently verified key material and human review; no automatic license, download or game-cheat execution is enabled.
