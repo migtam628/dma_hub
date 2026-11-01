@@ -179,3 +179,10 @@ Payment provider, business terms, first supported production software/hardware c
 - Still blocked: authorized real Windows PC hardware/build evidence, game publisher/software rights, independent QA, real signed software artifact and commercial delivery. No game-modification or anti-cheat bypass code is included.
 
 - Added a server-side conservative Call of Duty patch gate for three public record families. When the announced integration date arrives, pre-window reviews are hidden until operator re-attestation; QA and asset records must be re-established on the new version. Synthetic regression tests cover hiding and re-review without fake production evidence.
+
+### November 1 — Alpha 30 Call of Duty multi-title Xbox/PC capability model
+
+- Extended the selected Call of Duty pilot to Warzone, Modern Warfare II, III, 4, and Black Ops 6 and 7. Official Xbox/Activision sources ground Windows PC, Xbox Series X|S and Xbox One availability; game store listings are never represented as tested software compatibility.
+- Public `#/games/call-of-duty/platforms` route compares a user-selected Xbox family, browser/customer services, PC launcher, normal Remote Play/capture, and prohibited/unsupported console game-memory/input changes. Source links and limitations included.
+- Xbox One Warzone's announced Season 1 retirement flags a post-window live status recheck. Modern Warfare 4 Xbox One is not listed; MW4 Play Anywhere only applies to the eligible Xbox/Windows digital game purchase, not DMA Hub software.
+- Still requires actual console model, exact game builds, Edge/web checks on hardware, optional capture/Remote Play QA and legitimate customer backend; no direct Xbox game tool, DMA memory access or game cheats supported.
