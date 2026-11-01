@@ -14,7 +14,7 @@ test("private staging Compose binds only to localhost with persistent data and n
  assert.match(compose,/cap_drop:/);
  assert.match(compose,/\b- ALL/);
  assert.match(compose,/volumes:/);
- assert.match(compose,/api_data:\\s*\/var\/lib\/dmahub/);
+ assert.match(compose,/api_data:\s*\/var\/lib\/dmahub/);
  assert.match(compose,/healthcheck:/);
 });
 test("staging scripts never set up public TLS or open firewall ports",()=>{
