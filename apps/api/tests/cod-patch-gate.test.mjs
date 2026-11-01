@@ -28,7 +28,7 @@ test("after Nov 6, old CoD compatibility, QA and matched metadata disappear from
  const password="long-cod-pilot-test-2026";
  try{
   assert.equal((await call("/v1/auth/register","POST",{email:"codreview@test.invalid",password})).status,201);
-  const token=(await call("/v1/auth/login","POST",{email:"codreview@test.invalid",password})).data.token;
+  let token=(await call("/v1/auth/login","POST",{email:"codreview@test.invalid",password})).data.token;
   app.db.prepare("UPDATE users SET role='admin' WHERE email='codreview@test.invalid'").run();
   const product={slug:"cod-authorized-qa-placeholder",name:"COD QA synthetic",description:"Synthetic QA only; no functional software",category:"software",status:"published",gameIds:["call-of-duty"],features:[],requirements:[]};
   const p=await call("/v1/admin/products","POST",product,token);
@@ -49,6 +49,9 @@ test("after Nov 6, old CoD compatibility, QA and matched metadata disappear from
    assert.equal(result.data.items.length,1,"fixture visible before update: "+suffix);
   }
   now=COD_ANNOUNCED_RECHECK_MS;
+  // Time jumped beyond the API's 12-hour session lifetime; reauthenticate
+  // rather than masking a legitimate expired-session guard in this test.
+  token=(await call("/v1/auth/login","POST",{email:"codreview@test.invalid",password})).data.token;
   for(const suffix of checks){
    const result=await call("/v1/games/call-of-duty/"+suffix);
    assert.equal(result.status,200);
