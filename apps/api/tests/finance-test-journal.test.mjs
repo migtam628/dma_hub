@@ -35,7 +35,7 @@ test("finance TEST events enforce admin RBAC, tenant isolation, idempotency, imm
   assert.equal((await call(route,"POST",{...v,amountMinor:1499},admin)).status,422);
   assert.equal((await call(route,"POST",{...v,eventKey:"short"},admin)).status,422);
   const created=await call(route,"POST",v,admin);
-  assert.equal(created.status,201);
+  assert.equal(created.status,201,JSON.stringify({error:created.body,order:order.body,plan:plan.body}));
   assert.equal(created.body.providerVerified,false);
   assert.equal(created.body.settlementVerified,false);
   assert.equal(created.body.accessGranted,false);
