@@ -1,7 +1,7 @@
 import {randomUUID} from "node:crypto";
 
 // Manual, local TEST observations. Never payment settlement, refunds, or access grants.
-const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const KEY=/^[A-Za-z0-9_-]{8,80}$/;
 const PROVIDERS=new Set(["sandbox","stripe_test"]);
 const KINDS=new Set(["test_charge_reported","test_refund_reported","test_dispute_reported"]);
@@ -38,7 +38,7 @@ export function createFinanceTestJournal({db,clock,audit,readBody}){
   }
   if(path==="/v1/admin/finance-test-events"&&method==="POST"){
    const v=await readBody(req);
-   if(!valid(v))return reply(422,{error:"invalid_test_finance_event",validation:{uuid:UUID.test(v.orderId||""),provider:PROVIDERS.has(v.provider),key:KEY.test(v.eventKey||""),kind:KINDS.has(v.kind),amount:Number.isSafeInteger(v.amountMinor),keys:Object.keys(v)}});
+   if(!valid(v))return reply(422,{error:"invalid_test_finance_event"});
    return transaction(db,()=>{
     const prior=db.prepare("SELECT * FROM finance_test_events WHERE provider=? AND event_key=?").get(v.provider,v.eventKey);
     if(prior){
