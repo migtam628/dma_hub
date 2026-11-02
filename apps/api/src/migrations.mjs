@@ -1,6 +1,6 @@
 import {DatabaseSync} from "node:sqlite";
 
-export const SCHEMA_VERSION=18;
+export const SCHEMA_VERSION=19;
 
 const BASE_SCHEMA=`CREATE TABLE IF NOT EXISTS users(
  id TEXT PRIMARY KEY,
@@ -520,6 +520,15 @@ export function migrateDatabase(db){
    version=18;
   }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
  }
+ if(version===18){
+  db.exec("BEGIN IMMEDIATE");
+  try{
+   db.exec("CREATE TABLE IF NOT EXISTS finance_test_events(\n id TEXT PRIMARY KEY,\n order_id TEXT NOT NULL REFERENCES sandbox_orders(id) ON DELETE RESTRICT,\n provider TEXT NOT NULL CHECK(provider IN ('sandbox','stripe_test')),\n event_key TEXT NOT NULL CHECK(length(event_key) BETWEEN 8 AND 80),\n kind TEXT NOT NULL CHECK(kind IN ('test_charge_reported','test_refund_reported','test_dispute_reported')),\n amount_minor INTEGER NOT NULL CHECK(amount_minor>=0 AND amount_minor<=100000000),\n currency TEXT NOT NULL CHECK(currency='USD'),\n recorded_by TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,\n recorded_at INTEGER NOT NULL,\n UNIQUE(provider,event_key)\n);\nCREATE INDEX IF NOT EXISTS finance_test_events_order ON finance_test_events(order_id,recorded_at DESC);\nCREATE TRIGGER IF NOT EXISTS finance_test_events_no_update BEFORE UPDATE ON finance_test_events\n BEGIN SELECT RAISE(ABORT,'immutable test finance event'); END;\nCREATE TRIGGER IF NOT EXISTS finance_test_events_no_delete BEFORE DELETE ON finance_test_events\n BEGIN SELECT RAISE(ABORT,'immutable test finance event'); END;");
+   db.exec("PRAGMA user_version=19; COMMIT;");
+   version=19;
+  }catch(error){if(db.isTransaction)db.exec("ROLLBACK");throw error}
+ }
+ requiredColumns(db,"finance_test_events",["id","order_id","provider","event_key","kind","amount_minor","currency","recorded_by","recorded_at"]);
  requiredColumns(db,"xbox_qa_submissions",["id","fingerprint","submitted_by","console_model","game_id","game_build","console_os","test_date","payload_json","submitted_at"]);
  requiredColumns(db,"xbox_qa_triage_events",["id","submission_id","version","state","note","actor_id","created_at"]);
  requiredColumns(db,"support_tickets",["id","customer_id","category","subject","state","version","created_at","updated_at"]);

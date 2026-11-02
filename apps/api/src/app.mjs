@@ -6,6 +6,7 @@ import {DatabaseSync} from "node:sqlite";
 import {migrateDatabase} from "./migrations.mjs";
 import {createCommerce} from "./commerce.mjs";
 import {createCommerceReviews} from "./commerce-reviews.mjs";
+import {createFinanceTestJournal} from "./finance-test-journal.mjs";
 import {createGameCompatibility} from "./game-compatibility.mjs";
 import {createGameQA} from "./game-qa.mjs";
 import {createGameReleaseAssets} from "./game-release-assets.mjs";
@@ -82,6 +83,7 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
  const audit=(actor,action,target)=>db.prepare("INSERT INTO audit VALUES(?,?,?,?,?)").run(randomUUID(),actor,action,target,clock());
  const commerce=createCommerce({db,clock,audit,readBody:jsonBody});
  const commerceReviews=createCommerceReviews({db,clock,audit,readBody:jsonBody});
+ const financeTestJournal=createFinanceTestJournal({db,clock,audit,readBody:jsonBody});
  const gameCompatibility=createGameCompatibility({db,clock,audit,readBody:jsonBody});
  const gameQA=createGameQA({db,clock,audit,readBody:jsonBody});
  const support=createSupportTickets({db,clock,audit,readBody:jsonBody});
@@ -296,6 +298,8 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
     if(gameQAResult){response(res,gameQAResult.status,gameQAResult.payload);return}
     const gameCompatibilityResult=await gameCompatibility.authenticatedRoute(pathname,req,u);
     if(gameCompatibilityResult){response(res,gameCompatibilityResult.status,gameCompatibilityResult.payload);return}
+    const financeResult=await financeTestJournal.authenticatedRoute(pathname,req,u);
+    if(financeResult){response(res,financeResult.status,financeResult.payload);return}
     const reviewResult=await commerceReviews.authenticatedRoute(pathname,req,u);
     if(reviewResult){response(res,reviewResult.status,reviewResult.payload);return}
     const commerceResult=await commerce.authenticatedRoute(pathname,req,u);

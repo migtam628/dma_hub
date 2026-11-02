@@ -13,6 +13,10 @@
 
 **Hosting:** GitHub Pages is live with the GoDaddy-managed custom domain `dma.moobee.lol` and Enforce HTTPS. Frontend changes deploy automatically after a successful Pages workflow.
 
+## Commerce foundation update — November 2, 2026
+
+The local API now has an [immutable, provider-neutral finance TEST observation journal](docs/finance-test-journal.md) (SQLite v19), with admin-only manual entry, strict idempotency, order-amount checks, owner-scoped customer history, and audit records. **All reports are manual and unverified**. No real payment, settlement, refund, license, or entitlement is issued; this is not a production financial ledger.
+
 ## Overview
 
 DMA Hub is a modular, permission-first platform for discovering software, configuring supported tools, storing profiles, distributing releases, and monitoring devices with documented interfaces. The approved **Concept 3 — Professional Hybrid** design uses midnight navy, cyan actions, and restrained violet accents.
@@ -23,7 +27,7 @@ DMA Hub is a modular, permission-first platform for discovering software, config
 | Customer workspace | 🧪 Mixed preview | Signed-in users can view API-backed entitlements and create/review **sandbox** orders; other pages remain sample data |
 | Admin workspace | 🧪 Mixed preview | Local API admin-only Products editor, Pricing & Test Access, Sandbox Orders, Audit Log and aggregate Security Monitoring; remaining pages are synthetic |
 | Configuration Studio | ✅ Local functionality | Edit settings, live preview, JSON import/export, browser storage |
-| API | 🧪 Local alpha | Account sessions, SQLite schema v17, durable throttling, optional email verification/recovery, profiles and backup/restore tests |
+| API | 🧪 Local alpha | Account sessions, SQLite schema v19, durable throttling, optional email verification/recovery, profiles and backup/restore tests |
 | Cloud profiles | 🧪 Local API | Create, load, update, delete, optimistic version checks |
 | Desktop companion | 🧪 Windows scaffold | Tauri shell source, NSIS build CI, launcher and diagnostics previews; no hardware APIs |
 | Device adapters | 🧪 Read-only native serial discovery | Explicit Windows COM-port metadata scan; no port data access or device writes |

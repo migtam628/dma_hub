@@ -13,7 +13,7 @@ async function withTempDir(fn){
 }
 test("fresh database receives tracked schema migrations",()=>withTempDir(async(folder)=>{
  const app=createApp({dbPath:join(folder,"new.sqlite")});
- assert.equal(app.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(app.db.prepare("PRAGMA user_version").get().user_version,19);
  assert.ok(app.db.prepare("PRAGMA table_info(users)").all().some(row=>row.name==="disabled_at"));
  app.db.close();
 }));
@@ -28,12 +28,12 @@ test("legacy pre-migration database retains users and profiles",()=>withTempDir(
  INSERT INTO profiles VALUES ('p1','u1','Existing settings','{"density":41}',3,1,2);`);
  legacy.close();
  const upgraded=createApp({dbPath:path});
- assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,19);
  assert.equal(upgraded.db.prepare("SELECT email FROM users WHERE id='u1'").get().email,"legacy@example.test");
  assert.equal(upgraded.db.prepare("SELECT version FROM profiles WHERE id='p1'").get().version,3);
  upgraded.db.close();
  const reopened=createApp({dbPath:path});
- assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,19);
  assert.equal(reopened.db.prepare("SELECT count(*) AS n FROM profiles").get().n,1);
  reopened.db.close();
 }));
@@ -51,7 +51,7 @@ test("SQLite backup is verified, non-overwriting, and restore preserves user dat
  app.db.close();
  const created=await backupDatabase(original,snapshot);
  assert.equal(created.verified,true);
- assert.equal(verifyBackup(snapshot).schemaVersion,18);
+ assert.equal(verifyBackup(snapshot).schemaVersion,19);
  if(process.platform!=="win32")assert.equal((await stat(snapshot)).mode&0o777,0o600);
  await assert.rejects(backupDatabase(original,snapshot),/already exists/);
  await copyFile(snapshot,restored); // isolated restore drill; production restore must stop the service
@@ -90,7 +90,7 @@ test("schema v2 upgrades to v3 without losing existing user sessions or profiles
  PRAGMA user_version=2;`);
  db.close();
  const app=createApp({dbPath:path});
- assert.equal(app.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(app.db.prepare("PRAGMA user_version").get().user_version,19);
  assert.equal(app.db.prepare("SELECT email FROM users WHERE id='existing'").get().email,"kept@example.test");
  assert.equal(app.db.prepare("SELECT count(*) n FROM sessions").get().n,1);
  assert.equal(app.db.prepare("SELECT count(*) n FROM profiles").get().n,1);
@@ -109,7 +109,7 @@ test("schema v4 upgrades to v5 without modifying existing product records",()=>w
  first.db.exec("DROP TRIGGER xbox_qa_triage_no_update; DROP TRIGGER xbox_qa_triage_no_delete; DROP TABLE xbox_qa_triage_events; DROP TRIGGER xbox_qa_submissions_no_update; DROP TRIGGER xbox_qa_submissions_no_delete; DROP TABLE xbox_qa_submissions; DROP TRIGGER support_events_no_update; DROP TRIGGER support_events_no_delete; DROP TABLE support_events; DROP TRIGGER support_messages_no_update; DROP TRIGGER support_messages_no_delete; DROP TABLE support_messages; DROP TABLE support_tickets; DROP TRIGGER game_qa_results_no_update; DROP TRIGGER game_qa_results_no_delete; DROP TABLE game_qa_results; DROP TRIGGER game_release_artifact_events_no_update; DROP TRIGGER game_release_artifact_events_no_delete; DROP TABLE game_release_artifact_events; DROP TABLE game_release_artifacts; DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; DROP TABLE sandbox_webhook_events; DROP TABLE sandbox_orders; DROP TABLE entitlements; DROP TABLE pricing_plans; PRAGMA user_version=4;");
  first.db.close();
  const restored=createApp({dbPath:path});
- assert.equal(restored.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(restored.db.prepare("PRAGMA user_version").get().user_version,19);
  assert.equal(restored.db.prepare("SELECT name FROM catalog_products WHERE id='old-product'").get().name,"Legacy Catalog Entry");
  assert.ok(restored.db.prepare("SELECT name FROM sqlite_master WHERE name='entitlements'").get());
  assert.ok(restored.db.prepare("SELECT name FROM sqlite_master WHERE name='pricing_plans'").get());
@@ -129,7 +129,7 @@ test("schema v5 upgrades to v6 without losing manual entitlements",()=>withTempD
  app.db.exec("DROP TRIGGER xbox_qa_triage_no_update; DROP TRIGGER xbox_qa_triage_no_delete; DROP TABLE xbox_qa_triage_events; DROP TRIGGER xbox_qa_submissions_no_update; DROP TRIGGER xbox_qa_submissions_no_delete; DROP TABLE xbox_qa_submissions; DROP TRIGGER support_events_no_update; DROP TRIGGER support_events_no_delete; DROP TABLE support_events; DROP TRIGGER support_messages_no_update; DROP TRIGGER support_messages_no_delete; DROP TABLE support_messages; DROP TABLE support_tickets; DROP TRIGGER game_qa_results_no_update; DROP TRIGGER game_qa_results_no_delete; DROP TABLE game_qa_results; DROP TRIGGER game_release_artifact_events_no_update; DROP TRIGGER game_release_artifact_events_no_delete; DROP TABLE game_release_artifact_events; DROP TABLE game_release_artifacts; DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; DROP TABLE sandbox_webhook_events; DROP TABLE sandbox_orders; PRAGMA user_version=5;");
  app.db.close();
  const restored=createApp({dbPath:file});
- assert.equal(restored.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(restored.db.prepare("PRAGMA user_version").get().user_version,19);
  assert.equal(restored.db.prepare("SELECT source FROM entitlements WHERE id='grant-1'").get().source,"admin_test_grant");
  assert.equal(restored.db.prepare("SELECT count(*) AS n FROM sandbox_orders").get().n,0);
  assert.equal(restored.db.prepare("PRAGMA foreign_key_check").all().length,0);
@@ -139,11 +139,11 @@ test("schema v5 upgrades to v6 without losing manual entitlements",()=>withTempD
 test("schema v6 upgrades to v7 and retains sandbox order records",()=>withTempDir(async(folder)=>{
  const file=join(folder,"from-v6.sqlite");
  const a=createApp({dbPath:file});
- assert.equal(a.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(a.db.prepare("PRAGMA user_version").get().user_version,19);
  a.db.exec("DROP TRIGGER xbox_qa_triage_no_update; DROP TRIGGER xbox_qa_triage_no_delete; DROP TABLE xbox_qa_triage_events; DROP TRIGGER xbox_qa_submissions_no_update; DROP TRIGGER xbox_qa_submissions_no_delete; DROP TABLE xbox_qa_submissions; DROP TRIGGER support_events_no_update; DROP TRIGGER support_events_no_delete; DROP TABLE support_events; DROP TRIGGER support_messages_no_update; DROP TRIGGER support_messages_no_delete; DROP TABLE support_messages; DROP TABLE support_tickets; DROP TRIGGER game_qa_results_no_update; DROP TRIGGER game_qa_results_no_delete; DROP TABLE game_qa_results; DROP TRIGGER game_release_artifact_events_no_update; DROP TRIGGER game_release_artifact_events_no_delete; DROP TABLE game_release_artifact_events; DROP TABLE game_release_artifacts; DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; DROP TABLE sandbox_webhook_events; PRAGMA user_version=6;");
  a.db.close();
  const b=createApp({dbPath:file});
- assert.equal(b.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(b.db.prepare("PRAGMA user_version").get().user_version,19);
  assert.equal(b.db.prepare("SELECT count(*) AS n FROM sandbox_webhook_events").get().n,0);
  assert.equal(b.db.prepare("PRAGMA foreign_key_check").all().length,0);
  b.db.close();
@@ -155,7 +155,7 @@ test("schema v7 upgrades to v8 and retains existing sandbox event table",()=>wit
  first.db.exec("DROP TRIGGER xbox_qa_triage_no_update; DROP TRIGGER xbox_qa_triage_no_delete; DROP TABLE xbox_qa_triage_events; DROP TRIGGER xbox_qa_submissions_no_update; DROP TRIGGER xbox_qa_submissions_no_delete; DROP TABLE xbox_qa_submissions; DROP TRIGGER support_events_no_update; DROP TRIGGER support_events_no_delete; DROP TABLE support_events; DROP TRIGGER support_messages_no_update; DROP TRIGGER support_messages_no_delete; DROP TABLE support_messages; DROP TABLE support_tickets; DROP TRIGGER game_qa_results_no_update; DROP TRIGGER game_qa_results_no_delete; DROP TABLE game_qa_results; DROP TRIGGER game_release_artifact_events_no_update; DROP TRIGGER game_release_artifact_events_no_delete; DROP TABLE game_release_artifact_events; DROP TABLE game_release_artifacts; DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; DROP TABLE stripe_test_events; DROP TABLE stripe_test_checkouts; PRAGMA user_version=7;");
  first.db.close();
  const second=createApp({dbPath:file});
- assert.equal(second.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(second.db.prepare("PRAGMA user_version").get().user_version,19);
  assert.ok(second.db.prepare("SELECT name FROM sqlite_master WHERE name='stripe_test_events'").get());
  assert.equal(second.db.prepare("PRAGMA foreign_key_check").all().length,0);
  second.db.close();
@@ -167,7 +167,7 @@ test("schema v8 upgrades to v9 while preserving Stripe TEST checkout and event t
  initial.db.exec("DROP TRIGGER xbox_qa_triage_no_update; DROP TRIGGER xbox_qa_triage_no_delete; DROP TABLE xbox_qa_triage_events; DROP TRIGGER xbox_qa_submissions_no_update; DROP TRIGGER xbox_qa_submissions_no_delete; DROP TABLE xbox_qa_submissions; DROP TRIGGER support_events_no_update; DROP TRIGGER support_events_no_delete; DROP TABLE support_events; DROP TRIGGER support_messages_no_update; DROP TRIGGER support_messages_no_delete; DROP TABLE support_messages; DROP TABLE support_tickets; DROP TRIGGER game_qa_results_no_update; DROP TRIGGER game_qa_results_no_delete; DROP TABLE game_qa_results; DROP TRIGGER game_release_artifact_events_no_update; DROP TRIGGER game_release_artifact_events_no_delete; DROP TABLE game_release_artifact_events; DROP TABLE game_release_artifacts; DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; DROP TABLE stripe_test_reconciliation_checks; PRAGMA user_version=8;");
  initial.db.close();
  const upgraded=createApp({dbPath:file});
- assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,19);
  assert.equal(upgraded.db.prepare("SELECT count(*) n FROM stripe_test_reconciliation_checks").get().n,0);
  assert.ok(upgraded.db.prepare("SELECT name FROM sqlite_master WHERE name='stripe_test_events'").get());
  assert.equal(upgraded.db.prepare("PRAGMA foreign_key_check").all().length,0);
@@ -180,7 +180,7 @@ test("schema v9 upgrades to v10 without changing existing test observations",()=
  first.db.exec("DROP TRIGGER xbox_qa_triage_no_update; DROP TRIGGER xbox_qa_triage_no_delete; DROP TABLE xbox_qa_triage_events; DROP TRIGGER xbox_qa_submissions_no_update; DROP TRIGGER xbox_qa_submissions_no_delete; DROP TABLE xbox_qa_submissions; DROP TRIGGER support_events_no_update; DROP TRIGGER support_events_no_delete; DROP TABLE support_events; DROP TRIGGER support_messages_no_update; DROP TRIGGER support_messages_no_delete; DROP TABLE support_messages; DROP TABLE support_tickets; DROP TRIGGER game_qa_results_no_update; DROP TRIGGER game_qa_results_no_delete; DROP TABLE game_qa_results; DROP TRIGGER game_release_artifact_events_no_update; DROP TRIGGER game_release_artifact_events_no_delete; DROP TABLE game_release_artifact_events; DROP TABLE game_release_artifacts; DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; DROP TABLE auth_rate_limits; PRAGMA user_version=9;");
  first.db.close();
  const second=createApp({dbPath:file});
- assert.equal(second.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(second.db.prepare("PRAGMA user_version").get().user_version,19);
  assert.equal(second.db.prepare("SELECT COUNT(*) n FROM auth_rate_limits").get().n,0);
  assert.ok(second.db.prepare("SELECT name FROM sqlite_master WHERE name='stripe_test_reconciliation_checks'").get());
  assert.equal(second.db.prepare("PRAGMA foreign_key_check").all().length,0);
@@ -196,13 +196,13 @@ test("schema v10 catalog migration preserves existing products and supplies neut
  fresh.db.exec("DROP TRIGGER xbox_qa_triage_no_update; DROP TRIGGER xbox_qa_triage_no_delete; DROP TABLE xbox_qa_triage_events; DROP TRIGGER xbox_qa_submissions_no_update; DROP TRIGGER xbox_qa_submissions_no_delete; DROP TABLE xbox_qa_submissions; DROP TRIGGER support_events_no_update; DROP TRIGGER support_events_no_delete; DROP TABLE support_events; DROP TRIGGER support_messages_no_update; DROP TRIGGER support_messages_no_delete; DROP TABLE support_messages; DROP TABLE support_tickets; DROP TRIGGER game_qa_results_no_update; DROP TRIGGER game_qa_results_no_delete; DROP TABLE game_qa_results; DROP TRIGGER game_release_artifact_events_no_update; DROP TRIGGER game_release_artifact_events_no_delete; DROP TABLE game_release_artifact_events; DROP TABLE game_release_artifacts; DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; ALTER TABLE catalog_products DROP COLUMN category; ALTER TABLE catalog_products DROP COLUMN features_json; ALTER TABLE catalog_products DROP COLUMN requirements_json; PRAGMA user_version=10;");
  fresh.db.close();
  const upgraded=createApp({dbPath:file});
- assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,19);
  const product=upgraded.db.prepare("SELECT slug,description,version,category,features_json,requirements_json FROM catalog_products WHERE id='old-product'").get();
  assert.deepEqual({...product},{slug:"older-product",description:"Previous listing",version:4,category:"unspecified",features_json:"[]",requirements_json:"[]"});
  assert.equal(upgraded.db.prepare("PRAGMA foreign_key_check").all().length,0);
  upgraded.db.close();
  const repeat=createApp({dbPath:file});
- assert.equal(repeat.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(repeat.db.prepare("PRAGMA user_version").get().user_version,19);
  repeat.db.close();
 }));
 
@@ -212,12 +212,12 @@ test("schema v11 upgrades to append-only provider-neutral review tables",()=>wit
  initial.db.exec("DROP TRIGGER xbox_qa_triage_no_update; DROP TRIGGER xbox_qa_triage_no_delete; DROP TABLE xbox_qa_triage_events; DROP TRIGGER xbox_qa_submissions_no_update; DROP TRIGGER xbox_qa_submissions_no_delete; DROP TABLE xbox_qa_submissions; DROP TRIGGER support_events_no_update; DROP TRIGGER support_events_no_delete; DROP TABLE support_events; DROP TRIGGER support_messages_no_update; DROP TRIGGER support_messages_no_delete; DROP TABLE support_messages; DROP TABLE support_tickets; DROP TRIGGER game_qa_results_no_update; DROP TRIGGER game_qa_results_no_delete; DROP TABLE game_qa_results; DROP TRIGGER game_release_artifact_events_no_update; DROP TRIGGER game_release_artifact_events_no_delete; DROP TABLE game_release_artifact_events; DROP TABLE game_release_artifacts; DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; DROP TABLE commerce_review_events; DROP TABLE commerce_review_cases; PRAGMA user_version=11;");
  initial.db.close();
  const upgraded=createApp({dbPath:file});
- assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,19);
  assert.ok(upgraded.db.prepare("SELECT name FROM sqlite_master WHERE name='commerce_review_events'").get());
  assert.equal(upgraded.db.prepare("PRAGMA foreign_key_check").all().length,0);
  upgraded.db.close();
  const repeat=createApp({dbPath:file});
- assert.equal(repeat.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(repeat.db.prepare("PRAGMA user_version").get().user_version,19);
  repeat.db.close();
 }));
 
@@ -229,13 +229,13 @@ test("schema v12 gains game associations without losing existing catalog product
  initial.db.exec("DROP TRIGGER xbox_qa_triage_no_update; DROP TRIGGER xbox_qa_triage_no_delete; DROP TABLE xbox_qa_triage_events; DROP TRIGGER xbox_qa_submissions_no_update; DROP TRIGGER xbox_qa_submissions_no_delete; DROP TABLE xbox_qa_submissions; DROP TRIGGER support_events_no_update; DROP TRIGGER support_events_no_delete; DROP TABLE support_events; DROP TRIGGER support_messages_no_update; DROP TRIGGER support_messages_no_delete; DROP TABLE support_messages; DROP TABLE support_tickets; DROP TRIGGER game_qa_results_no_update; DROP TRIGGER game_qa_results_no_delete; DROP TABLE game_qa_results; DROP TRIGGER game_release_artifact_events_no_update; DROP TRIGGER game_release_artifact_events_no_delete; DROP TABLE game_release_artifact_events; DROP TABLE game_release_artifacts; DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; ALTER TABLE catalog_products DROP COLUMN game_ids_json; PRAGMA user_version=12;");
  initial.db.close();
  const upgraded=createApp({dbPath:file});
- assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,19);
  const record=upgraded.db.prepare("SELECT name,description,status,version,game_ids_json FROM catalog_products WHERE id='game-existing'").get();
  assert.deepEqual({...record},{name:"Existing title",description:"Unchanged description",status:"published",version:5,game_ids_json:"[]"});
  assert.equal(upgraded.db.prepare("PRAGMA foreign_key_check").all().length,0);
  upgraded.db.close();
  const reopened=createApp({dbPath:file});
- assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,19);
  reopened.db.close();
 }));
 
@@ -247,14 +247,14 @@ test("v13-to-v14 game compatibility review migration preserves catalog and is id
  app.db.exec("DROP TRIGGER xbox_qa_triage_no_update; DROP TRIGGER xbox_qa_triage_no_delete; DROP TABLE xbox_qa_triage_events; DROP TRIGGER xbox_qa_submissions_no_update; DROP TRIGGER xbox_qa_submissions_no_delete; DROP TABLE xbox_qa_submissions; DROP TRIGGER support_events_no_update; DROP TRIGGER support_events_no_delete; DROP TABLE support_events; DROP TRIGGER support_messages_no_update; DROP TRIGGER support_messages_no_delete; DROP TABLE support_messages; DROP TABLE support_tickets; DROP TRIGGER game_qa_results_no_update; DROP TRIGGER game_qa_results_no_delete; DROP TABLE game_qa_results; DROP TRIGGER game_release_artifact_events_no_update; DROP TRIGGER game_release_artifact_events_no_delete; DROP TABLE game_release_artifact_events; DROP TABLE game_release_artifacts; DROP TRIGGER game_compatibility_events_no_update; DROP TRIGGER game_compatibility_events_no_delete; DROP TABLE game_compatibility_events; DROP TABLE game_compatibility_reviews; PRAGMA user_version=13;");
  app.db.close();
  const upgraded=createApp({dbPath:file});
- assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,19);
  const product=upgraded.db.prepare("SELECT slug,version,game_ids_json FROM catalog_products WHERE id='legacy'").get();
  assert.deepEqual({...product},{slug:"legacy-game",version:3,game_ids_json:'["rust"]'});
  assert.ok(upgraded.db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='game_compatibility_events'").get());
  assert.equal(upgraded.db.prepare("PRAGMA foreign_key_check").all().length,0);
  upgraded.db.close();
  const reopened=createApp({dbPath:file});
- assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,19);
  reopened.db.close();
 }));
 
@@ -264,12 +264,12 @@ test("schema v14 upgrades to v15 while retaining older compatibility tables",()=
  initial.db.exec("DROP TRIGGER xbox_qa_triage_no_update; DROP TRIGGER xbox_qa_triage_no_delete; DROP TABLE xbox_qa_triage_events; DROP TRIGGER xbox_qa_submissions_no_update; DROP TRIGGER xbox_qa_submissions_no_delete; DROP TABLE xbox_qa_submissions; DROP TRIGGER support_events_no_update; DROP TRIGGER support_events_no_delete; DROP TABLE support_events; DROP TRIGGER support_messages_no_update; DROP TRIGGER support_messages_no_delete; DROP TABLE support_messages; DROP TABLE support_tickets; DROP TRIGGER game_qa_results_no_update; DROP TRIGGER game_qa_results_no_delete; DROP TABLE game_qa_results; DROP TRIGGER game_release_artifact_events_no_update; DROP TRIGGER game_release_artifact_events_no_delete; DROP TABLE game_release_artifact_events; DROP TABLE game_release_artifacts; PRAGMA user_version=14;");
  initial.db.close();
  const upgraded=createApp({dbPath:file});
- assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,19);
  assert.ok(upgraded.db.prepare("SELECT name FROM sqlite_master WHERE name='game_release_artifact_events'").get());
  assert.equal(upgraded.db.prepare("PRAGMA foreign_key_check").all().length,0);
  upgraded.db.close();
  const reopened=createApp({dbPath:file});
- assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,19);
  reopened.db.close();
 }));
 
@@ -279,13 +279,13 @@ test("schema v15 upgrades to v16 preserving game review and release records",()=
  first.db.exec("DROP TRIGGER xbox_qa_triage_no_update; DROP TRIGGER xbox_qa_triage_no_delete; DROP TABLE xbox_qa_triage_events; DROP TRIGGER xbox_qa_submissions_no_update; DROP TRIGGER xbox_qa_submissions_no_delete; DROP TABLE xbox_qa_submissions; DROP TRIGGER support_events_no_update; DROP TRIGGER support_events_no_delete; DROP TABLE support_events; DROP TRIGGER support_messages_no_update; DROP TRIGGER support_messages_no_delete; DROP TABLE support_messages; DROP TABLE support_tickets; DROP TRIGGER game_qa_results_no_update; DROP TRIGGER game_qa_results_no_delete; DROP TABLE game_qa_results; PRAGMA user_version=15;");
  first.db.close();
  const upgraded=createApp({dbPath:file});
- assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,19);
  assert.ok(upgraded.db.prepare("SELECT name FROM sqlite_master WHERE name='game_release_artifacts'").get());
  assert.ok(upgraded.db.prepare("SELECT name FROM sqlite_master WHERE name='game_qa_results'").get());
  assert.equal(upgraded.db.prepare("PRAGMA foreign_key_check").all().length,0);
  upgraded.db.close();
  const reopened=createApp({dbPath:file});
- assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,19);
  reopened.db.close();
 }));
 
@@ -295,13 +295,13 @@ test("schema v16 upgrades to v17 with durable support ticket tables",()=>withTem
  old.db.exec("DROP TRIGGER xbox_qa_triage_no_update; DROP TRIGGER xbox_qa_triage_no_delete; DROP TABLE xbox_qa_triage_events; DROP TRIGGER xbox_qa_submissions_no_update; DROP TRIGGER xbox_qa_submissions_no_delete; DROP TABLE xbox_qa_submissions; DROP TRIGGER support_events_no_update; DROP TRIGGER support_events_no_delete; DROP TABLE support_events; DROP TRIGGER support_messages_no_update; DROP TRIGGER support_messages_no_delete; DROP TABLE support_messages; DROP TABLE support_tickets; PRAGMA user_version=16;");
  old.db.close();
  const next=createApp({dbPath:file});
- assert.equal(next.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(next.db.prepare("PRAGMA user_version").get().user_version,19);
  for(const name of ["support_tickets","support_messages","support_events"])
   assert.ok(next.db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?").get(name));
  assert.equal(next.db.prepare("PRAGMA foreign_key_check").all().length,0);
  next.db.close();
  const reopened=createApp({dbPath:file});
- assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,19);
  reopened.db.close();
 }));
 
@@ -311,12 +311,27 @@ test("schema 17 migrates to 18 with private append-only Xbox QA intake",()=>with
  first.db.exec("DROP TRIGGER xbox_qa_triage_no_update; DROP TRIGGER xbox_qa_triage_no_delete; DROP TABLE xbox_qa_triage_events; DROP TRIGGER xbox_qa_submissions_no_update; DROP TRIGGER xbox_qa_submissions_no_delete; DROP TABLE xbox_qa_submissions; PRAGMA user_version=17;");
  first.db.close();
  const next=createApp({dbPath:file});
- assert.equal(next.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(next.db.prepare("PRAGMA user_version").get().user_version,19);
  for(const table of ["xbox_qa_submissions","xbox_qa_triage_events"])
   assert.ok(next.db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?").get(table));
  assert.equal(next.db.prepare("PRAGMA foreign_key_check").all().length,0);
  next.db.close();
  const reopened=createApp({dbPath:file});
- assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,18);
+ assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,19);
+ reopened.db.close();
+}));
+
+test("schema v18 upgrades to v19 with immutable TEST finance event table",()=>withTempDir(async folder=>{
+ const path=join(folder,"finance-v18.sqlite");
+ const first=createApp({dbPath:path});
+ first.db.exec("DROP TRIGGER finance_test_events_no_update; DROP TRIGGER finance_test_events_no_delete; DROP TABLE finance_test_events; PRAGMA user_version=18;");
+ first.db.close();
+ const upgraded=createApp({dbPath:path});
+ assert.equal(upgraded.db.prepare("PRAGMA user_version").get().user_version,19);
+ assert.ok(upgraded.db.prepare("SELECT name FROM sqlite_master WHERE name='finance_test_events'").get());
+ assert.equal(upgraded.db.prepare("PRAGMA foreign_key_check").all().length,0);
+ upgraded.db.close();
+ const reopened=createApp({dbPath:path});
+ assert.equal(reopened.db.prepare("PRAGMA user_version").get().user_version,19);
  reopened.db.close();
 }));

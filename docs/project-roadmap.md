@@ -1,6 +1,6 @@
 # DMA Hub — Engineering Roadmap and Reality Check
 
-**Updated:** October 29, 2026  
+**Updated:** November 2, 2026  
 **Project:** [migtam628/dma_hub](https://github.com/migtam628/dma_hub)  
 **Approved UI:** Concept 3 — Professional Hybrid  
 **Status:** Functional alpha with a public static preview and unsigned Windows installer. **Not production ready.**
@@ -206,3 +206,9 @@ Payment provider, business terms, first supported production software/hardware c
 - Implemented private admin-only comparison between two immutable imported Xbox QA reports for the exact same model and game edition; flags reported pass-to-fail regressions, fail-to-pass improvements, unknown-to-known changes, Xbox OS and game build differences.
 - Admin screen now includes a report picker and per-check comparison table; API and unit tests enforce access restrictions, invalid pair rejection and no downstream compatibility/download approvals.
 - This is a triage signal from **self-reported evidence**, not real device automation or independent compatibility certification.
+
+### November 2 — finance TEST observation journal (schema v19)
+
+- Append-only, manually entered test charge/refund/dispute reports linked to sandbox orders, provider/event idempotency and order-amount validation.
+- Admin-only API and customer-scoped sanitized history; audit records, migration/backup checks and HTTP regression tests.
+- No processor verification, actual financial ledger, payment/settlement, refund execution, license or entitlement effects. Remaining: real provider TEST evidence, cumulative reconciliation, signed licensing, independent security/compliance review. See [journal spec](finance-test-journal.md).

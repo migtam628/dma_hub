@@ -163,3 +163,7 @@ Administrator-only manual evidence workflow. See [Xbox QA intake SOP](xbox-qa-pr
 ### Xbox QA report comparison (Alpha 33)
 
 `GET /v1/admin/xbox-qa/:id/compare?with=<UUID>`: admin-only. Compare two immutable imported Xbox field reports of the **same title and console model**. Response includes reported per-check changes, pass-to-fail regression count, fail-to-pass improvement count, game build/console OS changes and a manual retest recommendation. Different title/model pairs return 422; other users receive 403 and unauthenticated users 401. No private evidence, publisher certification, game compatibility approval, download, payment or entitlement is returned.
+
+## Finance TEST observation journal (schema v19)
+
+GET /v1/me/finance-test-events returns sanitized owner-scoped history. GET /v1/admin/finance-test-events, GET /v1/admin/finance-test-events/:uuid and POST /v1/admin/finance-test-events require admin. POST accepts orderId, provider (sandbox or stripe_test), eventKey (8–80 allowed characters), kind (test_charge_reported, test_refund_reported, test_dispute_reported), and amountMinor. Exact event-key retries replay; conflicts return 409. All observations are manual, test-only, unverified, and have no payment or entitlement effects. See [finance journal](finance-test-journal.md).
