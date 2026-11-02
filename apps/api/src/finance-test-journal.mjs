@@ -38,7 +38,7 @@ export function createFinanceTestJournal({db,clock,audit,readBody}){
   }
   if(path==="/v1/admin/finance-test-events"&&method==="POST"){
    const v=await readBody(req);
-   if(!valid(v))return reply(422,{error:"invalid_test_finance_event"});
+   if(!valid(v))return reply(422,{error:"invalid_test_finance_event",validation:{uuid:UUID.test(v.orderId||""),provider:PROVIDERS.has(v.provider),key:KEY.test(v.eventKey||""),kind:KINDS.has(v.kind),amount:Number.isSafeInteger(v.amountMinor),keys:Object.keys(v)}});
    return transaction(db,()=>{
     const prior=db.prepare("SELECT * FROM finance_test_events WHERE provider=? AND event_key=?").get(v.provider,v.eventKey);
     if(prior){
