@@ -6,6 +6,7 @@ import {DatabaseSync} from "node:sqlite";
 import {migrateDatabase} from "./migrations.mjs";
 import {createCommerce} from "./commerce.mjs";
 import {createCommerceReviews} from "./commerce-reviews.mjs";
+import {createFinanceTestJournal} from "./finance-test-journal.mjs";
 import {createGameCompatibility} from "./game-compatibility.mjs";
 import {createGameQA} from "./game-qa.mjs";
 import {createGameReleaseAssets} from "./game-release-assets.mjs";
