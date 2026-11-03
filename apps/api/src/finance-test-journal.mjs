@@ -51,6 +51,13 @@ export function createFinanceTestJournal({db,clock,audit,readBody}){
     if(order.currency!=="USD"||v.amountMinor>order.amount_minor||
       (v.kind==="test_charge_reported"&&v.amountMinor!==order.amount_minor))
      return reply(422,{error:"test_amount_mismatch"});
+    // A manual TEST journal must not report a larger cumulative refund than
+    // the order amount. Serialize this check with the insert transaction.
+    if(v.kind==="test_refund_reported"){
+     const totals=db.prepare("SELECT COALESCE(SUM(amount_minor),0) AS refunded FROM finance_test_events WHERE order_id=? AND provider=? AND kind='test_refund_reported'").get(v.orderId,v.provider);
+     if(totals.refunded+v.amountMinor>order.amount_minor)
+      return reply(422,{error:"test_cumulative_refund_exceeded"});
+    }
     if(v.provider==="stripe_test"&&!db.prepare("SELECT id FROM stripe_test_checkouts WHERE order_id=?").get(v.orderId))
      return reply(422,{error:"stripe_test_checkout_missing"});
     const id=randomUUID(),now=clock();

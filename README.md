@@ -17,6 +17,10 @@
 
 The local API now has an [immutable, provider-neutral finance TEST observation journal](docs/finance-test-journal.md) (SQLite v19), with admin-only manual entry, strict idempotency, order-amount checks, owner-scoped customer history, and audit records. **All reports are manual and unverified**. No real payment, settlement, refund, license, or entitlement is issued; this is not a production financial ledger.
 
+### Finance TEST refund reporting guard — November 3, 2026
+
+Manual TEST refunds are now capped cumulatively per order and provider, with atomic idempotent retries. These are unverified observations, not actual refund execution or settlement.
+
 ## Overview
 
 DMA Hub is a modular, permission-first platform for discovering software, configuring supported tools, storing profiles, distributing releases, and monitoring devices with documented interfaces. The approved **Concept 3 — Professional Hybrid** design uses midnight navy, cyan actions, and restrained violet accents.
