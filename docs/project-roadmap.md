@@ -212,3 +212,9 @@ Payment provider, business terms, first supported production software/hardware c
 - Append-only, manually entered test charge/refund/dispute reports linked to sandbox orders, provider/event idempotency and order-amount validation.
 - Admin-only API and customer-scoped sanitized history; audit records, migration/backup checks and HTTP regression tests.
 - No processor verification, actual financial ledger, payment/settlement, refund execution, license or entitlement effects. Remaining: real provider TEST evidence, cumulative reconciliation, signed licensing, independent security/compliance review. See [journal spec](finance-test-journal.md).
+
+### November 3 — cumulative TEST refund observation validation
+
+- Manual TEST refunds are now capped cumulatively per order and provider, with atomic idempotent retries. These are unverified observations, not actual refund execution or settlement.
+- Regression tests cover exact cap, overflow rejection, and replay without double-counting.
+- Still requires real processor TEST validation, authoritative ledger reconciliation, and independent production review.

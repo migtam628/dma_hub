@@ -29,3 +29,7 @@ Example POST body:
 ## Outstanding production gates
 
 Real processor TEST-account validation; independently verified financial ledger, reconciliation, charge/refund/dispute and cumulative controls; webhook integrity; tax and currency; business/legal/compliance review; secure deployment; and independently approved payment-to-license activation. None are satisfied by manual observations.
+
+## Cumulative refund reporting guard (November 3, 2026)
+
+Manual TEST refunds are now capped cumulatively per order and provider, with atomic idempotent retries. These are unverified observations, not actual refund execution or settlement. The check runs inside the same SQLite immediate transaction as event insertion. Different providers are kept separate; no customer funds move. Refund events must be positive and cannot exceed the original order amount in aggregate per provider.

@@ -45,19 +45,22 @@ test("finance TEST events enforce admin RBAC, tenant isolation, idempotency, imm
   assert.equal((await call(route,"POST",{...v,eventKey:"refund_event_01",kind:"test_refund_reported",amountMinor:300},admin)).status,201);
   assert.equal((await call(route,"POST",{...v,eventKey:"dispute_event_01",kind:"test_dispute_reported",amountMinor:0},admin)).status,201);
   assert.equal((await call(route,"POST",{...v,eventKey:"invalid_refund_01",kind:"test_refund_reported",amountMinor:1501},admin)).status,422);
-  assert.equal((await call("/v1/me/finance-test-events","GET",undefined,alice.token)).body.items.length,3);
+  assert.equal((await call(route,"POST",{...v,eventKey:"refund_event_02",kind:"test_refund_reported",amountMinor:1200},admin)).status,201);
+  assert.equal((await call(route,"POST",{...v,eventKey:"refund_event_03",kind:"test_refund_reported",amountMinor:1},admin)).status,422);
+  assert.equal((await call(route,"POST",{...v,eventKey:"refund_event_02",kind:"test_refund_reported",amountMinor:1200},admin)).body.replayed,true);
+  assert.equal((await call("/v1/me/finance-test-events","GET",undefined,alice.token)).body.items.length,4);
   assert.equal((await call("/v1/me/finance-test-events","GET",undefined,bob.token)).body.items.length,0);
   const customer=(await call("/v1/me/finance-test-events","GET",undefined,alice.token)).body;
   assert.equal(JSON.stringify(customer).includes("sandbox_event_001"),false);
   assert.equal(JSON.stringify(customer).includes(staff.user.id),false);
   assert.equal((await call(route+"/"+created.body.id,"GET",undefined,alice.token)).status,403);
   assert.equal((await call(route+"/"+created.body.id,"GET",undefined,admin)).status,200);
-  assert.equal((await call(route,"GET",undefined,admin)).body.items.length,3);
-  assert.equal(app.db.prepare("SELECT count(*) n FROM finance_test_events").get().n,3);
+  assert.equal((await call(route,"GET",undefined,admin)).body.items.length,4);
+  assert.equal(app.db.prepare("SELECT count(*) n FROM finance_test_events").get().n,4);
   assert.equal(app.db.prepare("SELECT count(*) n FROM entitlements").get().n,0);
   assert.equal(app.db.prepare("SELECT state FROM sandbox_orders WHERE id=?").get(order.body.id).state,"pending");
   assert.throws(()=>app.db.prepare("DELETE FROM finance_test_events WHERE id=?").run(created.body.id),/immutable test finance event/);
   assert.throws(()=>app.db.prepare("UPDATE finance_test_events SET amount_minor=0 WHERE id=?").run(created.body.id),/immutable test finance event/);
-  assert.equal(app.db.prepare("SELECT count(*) n FROM audit WHERE action='finance_test.event_recorded'").get().n,3);
+  assert.equal(app.db.prepare("SELECT count(*) n FROM audit WHERE action='finance_test.event_recorded'").get().n,4);
  }finally{await app.close()}
 });
