@@ -30,6 +30,39 @@ export function createFinanceTestJournal({db,clock,audit,readBody}){
    return reply(200,{items:rows.map(e=>({id:e.id,orderId:e.order_id,kind:e.kind,
     amountMinor:e.amount_minor,currency:e.currency,recordedAt:e.recorded_at,...flags})),...flags});
   }
+  // Read-only, provider-separated manual TEST observations. No payment verification.
+  const customerSummary=path.match(/^\\/v1\\/me\\/finance-test-reconciliation\\/([0-9a-f-]{36})$/i);
+  const adminSummary=path.match(/^\\/v1\\/admin\\/finance-test-reconciliation\\/([0-9a-f-]{36})$/i);
+  if(method==="GET"&&(customerSummary||adminSummary)){
+   if(adminSummary&&user.role!=="admin")return reply(403,{error:"forbidden"});
+   const orderId=(customerSummary||adminSummary)[1];
+   if(!UUID.test(orderId))return reply(404,{error:"not_found"});
+   const order=db.prepare("SELECT id,user_id,amount_minor,currency,state FROM sandbox_orders WHERE id=?").get(orderId);
+   if(!order||customerSummary&&order.user_id!==user.id)return reply(404,{error:"not_found"});
+   const grouped=db.prepare("SELECT provider,kind,COUNT(*) AS event_count,COALESCE(SUM(amount_minor),0) AS total_minor FROM finance_test_events WHERE order_id=? GROUP BY provider,kind").all(orderId);
+   const providers=[...new Set(grouped.map(row=>row.provider))].sort();
+   const observations=providers.map(provider=>{
+    const metric=kind=>grouped.find(row=>row.provider===provider&&row.kind===kind);
+    const charges=metric("test_charge_reported"),refunds=metric("test_refund_reported"),disputes=metric("test_dispute_reported");
+    const chargeCount=charges?.event_count??0,refundCount=refunds?.event_count??0,disputeCount=disputes?.event_count??0;
+    const reportedChargeMinor=charges?.total_minor??0,reportedRefundMinor=refunds?.total_minor??0;
+    const issues=[];
+    if(chargeCount===0)issues.push("missing_test_charge_report");
+    if(chargeCount>1)issues.push("multiple_test_charge_reports");
+    if(chargeCount===1&&reportedChargeMinor!==order.amount_minor)issues.push("test_charge_amount_mismatch");
+    if(reportedRefundMinor>reportedChargeMinor)issues.push("test_refunds_exceed_reported_charges");
+    if(reportedRefundMinor>order.amount_minor)issues.push("test_refunds_exceed_order");
+    if(disputeCount>0)issues.push("test_dispute_reported");
+    return {provider,chargeCount,refundCount,disputeCount,reportedChargeMinor,reportedRefundMinor,
+     reportedNetMinor:reportedChargeMinor-reportedRefundMinor,issues,
+     reviewRequired:issues.length>0,...flags};
+   });
+   const issues=observations.flatMap(item=>item.issues.map(code=>({provider:item.provider,code})));
+   if(providers.length===0)issues.push({provider:null,code:"no_test_observations"});
+   return reply(200,{orderId:order.id,orderAmountMinor:order.amount_minor,currency:order.currency,
+    orderState:order.state,providers:observations,issues,reviewRequired:issues.length>0,
+    observationStatus:"MANUAL_UNVERIFIED_TEST",...flags});
+  }
   if(!path.startsWith("/v1/admin/finance-test-events"))return null;
   if(user.role!=="admin")return reply(403,{error:"forbidden"});
   if(path==="/v1/admin/finance-test-events"&&method==="GET"){
