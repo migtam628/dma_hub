@@ -26,6 +26,11 @@ Manual TEST refunds are now capped cumulatively per order and provider, with ato
 
 A read-only, owner-scoped/admin-gated TEST reconciliation API summarizes **manually reported** charges, refunds, and disputes per sandbox order and provider. It flags missing charges, duplicate charge reports, refunds larger than reported charges, and dispute reports. No provider validation, money movement, paid access or licensing occurs. Xbox development is deferred; the active launch target is Windows PC only. See [finance TEST journal](docs/finance-test-journal.md).
 
+
+### Windows launcher local API bridge (November 4, 2026)
+
+The Tauri Windows UI has a direct loopback-only local API default, real connection status and Account/Cloud Profile navigation. Node API configuration accepts a separate exact-match `DESKTOP_ORIGIN` (default `http://tauri.localhost`) alongside the development-web origin. No wildcard CORS, embedded credentials, remote backend, payment approval or background device operations are added. A separate local API process is still required, and physical Windows testing is pending. See [desktop guide](docs/desktop.md).
+
 ## Overview
 
 DMA Hub is a modular, permission-first platform for discovering software, configuring supported tools, storing profiles, distributing releases, and monitoring devices with documented interfaces. The approved **Concept 3 — Professional Hybrid** design uses midnight navy, cyan actions, and restrained violet accents.
