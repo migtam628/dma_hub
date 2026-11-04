@@ -71,7 +71,7 @@ function normalizedProduct(v,previous=null){
  return {slug,name,description,status,category,features,requirements,gameIds};
 }
 function normalizedProfile(v){if(!v||typeof v!=="object"||Array.isArray(v))return null;const name=typeof v.name==="string"?v.name.trim():"";if(name.length<1||name.length>80)return null;const data=v.data;if(!data||typeof data!=="object"||Array.isArray(data))return null;const serialized=JSON.stringify(data);if(serialized.length>16000)return null;return {name,data:serialized}}
-export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:5173",clock=()=>Date.now(),sendEmail=null,requireEmailVerification=false,sandboxWebhookSecret=null,stripeTest=null,releaseLookup=undefined}={}){
+export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:5173",desktopOrigin="http://tauri.localhost",clock=()=>Date.now(),sendEmail=null,requireEmailVerification=false,sandboxWebhookSecret=null,stripeTest=null,releaseLookup=undefined}={}){
  if(requireEmailVerification&&typeof sendEmail!=="function")throw new Error("Email verification requires a configured mail transport");
  if(dbPath!==":memory:")mkdirSync(dirname(dbPath),{recursive:true});
  const db=new DatabaseSync(dbPath);
@@ -113,13 +113,13 @@ export function createApp({dbPath=":memory:",allowedOrigin="http://localhost:517
   }
  }
  function requireUser(req){const auth=req.headers.authorization||"";if(!auth.startsWith("Bearer "))return null;const token=auth.slice(7).trim();if(token.length<30||token.length>128)return null;return db.prepare("SELECT u.id,u.email,u.role,u.created_at,u.email_verified_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.disabled_at IS NULL").get(hashToken(token),clock())||null}
- function allowed(req){const origin=req.headers.origin;return !origin||origin===allowedOrigin}
+ function allowed(req){const origin=req.headers.origin;return !origin||origin===allowedOrigin||origin===desktopOrigin}
  const handler=async(req,res)=>{
   res.setHeader("Vary","Origin");
   res.setHeader("X-Frame-Options","DENY");
   res.setHeader("Content-Security-Policy","default-src 'none'; frame-ancestors 'none'");
   if(!allowed(req)){response(res,403,{error:"origin_not_allowed"});return}
-  if(req.headers.origin)res.setHeader("Access-Control-Allow-Origin",allowedOrigin);
+  if(req.headers.origin)res.setHeader("Access-Control-Allow-Origin",req.headers.origin);
   res.setHeader("Access-Control-Allow-Headers","Content-Type, Authorization, If-Match");
   res.setHeader("Access-Control-Allow-Methods","GET,POST,PATCH,DELETE,OPTIONS");
   if(req.method==="OPTIONS"){res.writeHead(204);res.end();return}
