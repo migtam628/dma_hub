@@ -21,6 +21,11 @@ The local API now has an [immutable, provider-neutral finance TEST observation j
 
 Manual TEST refunds are now capped cumulatively per order and provider, with atomic idempotent retries. These are unverified observations, not actual refund execution or settlement.
 
+
+### Windows PC next-phase finance reconciliation — November 3, 2026
+
+A read-only, owner-scoped/admin-gated TEST reconciliation API summarizes **manually reported** charges, refunds, and disputes per sandbox order and provider. It flags missing charges, duplicate charge reports, refunds larger than reported charges, and dispute reports. No provider validation, money movement, paid access or licensing occurs. Xbox development is deferred; the active launch target is Windows PC only. See [finance TEST journal](docs/finance-test-journal.md).
+
 ## Overview
 
 DMA Hub is a modular, permission-first platform for discovering software, configuring supported tools, storing profiles, distributing releases, and monitoring devices with documented interfaces. The approved **Concept 3 — Professional Hybrid** design uses midnight navy, cyan actions, and restrained violet accents.
