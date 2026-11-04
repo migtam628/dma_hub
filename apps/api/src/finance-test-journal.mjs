@@ -31,8 +31,8 @@ export function createFinanceTestJournal({db,clock,audit,readBody}){
     amountMinor:e.amount_minor,currency:e.currency,recordedAt:e.recorded_at,...flags})),...flags});
   }
   // Read-only, provider-separated manual TEST observations. No payment verification.
-  const customerSummary=path.match(/^\\/v1\\/me\\/finance-test-reconciliation\\/([0-9a-f-]{36})$/i);
-  const adminSummary=path.match(/^\\/v1\\/admin\\/finance-test-reconciliation\\/([0-9a-f-]{36})$/i);
+  const customerSummary=path.match(/^\/v1\/me\/finance-test-reconciliation\/([0-9a-f-]{36})$/i);
+  const adminSummary=path.match(/^\/v1\/admin\/finance-test-reconciliation\/([0-9a-f-]{36})$/i);
   if(method==="GET"&&(customerSummary||adminSummary)){
    if(adminSummary&&user.role!=="admin")return reply(403,{error:"forbidden"});
    const orderId=(customerSummary||adminSummary)[1];
