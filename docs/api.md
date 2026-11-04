@@ -167,3 +167,8 @@ Administrator-only manual evidence workflow. See [Xbox QA intake SOP](xbox-qa-pr
 ## Finance TEST observation journal (schema v19)
 
 GET /v1/me/finance-test-events returns sanitized owner-scoped history. GET /v1/admin/finance-test-events, GET /v1/admin/finance-test-events/:uuid and POST /v1/admin/finance-test-events require admin. POST accepts orderId, provider (sandbox or stripe_test), eventKey (8–80 allowed characters), kind (test_charge_reported, test_refund_reported, test_dispute_reported), and amountMinor. Exact event-key retries replay; conflicts return 409. All observations are manual, test-only, unverified, and have no payment or entitlement effects. See [finance journal](finance-test-journal.md).
+
+
+### Read-only finance TEST reconciliation (PC-local)
+
+`GET /v1/me/finance-test-reconciliation/:orderId` is owner-scoped (unowned orders return 404); `GET /v1/admin/finance-test-reconciliation/:orderId` is admin-only (403 for customers). Both summarize manual, unverified TEST finance observations by provider and report discrepancy flags. Totals are integer minor currency units, **not money movement**. These endpoints cannot issue refunds, payment receipts, entitlements, or licenses. `observationStatus=MANUAL_UNVERIFIED_TEST`; provider and settlement verification flags remain false. See [journal](finance-test-journal.md).
