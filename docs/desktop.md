@@ -39,3 +39,20 @@ The Tauri shell includes only `core:default` permissions and no device or remote
 ## GitHub Pages
 
 The Pages deployment remains a separate static web preview. It does not include the Rust/Tauri binary.
+
+## Windows launcher ↔ local API bridge (PC beta foundation)
+
+The Tauri app now directs requests to `http://127.0.0.1:8787` by default (only when running inside Tauri); normal browser deployments retain their previous API base logic. The packaged launcher offers live API health, in-memory account sessions, and authenticated cloud profile operations via the same React API client.
+
+Run the API on the **same Windows PC** in a separate process:
+
+```powershell
+$env:HOST="127.0.0.1"
+$env:PORT="8787"
+$env:DESKTOP_ORIGIN="http://tauri.localhost"
+npm run dev:api
+```
+
+Then start the desktop app and open **Launcher → Account** to register/sign in, **Launcher → Cloud Profiles** to create/retrieve/version a profile, and **Launcher → Overview** to recheck API health. The API accepts only the configured development-web and desktop origins, echoes only the matched allowed origin, and rejects other browser origins. The Tauri production origin should be checked on real Windows test machines; an origin mismatch must be corrected explicitly, not by allowing arbitrary origins.
+
+**Not yet complete:** bundled API process lifecycle, Windows end-to-end physical testing, cross-restart token recovery, hosted backend, signing and updater. The app has no live payment or game-tool downloads. The local API stays loopback-only.
