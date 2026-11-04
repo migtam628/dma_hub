@@ -33,3 +33,11 @@ Real processor TEST-account validation; independently verified financial ledger,
 ## Cumulative refund reporting guard (November 3, 2026)
 
 Manual TEST refunds are now capped cumulatively per order and provider, with atomic idempotent retries. These are unverified observations, not actual refund execution or settlement. The check runs inside the same SQLite immediate transaction as event insertion. Different providers are kept separate; no customer funds move. Refund events must be positive and cannot exceed the original order amount in aggregate per provider.
+
+## Read-only reconciliation summary (Windows PC local API, November 3, 2026)
+
+- `GET /v1/me/finance-test-reconciliation/:orderId` — authenticated owner only; unknown or unowned orders return 404.
+- `GET /v1/admin/finance-test-reconciliation/:orderId` — administrators only (403 otherwise).
+- Returns per-provider manual TEST counts and integer-minor-unit sums of charge/refund/dispute reports, reported net, and review flags. Missing reports, duplicate reported charges, reported refunds larger than reported charges, and disputes are marked for review. A provider with no reports is not assumed to have charged anything.
+- Providers are never combined into a settlement figure. No provider API is queried, and this summary does not verify money movement. Every response says `observationStatus: MANUAL_UNVERIFIED_TEST`, `providerVerified: false`, `settlementVerified: false`, and `accessGranted: false`.
+- This feature is read-only; it cannot change an order, refund, grant entitlement, or activate a license. Numerical aggregates describe **reported observations**, never a real account balance.
