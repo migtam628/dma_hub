@@ -31,3 +31,9 @@
 ## Release rule
 
 No beta readiness claim based on passing compilation or static previews alone. Record proof for each gate. Never convert manual TEST finance observations into payment/settlement or entitlement claims.
+
+### November 4 — Windows launcher local API bridge (implementation pending Windows verification)
+
+- Tauri-specific loopback API origin, main launcher API health state, account and cloud profile navigation.
+- Node API permits only the configured desktop and development web origins; cross-site origins fail closed, with regression tests.
+- Requires live Windows install/login/profile create-update/reload/logout checks and separate local API process. This is **not** accepted as an end-to-end beta gate until real Windows QA passes.
