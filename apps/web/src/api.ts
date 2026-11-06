@@ -55,7 +55,8 @@ export type SandboxOrder={id:string;productId:string;planId:string;amountMinor:n
 export type Entitlement={id:string;userId:string;productId:string;planId:string;source:"admin_test_grant"|"sandbox_order";productName:string|null;planName:string|null;state:"active"|"revoked";startsAt:number;expiresAt:number;revokedAt?:number|null;createdAt:number;accessStatus:"active"|"scheduled"|"expired"|"revoked"|"product_unavailable";accessAllowed:boolean};
 import {isTauri} from "@tauri-apps/api/core";
 export class ApiError extends Error{constructor(public status:number,public code:string,message?:string){super(message||code)}}
-const API_ROOT=(import.meta.env.VITE_API_URL||(isTauri()?"http://127.0.0.1:8787":((location.hostname==="localhost"||location.hostname==="127.0.0.1")?"http://localhost:8787":location.origin))).replace(/\/$/,"");
+// Packaged Windows clients must never inherit a remote build-time API override.
+const API_ROOT=(isTauri()?"http://127.0.0.1:8787":(import.meta.env.VITE_API_URL||((location.hostname==="localhost"||location.hostname==="127.0.0.1")?"http://localhost:8787":location.origin))).replace(/\/$/,"");
 async function request<T>(path:string,method="GET",body?:unknown,token?:string,version?:number):Promise<T>{
  const headers:Record<string,string>={"Accept":"application/json"};
  if(body!==undefined)headers["Content-Type"]="application/json";
