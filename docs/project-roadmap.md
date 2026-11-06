@@ -218,3 +218,11 @@ Payment provider, business terms, first supported production software/hardware c
 - Manual TEST refunds are now capped cumulatively per order and provider, with atomic idempotent retries. These are unverified observations, not actual refund execution or settlement.
 - Regression tests cover exact cap, overflow rejection, and replay without double-counting.
 - Still requires real processor TEST validation, authoritative ledger reconciliation, and independent production review.
+
+### November 6 — Windows loopback endpoint safety
+
+- [x] Force the packaged Tauri frontend to use the local loopback API regardless of web build-time `VITE_API_URL`.
+- [x] Expand API CORS tests to cover desktop preflight allow/deny behavior.
+- [ ] Verify Windows installer end-to-end on real Windows 10/11 hardware, including login, profile revisions, logout and API restart recovery.
+- [ ] Bundle and supervise a local API process safely, or document a separately installed and validated service. No automatic service installation or public binding is authorized.
+- [ ] Sign Windows binaries and verify publisher trust before production distribution.
