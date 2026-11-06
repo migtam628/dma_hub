@@ -56,3 +56,7 @@ npm run dev:api
 Then start the desktop app and open **Launcher → Account** to register/sign in, **Launcher → Cloud Profiles** to create/retrieve/version a profile, and **Launcher → Overview** to recheck API health. The API accepts only the configured development-web and desktop origins, echoes only the matched allowed origin, and rejects other browser origins. The Tauri production origin should be checked on real Windows test machines; an origin mismatch must be corrected explicitly, not by allowing arbitrary origins.
 
 **Not yet complete:** bundled API process lifecycle, Windows end-to-end physical testing, cross-restart token recovery, hosted backend, signing and updater. The app has no live payment or game-tool downloads. The local API stays loopback-only.
+
+## PC beta API endpoint hardening (November 6, 2026)
+
+Packaged Tauri clients always use `http://127.0.0.1:8787` even when `VITE_API_URL` is present during the web build. The environment override remains available to ordinary browser builds only. This prevents accidentally shipping a Windows preview pointed at a remote API. The local API is **not bundled or automatically started**; Windows install, sign-in, profile and restart recovery tests remain manual acceptance gates. Desktop-origin CORS preflight tests cover both the exact allowed origin and rejected origins.
