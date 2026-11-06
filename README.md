@@ -476,3 +476,7 @@ The [browser-local Setup Planner](https://dma.moobee.lol/#/setup) is an actual w
 The underlying validation and fail-closed readiness assessment are unit tested in `tests/setup-planner.test.mjs`. Browser imports are sanitized, and an unknown/unsupported platform, missing item or incomplete game build cannot imply software support.
 
 The workflow patterns are based on a dated, source-linked [competitor/reference audit](docs/competitive-reference-research.md), not copied product claims or content.
+
+### Windows PC local API safety — November 6, 2026
+
+Packaged Tauri builds now enforce `http://127.0.0.1:8787` for API requests even when a browser `VITE_API_URL` override is configured. Desktop CORS preflight regression checks were expanded. The Node API remains a separately started, loopback-only process; this is **not** a bundled backend, signed installer, or completed Windows beta acceptance test. See [desktop guide](docs/desktop.md).
