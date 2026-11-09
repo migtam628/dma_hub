@@ -2,6 +2,11 @@ import {createApp} from "./app.mjs";
 import {createResendTransport} from "./mailer.mjs";
 const port=Number(process.env.PORT||8787);
 const host=process.env.HOST||"127.0.0.1";
+// Local alpha API must never bind to public interfaces, even by accident.
+if(host!=="127.0.0.1"&&host!=="::1"){
+ console.error("DMA Hub API refuses non-loopback HOST; use 127.0.0.1 or ::1");
+ process.exit(1);
+}
 const dbPath=process.env.DB_PATH||"./data/dma-hub.sqlite";
 const allowedOrigin=process.env.WEB_ORIGIN||"http://localhost:5173";
 const desktopOrigin=process.env.DESKTOP_ORIGIN||"http://tauri.localhost";
