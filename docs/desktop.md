@@ -60,3 +60,7 @@ Then start the desktop app and open **Launcher → Account** to register/sign in
 ## PC beta API endpoint hardening (November 6, 2026)
 
 Packaged Tauri clients always use `http://127.0.0.1:8787` even when `VITE_API_URL` is present during the web build. The environment override remains available to ordinary browser builds only. This prevents accidentally shipping a Windows preview pointed at a remote API. The local API is **not bundled or automatically started**; Windows install, sign-in, profile and restart recovery tests remain manual acceptance gates. Desktop-origin CORS preflight tests cover both the exact allowed origin and rejected origins.
+
+## Loopback-only API bind guard (November 9, 2026)
+
+The Node API refuses `HOST=0.0.0.0`, `HOST=::`, remote IPs and hostnames instead of accidentally exposing local accounts or test commerce endpoints. Use `HOST=127.0.0.1` for the current Tauri launcher. `::1` is also accepted for an explicitly IPv6-loopback local API, but the current desktop frontend targets IPv4 loopback. This does not install, start, or supervise the API service automatically.
