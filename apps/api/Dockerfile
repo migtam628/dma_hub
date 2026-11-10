@@ -2,6 +2,7 @@ FROM node:22-bookworm-slim
 
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
+    DMA_CONTAINER_BIND=1 \
     PORT=8787 \
     DB_PATH=/var/lib/dmahub/dma-hub.sqlite
 
