@@ -484,3 +484,5 @@ Packaged Tauri builds now enforce `http://127.0.0.1:8787` for API requests even 
 ### Local API fail-closed binding (November 9, 2026)
 
 The standalone Node API refuses non-loopback `HOST` values at startup, including wildcard/public interfaces and hostnames. Only explicit `127.0.0.1` or `::1` are accepted. A subprocess regression test covers unsafe bind requests. This is defense in depth for the Windows PC alpha; it does not replace independent deployment security review.
+
+Docker exception (November 10): `HOST=0.0.0.0` is accepted only when `DMA_CONTAINER_BIND=1` and `/.dockerenv` is present, for internal container networking. The supported Compose configuration publishes port 8787 on host `127.0.0.1` only. Publishing the container port on a public host interface is unsupported and unsafe; the internal bind exception is not a general production exposure approval. API container and private staging smoke checks must pass before merging.
