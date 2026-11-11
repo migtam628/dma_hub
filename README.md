@@ -480,3 +480,9 @@ The workflow patterns are based on a dated, source-linked [competitor/reference 
 ### Windows PC local API safety — November 6, 2026
 
 Packaged Tauri builds now enforce `http://127.0.0.1:8787` for API requests even when a browser `VITE_API_URL` override is configured. Desktop CORS preflight regression checks were expanded. The Node API remains a separately started, loopback-only process; this is **not** a bundled backend, signed installer, or completed Windows beta acceptance test. See [desktop guide](docs/desktop.md).
+
+### Local API fail-closed binding (November 9, 2026)
+
+The standalone Node API refuses non-loopback `HOST` values at startup, including wildcard/public interfaces and hostnames. Only explicit `127.0.0.1` or `::1` are accepted. A subprocess regression test covers unsafe bind requests. This is defense in depth for the Windows PC alpha; it does not replace independent deployment security review.
+
+Docker exception (November 10): `HOST=0.0.0.0` is accepted only when `DMA_CONTAINER_BIND=1` and `/.dockerenv` is present, for internal container networking. The supported Compose configuration publishes port 8787 on host `127.0.0.1` only. Publishing the container port on a public host interface is unsupported and unsafe; the internal bind exception is not a general production exposure approval. API container and private staging smoke checks must pass before merging.

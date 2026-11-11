@@ -226,3 +226,12 @@ Payment provider, business terms, first supported production software/hardware c
 - [ ] Verify Windows installer end-to-end on real Windows 10/11 hardware, including login, profile revisions, logout and API restart recovery.
 - [ ] Bundle and supervise a local API process safely, or document a separately installed and validated service. No automatic service installation or public binding is authorized.
 - [ ] Sign Windows binaries and verify publisher trust before production distribution.
+
+### November 9 — local API bind hardening
+
+- [x] Reject wildcard, remote, and ambiguous API HOST settings before listening; accept only explicit loopback addresses.
+- [x] Add subprocess regression tests for refused bind requests.
+- [ ] Validate the Windows launcher and Node API on real Windows 10/11 hardware, including startup/restart and profile/auth flows.
+- [ ] Complete independent security review, signing and recovery validation before beta promotion.
+
+Docker exception (November 10): `HOST=0.0.0.0` is accepted only when `DMA_CONTAINER_BIND=1` and `/.dockerenv` is present, for internal container networking. The supported Compose configuration publishes port 8787 on host `127.0.0.1` only. Publishing the container port on a public host interface is unsupported and unsafe; the internal bind exception is not a general production exposure approval. API container and private staging smoke checks must pass before merging.
