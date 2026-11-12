@@ -44,7 +44,7 @@ test("API shuts down after SIGTERM and releases its listener",{skip:process.plat
   const port=await new Promise((resolve,reject)=>{
    const timer=setTimeout(()=>reject(new Error("API did not start")),8000);
    run.child.stdout.on("data",data=>{
-    const match=String(data).match(/127\\.0\\.0\\.1:(\\d+)/);
+    const match=String(data).match(/127\.0\.0\.1:(\d+)/);
     if(match){clearTimeout(timer);resolve(Number(match[1]))}
    });
    run.child.once("exit",()=>{clearTimeout(timer);reject(new Error("API exited early"))});
