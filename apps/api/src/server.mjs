@@ -22,6 +22,21 @@ const stripeTest={
  cancelUrl:process.env.STRIPE_TEST_CANCEL_URL
 };
 const {server,db}=createApp({dbPath,allowedOrigin,desktopOrigin,sendEmail:mailer,requireEmailVerification,sandboxWebhookSecret,stripeTest});
+let shuttingDown=false;
+server.on("error",error=>{
+ console.error("DMA Hub API failed to listen:",error.code||error.message);
+ try{db.close()}catch(closeError){console.error("Database close failed:",closeError.message)}
+ process.exitCode=1;
+});
 server.listen(port,host,()=>console.info("DMA Hub API listening at http://"+host+":"+port));
-const shutdown=()=>server.close(()=>{db.close();process.exit(0)});
-process.on("SIGINT",shutdown);process.on("SIGTERM",shutdown);
+function shutdown(){
+ if(shuttingDown)return;
+ shuttingDown=true;
+ // Stop accepting new connections and allow in-flight requests to complete.
+ server.close(error=>{
+  try{db.close()}catch(closeError){console.error("Database close failed:",closeError.message);process.exitCode=1}
+  if(error){console.error("API shutdown failed:",error.message);process.exitCode=1}
+ });
+}
+process.on("SIGINT",shutdown);
+process.on("SIGTERM",shutdown);
