@@ -28,7 +28,7 @@ server.on("error",error=>{
  try{db.close()}catch(closeError){console.error("Database close failed:",closeError.message)}
  process.exitCode=1;
 });
-server.listen(port,host,()=>console.info("DMA Hub API listening at http://"+host+":"+port));
+server.listen(port,host,()=>console.info("DMA Hub API listening at http://"+host+":"+server.address().port));
 function shutdown(){
  if(shuttingDown)return;
  shuttingDown=true;
