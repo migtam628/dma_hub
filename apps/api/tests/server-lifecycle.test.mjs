@@ -5,10 +5,11 @@ import {createServer} from "node:net";
 import {mkdtempSync,rmSync} from "node:fs";
 import {tmpdir} from "node:os";
 import {join} from "node:path";
+import {fileURLToPath} from "node:url";
 
 const script=new URL("../src/server.mjs",import.meta.url);
 function launch(env){
- const child=spawn(process.execPath,[script.pathname],{
+ const child=spawn(process.execPath,[fileURLToPath(script)],{
   env:{...process.env,...env},stdio:["ignore","pipe","pipe"]
  });
  let output="";
