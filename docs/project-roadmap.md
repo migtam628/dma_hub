@@ -235,3 +235,14 @@ Payment provider, business terms, first supported production software/hardware c
 - [ ] Complete independent security review, signing and recovery validation before beta promotion.
 
 Docker exception (November 10): `HOST=0.0.0.0` is accepted only when `DMA_CONTAINER_BIND=1` and `/.dockerenv` is present, for internal container networking. The supported Compose configuration publishes port 8787 on host `127.0.0.1` only. Publishing the container port on a public host interface is unsupported and unsafe; the internal bind exception is not a general production exposure approval. API container and private staging smoke checks must pass before merging.
+
+### November 12 — local API lifecycle safety
+
+- [x] Handle occupied loopback port startup failures and close the database with nonzero process status.
+- [x] Add idempotent SIGINT/SIGTERM shutdown and subprocess regression coverage.
+- [ ] Verify clean shutdown, restart, and port reuse on physical Windows 10/11 machines.
+- [ ] Implement approved local service packaging and crash recovery without remote binding.
+- [ ] Complete independent security review, signing, and release acceptance before production claims.
+
+- [x] Address PR #33 code-review findings: correct subprocess startup-output regex and use native Windows-compatible file paths.
+- [ ] Re-run and confirm CI on the corrected PR head before merging; Windows hardware lifecycle acceptance remains outstanding.

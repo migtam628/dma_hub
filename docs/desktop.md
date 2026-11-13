@@ -66,3 +66,7 @@ Packaged Tauri clients always use `http://127.0.0.1:8787` even when `VITE_API_UR
 The Node API refuses `HOST=0.0.0.0`, `HOST=::`, remote IPs and hostnames instead of accidentally exposing local accounts or test commerce endpoints. Use `HOST=127.0.0.1` for the current Tauri launcher. `::1` is also accepted for an explicitly IPv6-loopback local API, but the current desktop frontend targets IPv4 loopback. This does not install, start, or supervise the API service automatically.
 
 Docker exception (November 10): `HOST=0.0.0.0` is accepted only when `DMA_CONTAINER_BIND=1` and `/.dockerenv` is present, for internal container networking. The supported Compose configuration publishes port 8787 on host `127.0.0.1` only. Publishing the container port on a public host interface is unsupported and unsafe; the internal bind exception is not a general production exposure approval. API container and private staging smoke checks must pass before merging.
+
+## Local API lifecycle regression (November 12, 2026)
+
+The separately launched Node API now reports listen failures and exits nonzero when the loopback port is occupied. SIGINT/SIGTERM shutdown closes the listener and SQLite connection, with repeated signals ignored during shutdown. Automated subprocess tests cover occupied ports and POSIX termination; Windows process lifecycle and installer recovery remain unverified. This does not install a service, expose the API, or enable any hardware operation.
