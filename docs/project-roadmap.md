@@ -243,3 +243,6 @@ Docker exception (November 10): `HOST=0.0.0.0` is accepted only when `DMA_CONTAI
 - [ ] Verify clean shutdown, restart, and port reuse on physical Windows 10/11 machines.
 - [ ] Implement approved local service packaging and crash recovery without remote binding.
 - [ ] Complete independent security review, signing, and release acceptance before production claims.
+
+- [x] Address PR #33 code-review findings: correct subprocess startup-output regex and use native Windows-compatible file paths.
+- [ ] Re-run and confirm CI on the corrected PR head before merging; Windows hardware lifecycle acceptance remains outstanding.
