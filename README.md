@@ -490,3 +490,5 @@ Docker exception (November 10): `HOST=0.0.0.0` is accepted only when `DMA_CONTAI
 ### Local API process lifecycle — November 12, 2026
 
 The local API now handles occupied-port startup errors with a nonzero exit and closes its SQLite connection on failure. SIGINT/SIGTERM shutdown is idempotent and stops accepting new requests before closing the database. Subprocess regression tests cover port conflicts and POSIX termination. This is **not** an installed Windows service or supervised backend; Windows restart/recovery and physical installation tests remain pending.
+
+Review follow-up (November 13): lifecycle test startup matching now uses the correct regular expression, and child-process script paths use `fileURLToPath` for Windows and paths containing spaces. CI must rerun on the corrected commit before merge.
