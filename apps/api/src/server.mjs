@@ -1,7 +1,13 @@
 import {existsSync} from "node:fs";
 import {createApp} from "./app.mjs";
 import {createResendTransport} from "./mailer.mjs";
-const port=Number(process.env.PORT||8787);
+// Validate configuration before opening the database or attempting a listener.
+const portText=process.env.PORT??"8787";
+if(!/^[1-9][0-9]*$/.test(portText)||!Number.isSafeInteger(Number(portText))||Number(portText)>65535){
+ console.error("DMA Hub API refuses invalid PORT; expected an integer from 1 to 65535");
+ process.exit(1);
+}
+const port=Number(portText);
 const host=process.env.HOST||"127.0.0.1";
 // Local alpha API must never bind to public interfaces, even by accident.
 const containerBind=host==="0.0.0.0"&&process.env.DMA_CONTAINER_BIND==="1"&&existsSync("/.dockerenv");
