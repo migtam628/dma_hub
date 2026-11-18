@@ -496,3 +496,5 @@ Review follow-up (November 13): lifecycle test startup matching now uses the cor
 ### Local API port configuration validation (November 17, 2026)
 
 The standalone API now fails closed before database initialization if `PORT` is empty, malformed, zero, negative, non-integer or greater than 65535. Only decimal integer ports 1–65535 are accepted. Regression tests cover invalid values. This does not bundle the API with the Windows launcher or certify the installer.
+
+Port validation regression follow-up (November 18): host rejection tests now use a valid port to exercise the HOST policy, and lifecycle shutdown tests reserve an available nonzero port before launching. This does not authorize PORT=0 in the runtime. CI re-verification is required before merge.
