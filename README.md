@@ -492,3 +492,9 @@ Docker exception (November 10): `HOST=0.0.0.0` is accepted only when `DMA_CONTAI
 The local API now handles occupied-port startup errors with a nonzero exit and closes its SQLite connection on failure. SIGINT/SIGTERM shutdown is idempotent and stops accepting new requests before closing the database. Subprocess regression tests cover port conflicts and POSIX termination. This is **not** an installed Windows service or supervised backend; Windows restart/recovery and physical installation tests remain pending.
 
 Review follow-up (November 13): lifecycle test startup matching now uses the correct regular expression, and child-process script paths use `fileURLToPath` for Windows and paths containing spaces. CI must rerun on the corrected commit before merge.
+
+### Local API port configuration validation (November 17, 2026)
+
+The standalone API now fails closed before database initialization if `PORT` is empty, malformed, zero, negative, non-integer or greater than 65535. Only decimal integer ports 1–65535 are accepted. Regression tests cover invalid values. This does not bundle the API with the Windows launcher or certify the installer.
+
+Port validation regression follow-up (November 18): host rejection tests now use a valid port to exercise the HOST policy, and lifecycle shutdown tests reserve an available nonzero port before launching. This does not authorize PORT=0 in the runtime. CI re-verification is required before merge.

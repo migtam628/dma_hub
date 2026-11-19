@@ -246,3 +246,16 @@ Docker exception (November 10): `HOST=0.0.0.0` is accepted only when `DMA_CONTAI
 
 - [x] Address PR #33 code-review findings: correct subprocess startup-output regex and use native Windows-compatible file paths.
 - [ ] Re-run and confirm CI on the corrected PR head before merging; Windows hardware lifecycle acceptance remains outstanding.
+
+### November 17 — local API configuration validation
+
+- [x] Reject malformed, empty and out-of-range API `PORT` values before initializing the SQLite database or opening a listener.
+- [x] Add subprocess regression tests for invalid port configuration.
+- [ ] Verify new tests and container smoke workflows on the final PR commit before merging.
+- [ ] Complete Windows physical restart, occupied-port and installer recovery testing; verify signed distribution and security gates separately.
+
+### November 18 — strict PORT test compatibility
+
+- [x] Correct existing HOST rejection and SIGTERM lifecycle regression tests that assumed ephemeral `PORT=0` after strict port validation was introduced.
+- [ ] Confirm fresh Web/API CI and container/staging workflows on the corrected PR #34 head before merge.
+- [ ] Complete physical Windows lifecycle and signed installer acceptance; no production readiness claim.

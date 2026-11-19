@@ -70,3 +70,7 @@ Docker exception (November 10): `HOST=0.0.0.0` is accepted only when `DMA_CONTAI
 ## Local API lifecycle regression (November 12, 2026)
 
 The separately launched Node API now reports listen failures and exits nonzero when the loopback port is occupied. SIGINT/SIGTERM shutdown closes the listener and SQLite connection, with repeated signals ignored during shutdown. Automated subprocess tests cover occupied ports and POSIX termination; Windows process lifecycle and installer recovery remain unverified. This does not install a service, expose the API, or enable any hardware operation.
+
+## API port validation (November 17, 2026)
+
+The separately started Node API requires `PORT` to be a decimal integer in the range 1–65535; invalid configuration exits before database initialization. The Windows launcher still targets loopback port 8787 and does not start the API itself. This validation is not a replacement for physical Windows recovery testing.

@@ -40,7 +40,11 @@ test("API exits nonzero with an occupied loopback port",async()=>{
 });
 test("API shuts down after SIGTERM and releases its listener",{skip:process.platform==="win32"},async()=>{
  const dir=mkdtempSync(join(tmpdir(),"dma-api-stop-"));
- const run=launch({HOST:"127.0.0.1",PORT:"0",DB_PATH:join(dir,"api.sqlite")});
+ const reservation=createServer();
+ await new Promise(resolve=>reservation.listen(0,"127.0.0.1",resolve));
+ const availablePort=reservation.address().port;
+ await new Promise(resolve=>reservation.close(resolve));
+ const run=launch({HOST:"127.0.0.1",PORT:String(availablePort),DB_PATH:join(dir,"api.sqlite")});
  try{
   const port=await new Promise((resolve,reject)=>{
    const timer=setTimeout(()=>reject(new Error("API did not start")),8000);
