@@ -259,3 +259,10 @@ Docker exception (November 10): `HOST=0.0.0.0` is accepted only when `DMA_CONTAI
 - [x] Correct existing HOST rejection and SIGTERM lifecycle regression tests that assumed ephemeral `PORT=0` after strict port validation was introduced.
 - [ ] Confirm fresh Web/API CI and container/staging workflows on the corrected PR #34 head before merge.
 - [ ] Complete physical Windows lifecycle and signed installer acceptance; no production readiness claim.
+
+### November 20, 2026 — Manual TEST reconciliation safety review
+
+- [x] Add read-only review flags for non-pending sandbox orders and mixed-provider manual TEST reports, without changing order, payment, or entitlement state.
+- [x] Add cancelled-order regression asserting reviewRequired and fail-closed verification/access flags.
+- [ ] Confirm branch CI and container/staging workflows before merging; independently verify provider-backed reconciliation before any commercial activation.
+- [ ] Windows physical acceptance, signed distribution, operational security review and live-payment approval remain outstanding.

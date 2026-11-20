@@ -64,6 +64,15 @@ test("read-only TEST reconciliation detects missing charges, duplicate reports a
   assert.equal(JSON.stringify(summary).includes(owner.user.id),false);
   assert.equal(app.db.prepare("SELECT COUNT(*) n FROM entitlements").get().n,0);
   assert.equal(app.db.prepare("SELECT state FROM sandbox_orders WHERE id=?").get(id).state,"pending");
+  // Canceled orders with manual TEST reports require review; never grant access.
+  app.db.prepare("UPDATE sandbox_orders SET state='cancelled' WHERE id=?").run(id);
+  const canceled=(await call(mine,"GET",undefined,owner.token)).body;
+  assert(canceled.issues.some(issue=>issue.code==="sandbox_order_not_pending"));
+  assert.equal(canceled.reviewRequired,true);
+  assert.equal(canceled.providerVerified,false);
+  assert.equal(canceled.settlementVerified,false);
+  assert.equal(canceled.accessGranted,false);
+  assert.equal(app.db.prepare("SELECT COUNT(*) n FROM entitlements").get().n,0);
   assert.equal((await call(admin,"POST",undefined,staff.token)).status!==200,true);
  }finally{await app.close()}
 });
