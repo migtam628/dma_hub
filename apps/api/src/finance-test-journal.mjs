@@ -59,6 +59,10 @@ export function createFinanceTestJournal({db,clock,audit,readBody}){
    });
    const issues=observations.flatMap(item=>item.issues.map(code=>({provider:item.provider,code})));
    if(providers.length===0)issues.push({provider:null,code:"no_test_observations"});
+   // A manual journal cannot prove settlement. Flag conflicting providers and
+   // non-pending sandbox orders for operator review, without mutating access.
+   if(providers.length>1)issues.push({provider:null,code:"multiple_test_providers_reported"});
+   if(order.state!=="pending")issues.push({provider:null,code:"sandbox_order_not_pending"});
    return reply(200,{orderId:order.id,orderAmountMinor:order.amount_minor,currency:order.currency,
     orderState:order.state,providers:observations,issues,reviewRequired:issues.length>0,
     observationStatus:"MANUAL_UNVERIFIED_TEST",...flags});
