@@ -498,3 +498,7 @@ Review follow-up (November 13): lifecycle test startup matching now uses the cor
 The standalone API now fails closed before database initialization if `PORT` is empty, malformed, zero, negative, non-integer or greater than 65535. Only decimal integer ports 1–65535 are accepted. Regression tests cover invalid values. This does not bundle the API with the Windows launcher or certify the installer.
 
 Port validation regression follow-up (November 18): host rejection tests now use a valid port to exercise the HOST policy, and lifecycle shutdown tests reserve an available nonzero port before launching. This does not authorize PORT=0 in the runtime. CI re-verification is required before merge.
+
+### Manual TEST finance reconciliation review guards (November 20, 2026)
+
+The read-only customer/admin finance TEST reconciliation summary now explicitly flags sandbox orders outside the pending state (`sandbox_order_not_pending`) and reports attributed to multiple TEST providers (`multiple_test_providers_reported`). These are **operator review signals**, not payment verification. Neither the journal nor these checks issue paid entitlements, confirm settlement, or activate hardware. Regression coverage checks cancelled-order review and continued access denial. Production payment processing remains disabled.
